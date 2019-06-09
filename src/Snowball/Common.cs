@@ -27,16 +27,14 @@ namespace Snowball
 
     public struct BroadcastInfo
     {
-        public BroadcastInfo(byte measure, byte minor, byte key)
+        public BroadcastInfo(byte measure, byte minor)
         {
             this.Measure = measure;
             this.Minor = minor;
-            this.Key = key;
         }
 
         public byte Measure;
         public byte Minor;
-        public byte Key;
     }
 
     /*

@@ -25,7 +25,7 @@ namespace Snowball
         int maxPacketSize = 4096;
         public int MaxPacketSize { get { return maxPacketSize; } set { if (!IsOpened) maxPacketSize = value; } }
 
-        protected BroadcastInfo broadcastInfo = new BroadcastInfo(1, 0, 234);
+        protected BroadcastInfo broadcastInfo = new BroadcastInfo(1, 0);
         public BroadcastInfo BroadcastInfo { get { return broadcastInfo; } set { if (!IsOpened) broadcastInfo = value; } }
 
         public delegate void ConnectedHandler(ComNode node);
@@ -39,6 +39,13 @@ namespace Snowball
         protected Dictionary<string, ComNode> nodeMap = new Dictionary<string, ComNode>();
         protected Dictionary<ComNode, TCPConnection> connectionMap = new Dictionary<ComNode, TCPConnection>();
 
+        public delegate string BeaconDataGenerateFunc(BroadcastInfo info);
+        BeaconDataGenerateFunc BeaconDataCreate = (info) => {
+            return "{\"major\"=" + info.Measure + "\"minor\"=" + info.Minor + "}"; 
+            };
+
+        public void SetBeaconDataCreateFunction(BeaconDataGenerateFunc func) { BeaconDataCreate = func; }
+
         UDPSender udpSender;
         UDPReceiver udpReceiver;
 
@@ -49,7 +56,7 @@ namespace Snowball
         public int BeaconIntervalMs { get { return beaconIntervalMs; } set { if (!IsOpened) beaconIntervalMs = value; } }
         Timer beaconTimer;
 
-        int maxHealthLostCount = 3;
+        int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
 
         List<string> beaaconList = new List<string>();
@@ -123,7 +130,9 @@ namespace Snowball
 
             int pos = (int)stream.Position;
 
-            MessagePackSerializer.Serialize(stream, broadcastInfo.Key);
+            string data = BeaconDataCreate(broadcastInfo);
+
+            MessagePackSerializer.Serialize(stream, data);
 
             int maxpos = (int)stream.Position;
 

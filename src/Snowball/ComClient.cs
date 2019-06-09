@@ -29,9 +29,6 @@ namespace Snowball
         int maxPacketSize = 4096;
         public int MaxPacketSize { get { return maxPacketSize; } set { if (!IsOpened) maxPacketSize = value; } }
 
-        protected BroadcastInfo broadcastInfo = new BroadcastInfo(1, 0, 234);
-        public BroadcastInfo BroadcastInfo { get { return broadcastInfo; } set { if (!IsOpened) broadcastInfo = value; } }
-
         public delegate void ConnectedHandler(ComNode node);
         public ConnectedHandler OnConnected;
 
@@ -39,6 +36,11 @@ namespace Snowball
         public DisconnectedHandler OnDisconnected;
 
         protected Dictionary<short, DataChannel> dataChannelMap = new Dictionary<short, DataChannel>();
+
+        public delegate bool BeaconAcceptFunc(string data);
+        BeaconAcceptFunc BeaconAccept = (data) => { return true; };
+
+        public void SetBeaconAcceptFunction(BeaconAcceptFunc func) { BeaconAccept = func; }
 
         ComNode serverNode;
         TCPConnection connection;
@@ -50,7 +52,7 @@ namespace Snowball
 
         int healthLostCount = 0;
 
-        int maxHealthLostCount = 3;
+        int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
 
         bool isConnecting = false;
@@ -156,7 +158,7 @@ namespace Snowball
             return false;
         }
 
-            void OnConnectedInternal(TCPConnection connection)
+        void OnConnectedInternal(TCPConnection connection)
         {
             this.connection = connection;
             serverNode = new ComNode(connection.IP);
@@ -206,9 +208,12 @@ namespace Snowball
 
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
-                    if (acceptBeacon)
+                    if (acceptBeacon && !isConnecting && !IsConnected)
                     {
-                        Connect(endPointIp);
+                        MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
+                        string beaconData = (string)MessagePackSerializer.Typeless.Deserialize(stream);
+
+                        if(BeaconAccept(beaconData)) Connect(endPointIp);
                     }
                 }
                 else if (!dataChannelMap.ContainsKey(channelId))
