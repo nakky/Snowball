@@ -36,8 +36,10 @@ namespace Snowball
 
             listener.Start();
 
-            try{
-                while (IsActive)
+
+            while (IsActive)
+            {
+                try
                 {
                     TcpClient client = await listener.AcceptTcpClientAsync();
 
@@ -49,18 +51,28 @@ namespace Snowball
                     if (OnConnected != null) OnConnected(connection);
 
                     connection.Start();
-
                 }
-            }catch(Exception e){
-                Util.Log(e.Message);
+                catch //(Exception e)
+                {
+                    //Util.Log(e.Message);
+                }
             }
 
         }
+    
 
         public void Stop()
         {
             IsActive = false;
-            listener.Stop();
+            try
+            {
+                listener.Stop();
+            }
+            catch //(Exception e)
+            {
+                //Util.Log("Stop:" + e.Message);
+            }
         }
+
     }
 }
