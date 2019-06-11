@@ -22,7 +22,7 @@ namespace Snowball
         int sendPortNumber = 59902;
         public int SendPortNumber { get { return sendPortNumber; } set { if (!IsOpened) sendPortNumber = value; } }
 
-        int bufferSize = 4096;
+        int bufferSize = 8192;
         public int BufferSize { get { return bufferSize; } set { if (!IsOpened) bufferSize = value; } }
 
         public delegate void ConnectedHandler(ComNode node);

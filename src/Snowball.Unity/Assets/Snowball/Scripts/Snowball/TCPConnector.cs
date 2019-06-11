@@ -15,7 +15,7 @@ namespace Snowball
         public delegate void ConnectedHandler(TCPConnection connection);
         public ConnectedHandler OnConnected;
 
-        int connectionBufferSize = 4098;
+        int connectionBufferSize = 8192;
         public int ConnectionBufferSize { get { return connectionBufferSize; } set { connectionBufferSize = value; } }
 
         public TCPConnector(int portNum)
@@ -26,6 +26,8 @@ namespace Snowball
         public async void Connect(string ip)
         {            
             TcpClient client = new TcpClient();
+            client.SendBufferSize = connectionBufferSize;
+            client.ReceiveBufferSize = connectionBufferSize;
             client.SendTimeout = DefaultSendTimeoutMs;
             client.ReceiveTimeout = DefaultReceiveTimeoutMs;
 

@@ -16,7 +16,7 @@ namespace Snowball
         public string IP { get; private set; }
         public int Port { get; private set; }
 
-        public const int DefaultBufferSize = 4098;
+        public const int DefaultBufferSize = 8192;
 
         byte[] receiveBuffer;
 
@@ -77,7 +77,7 @@ namespace Snowball
                     //Util.Log("Read");
                     resSize = await nStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
 
-                    if(resSize == receiveBuffer.Length) Util.Log("read " + resSize + " byte");
+                    //if(resSize == receiveBuffer.Length) Util.Log("read " + resSize + " byte");
                 }
                 catch//(Exception e)
                 {

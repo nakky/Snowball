@@ -157,7 +157,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            CompressionType comp = CompressionType.LZ4;
+            CompressionType comp = CompressionType.None;
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
@@ -282,7 +282,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            CompressionType comp = CompressionType.LZ4;
+            CompressionType comp = CompressionType.None;
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
@@ -362,6 +362,83 @@ namespace Snowball.Tests
                 }
                 else if (sw.Elapsed.Seconds >= 5)
                 {
+                    client.Close();
+                    throw new TimeoutException();
+                }
+
+                Task.Delay(100);
+            }
+            sw.Stop();
+
+            Disconnect(ref client);
+        }
+
+        [Fact]
+        //[Fact(Skip = "Skipped")]
+        public void StressTestReliable()
+        {
+            Util.Log("StressTestReliable");
+
+            ComClient client = new ComClient();
+            client.ListenPortNumber = this.server.SendPort;
+            client.SendPortNumber = this.server.ListenPort;
+
+            client.BufferSize = 8192 * 10;
+
+            Connect(ref client);
+            server.Server.BeaconStop();
+
+            int recvTestNum = 0;
+            int sendTestNum = 0;
+
+            //AddChannel
+            TestClass testData = new TestClass();
+            testData.intData = 6;
+            testData.floatData = 6.6f;
+            testData.stringData = "Are you human?";
+
+            CompressionType comp = CompressionType.None;
+
+            //Byte
+            //Class
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
+            {
+                if (
+                    data.intData == testData.intData
+                    && data.floatData == testData.floatData
+                    && data.stringData == testData.stringData
+                )
+                {
+                    recvTestNum++;
+                }
+            }));
+
+            Random random = new Random();
+            sendTestNum = random.Next(500, 600);
+
+            Util.Log("sendTestNum:" + sendTestNum);
+
+            //Send
+            for(int i = 0; i < sendTestNum; i++)
+            {
+                client.SendData((short)ChannelId.ClassRel, testData);
+            }
+
+
+            Stopwatch sw = new Stopwatch();
+
+            sw.Reset();
+            sw.Start();
+
+            while (true)
+            {
+                if (recvTestNum == sendTestNum)
+                {
+                    break;
+                }
+                else if (sw.Elapsed.Seconds >= 20)
+                {
+                    Util.Log("recvTestNum;" + recvTestNum);
                     client.Close();
                     throw new TimeoutException();
                 }

@@ -13,7 +13,7 @@ namespace Snowball
         int DefaultListenPort = 59902;
 
         [SerializeField]
-        int DefaultBufferSize = 4096;
+        int DefaultBufferSize = 8192;
 
         public bool IsOpened { get { return com.IsOpened; } }
 
@@ -47,7 +47,6 @@ namespace Snowball
 
         private void OnDestroy()
         {
-            Util.Log("client:OnDestroy");
             com.Close();
         }
 

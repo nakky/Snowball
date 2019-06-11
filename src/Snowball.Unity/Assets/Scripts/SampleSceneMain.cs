@@ -35,7 +35,7 @@ public class SampleSceneMain : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 
-        server.AddChannel(new DataChannel<ObjState>(0, QosType.Reliable, Snowball.CompressionType.LZ4, (node, data) => {
+        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.CompressionType.LZ4, (node, data) => {
             serverObject.transform.localPosition = data.position;
             serverObject.transform.localRotation = data.rotation;
         }));
@@ -44,7 +44,7 @@ public class SampleSceneMain : MonoBehaviour
             Debug.Log("rec:" + data);
         }));
 
-        client.AddChannel(new DataChannel<ObjState>(0, QosType.Reliable, Snowball.CompressionType.LZ4, (node, data) => {
+        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.CompressionType.LZ4, (node, data) => {
         }));
 
         client.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.CompressionType.None, (node, data) => {
@@ -60,7 +60,7 @@ public class SampleSceneMain : MonoBehaviour
 
     }
 
-    bool sw = true;
+    int sw = 0;
 
     // Update is called once per frame
     void Update()
@@ -76,7 +76,7 @@ public class SampleSceneMain : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            client.SendData(1, "aaaaafasdfg");
+            client.SendData(1, "Hello Unity!");
         }
     }
 }

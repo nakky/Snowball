@@ -30,6 +30,7 @@ namespace Snowball.Tests
             Server = new ComServer();
             Server.SendPortNumber = SendPort;
             Server.ListenPortNumber = ListenPort;
+            Server.BufferSize = 8192 * 10;
 
             Server.AddBeaconList(IPAddress.Broadcast.ToString());
 
@@ -51,7 +52,7 @@ namespace Snowball.Tests
 
         void AddEchoChannel()
         {
-            CompressionType comp = CompressionType.LZ4;
+            CompressionType comp = CompressionType.None;
 
             //Byte
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
