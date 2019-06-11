@@ -139,7 +139,7 @@ Data Channel also can be set QoS Type (Reliable / Unreliable), and compression s
 client.AddChannel(new DataChannel<string>(0, QosType.Reliable, CompressionType.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
-client.AddChannel(new DataChannel<TestClass>(1, QosType.Unnreliable, CompressionType.LZ4, (node, data) => {
+client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, CompressionType.LZ4, (node, data) => {
 	Util.Log("Client Receive:" + data.ToString());       
 }));
 ```
