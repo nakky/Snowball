@@ -19,7 +19,10 @@ Install-Package Snowball
 ```
 
 ### Unity  
-In preparation.
+We recommend to download Unity Package from [github](https://github.com/nakky/Snowball/releases/).
+
+In fact, you also use Snowball by copying .net Snowball sources to your Unity Project.
+
 
 ## Quick Start
 Declear using directive if you need.
@@ -84,6 +87,19 @@ server.Close();
 ```csharp
 client.Close();
 ```
+### Unity
+
+In Unity project, you can use ComServer/ComClient like .Net.
+But Unity has useful archtecture (Inspector, and so on), so we implement wrapper which is inherited from MonoBehaviour. (Snowball.Server, Snowball.Client). You can use them like ComServer and ComClient, and also set default parameters by Inspector.
+
+```csharp
+[SerializeField]
+Server server;
+~~~
+server.Open();
+```
+
+In Unity, Prefab is also useful function, so we prepared some Prefabs in Snowball Unity Package.
 
 ## Overview
 
