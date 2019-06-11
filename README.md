@@ -21,8 +21,12 @@ Install-Package Snowball
 ### Unity  
 We recommend to download Unity Package from [github](https://github.com/nakky/Snowball/releases/).
 
-In fact, you also use Snowball by copying .net Snowball sources to your Unity Project.
+You must install [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) because Snowball depends on it. Unity Packages of MessagePack are distributed in [github](https://github.com/neuecc/MessagePack-CSharp/releases).
 
+In Snowball, relatively new features of C# are userd (ex. async/await), so you must set "Scripting Runtime Version" to ". NET 4.x".
+
+Some features of MessagePack are limited by setting of Player Settings. 
+You must set "API Compatibility Level" to ". NET 4.x" in Player Settings. Refer to MessagePack documentations for more details.
 
 ## Quick Start
 Declear using directive if you need.
@@ -89,7 +93,7 @@ client.Close();
 ```
 ### Unity
 
-In Unity project, you can use ComServer/ComClient like .Net.
+In Unity project, you can use ComServer/ComClient like .NET.
 But Unity has useful archtecture (Inspector, and so on), so we implement wrapper which is inherited from MonoBehaviour. (Snowball.Server, Snowball.Client). You can use them like ComServer and ComClient, and also set default parameters by Inspector.
 
 ```csharp
@@ -112,14 +116,14 @@ Snowball use UDP, though if you want to test on localhost, you can not use same 
 (Default port numbers are constracting.)
 
 ```csharp
-server.SendPortNumber(50001);
-server.ListenPortNumber(50002);
+server.SendPortNumber = 50001;
+server.ListenPortNumber = 50002;
 server.Open();
 ```
 
 ```csharp
-client.SendPortNumber(50002);
-client.ListenPortNumber(50001);
+client.SendPortNumber = 50002;
+client.ListenPortNumber = 50001;
 client.Open();
 ```
 
