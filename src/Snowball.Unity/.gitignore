@@ -1,0 +1,21 @@
+*.csproj
+*.sln
+*.suo
+Library/
+Temp/
+obj/
+
+
+*.userprefs
+build
+.DS_Store
+
+error.txt
+
+.vs
+Builds
+
+# 3rd
+Assets/Scripts/MessagePack/
+Assets/Scripts/MessagePack.meta
+

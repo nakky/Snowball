@@ -28,9 +28,8 @@ namespace Snowball.ChatServer
                 server.Broadcast(room, 0, node.UserName + " is logouted.");
             };
 
-            server.AddChannel(new DataChannel(0, QosType.Reliable, CompressionType.None, (node, data) =>{
-                string text = (string)data;
-                server.Broadcast(room, 0, node.UserName + " > " + text);
+            server.AddChannel(new DataChannel<string>(0, QosType.Reliable, CompressionType.None, (node, data) =>{
+                server.Broadcast(room, 0, node.UserName + " > " + data);
             }));
 
             server.Open();

@@ -46,6 +46,8 @@ namespace Snowball.Tests
             bool connected = false;
             Stopwatch sw = new Stopwatch();
 
+            client.SetBeaconAcceptFunction((data) => { if (data == "Test") return true; else return false; });
+
             client.OnConnected += (node) =>
             {
                 connected = true;
@@ -158,64 +160,54 @@ namespace Snowball.Tests
             CompressionType comp = CompressionType.LZ4;
 
             //Byte
-            client.AddChannel(new DataChannel((short)ChannelId.ByteRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
             {
-                byte d = (byte)data;
-                if (d == byteData) byteCheck = true;
+                if (data == byteData) byteCheck = true;
             }));
 
             //Short
-            client.AddChannel(new DataChannel((short)ChannelId.ShortRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRel, QosType.Reliable, comp, (node, data) =>
             {
-                short d = (short)data;
-                if (d == shortData) shortCheck = true;
+                if (data == shortData) shortCheck = true;
             }));
 
             //Int
-            client.AddChannel(new DataChannel((short)ChannelId.IntRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRel, QosType.Reliable, comp, (node, data) =>
             {
-                int d = (int)data;
-                if (d == intData) intCheck = true;
+                if (data == intData) intCheck = true;
             }));
 
             //Float
-            client.AddChannel(new DataChannel((short)ChannelId.FloatRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, (node, data) =>
             {
-                float d = (float)data;
-                if (d == floatData) floatCheck = true;
+                if (data == floatData) floatCheck = true;
             }));
 
             //Double
-            client.AddChannel(new DataChannel((short)ChannelId.DoubleRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRel, QosType.Reliable, comp, (node, data) =>
             {
-                double d = (double)data;
-                if (d == doubleData) doubleCheck = true;
+                if (data == doubleData) doubleCheck = true;
             }));
 
             //String
-            client.AddChannel(new DataChannel((short)ChannelId.StringRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRel, QosType.Reliable, comp, (node, data) =>
             {
-                string d = (string)data;
-                if (d == stringData) stringCheck = true;
+                if (data == stringData) stringCheck = true;
             }));
 
             //Class
-            client.AddChannel(new DataChannel((short)ChannelId.ClassRel, QosType.Reliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
             {
-                TestClass d = (TestClass)data;
-            if (
-                d.intData == testData.intData
-                && d.floatData == testData.floatData
-                && d.stringData == testData.stringData
+                if (
+                    data.intData == testData.intData
+                    && data.floatData == testData.floatData
+                    && data.stringData == testData.stringData
                 )
                 {
                     classCheck = true;
                 }
             }));
 
-            client.AddChannel(new DataChannel((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
-            {
-            }));
 
             //Send
             client.SendData((short)ChannelId.ByteRel, byteData);
@@ -293,55 +285,48 @@ namespace Snowball.Tests
             CompressionType comp = CompressionType.LZ4;
 
             //Byte
-            client.AddChannel(new DataChannel((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                byte d = (byte)data;
-                if (d == byteData) byteCheck = true;
+                if (data == byteData) byteCheck = true;
             }));
 
             //Short
-            client.AddChannel(new DataChannel((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                short d = (short)data;
-                if (d == shortData) shortCheck = true;
+                if (data == shortData) shortCheck = true;
             }));
 
             //Int
-            client.AddChannel(new DataChannel((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                int d = (int)data;
-                if (d == intData) intCheck = true;
+                if (data == intData) intCheck = true;
             }));
 
             //Float
-            client.AddChannel(new DataChannel((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                float d = (float)data;
-                if (d == floatData) floatCheck = true;
+                if (data == floatData) floatCheck = true;
             }));
 
             //Double
-            client.AddChannel(new DataChannel((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                double d = (double)data;
-                if (d == doubleData) doubleCheck = true;
+                if (data == doubleData) doubleCheck = true;
             }));
 
             //String
-            client.AddChannel(new DataChannel((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                string d = (string)data;
-                if (d == stringData) stringCheck = true;
+                if (data == stringData) stringCheck = true;
             }));
 
             //Class
-            client.AddChannel(new DataChannel((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (endPointIp, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                TestClass d = (TestClass)data;
                 if (
-                    d.intData == testData.intData
-                    && d.floatData == testData.floatData
-                    && d.stringData == testData.stringData
+                    data.intData == testData.intData
+                    && data.floatData == testData.floatData
+                    && data.stringData == testData.stringData
                     )
                 {
                     classCheck = true;
