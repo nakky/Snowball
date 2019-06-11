@@ -166,6 +166,18 @@ TestClass testClass = new TestClass();
 ~~~
 client.SendData(1, testClass);
 ```
+### Broadcast
+In Snowball, each terminals are expressed as ComNode, so in Server, ComNode is specified in Send API.  
+We also implement BroadCast API and Group of ComNode as ComGroup, and ComGroup is specified in BroadCast API in Server. 
+
+```csharp
+ComNode node = server.GetNodeByIp(ip);
+server.SendData(node, 0, "Hello Client!");
+
+ComGroup group = new ComGroup();
+group.Add(node);
+server.Broadcast(group.Add, 0, "Hello Everyone!");
+```
 
 ### Beacon
 
