@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 using System.Net;
@@ -31,6 +32,7 @@ namespace Snowball
         public TCPConnection(TcpClient client, int receiveBufferSize = DefaultBufferSize)
         {
             receiveBuffer = new byte[receiveBufferSize];
+            
 
             UpdateClient(client);
             nStream = client.GetStream();
@@ -74,10 +76,14 @@ namespace Snowball
             {
                 try
                 {
-                    //Util.Log("Read");
-                    resSize = await nStream.ReadAsync(receiveBuffer, 0, receiveBuffer.Length);
+                    resSize = await nStream.ReadAsync(receiveBuffer, 0, 2);
+                    if(resSize != 0)
+                    {
+                        resSize = BitConverter.ToInt16(receiveBuffer, 0);
+                        nStream.Read(receiveBuffer, 2, resSize + 2);
 
-                    //if(resSize == receiveBuffer.Length) Util.Log("read " + resSize + " byte");
+                        resSize = resSize + 4;
+                    }
                 }
                 catch//(Exception e)
                 {
@@ -88,7 +94,7 @@ namespace Snowball
                 {
                     break;
                 }
-                
+                                
                 if (OnReceive != null) OnReceive(IP, receiveBuffer, resSize);
 
             } while (client.Connected);

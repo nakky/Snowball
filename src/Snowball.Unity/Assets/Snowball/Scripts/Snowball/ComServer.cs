@@ -62,7 +62,7 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, CompressionType.None, (node, data) =>
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
                 node.UserName = (string)data;
 
@@ -71,7 +71,7 @@ namespace Snowball
                 Util.Log("SetUsername:" + node.UserName);
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Reliable, CompressionType.None, (node, data) =>
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Reliable, Compression.None, (node, data) =>
             {
                 node.HealthLostCount = 0;
             }));
@@ -96,8 +96,8 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            udpSender = new UDPSender(sendPortNumber);
-            udpReceiver = new UDPReceiver(listenPortNumber);
+            udpSender = new UDPSender(sendPortNumber, bufferSize);
+            udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
 
             tcpListener = new TCPListener(listenPortNumber);
             tcpListener.ConnectionBufferSize = bufferSize;

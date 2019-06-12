@@ -11,7 +11,7 @@ namespace Snowball
     {
         short ChannelID { get; }
         QosType Qos { get; }
-        CompressionType Compression { get; }
+        Compression Compression { get; }
 
         void Received(ComNode node, object data);
         
@@ -23,13 +23,13 @@ namespace Snowball
     {
         public short ChannelID { get; private set; }
         public QosType Qos { get; private set; }
-        public CompressionType Compression { get; private set; }
+        public Compression Compression { get; private set; }
 
         public delegate void ReceivedHandler(ComNode node, T data);
 
         public ReceivedHandler OnReceived { get; private set; }
 
-        public DataChannel(short channelID, QosType qos, CompressionType compression, ReceivedHandler onReceived)
+        public DataChannel(short channelID, QosType qos, Compression compression, ReceivedHandler onReceived)
         {
             ChannelID = channelID;
             Qos = qos;
@@ -39,7 +39,7 @@ namespace Snowball
 
         public object FromStream(ref MemoryStream stream)
         {
-            if (Compression == CompressionType.LZ4)
+            if (Compression == Compression.LZ4)
             {
                 return LZ4MessagePackSerializer.Deserialize<T>(stream);
             }
@@ -51,7 +51,7 @@ namespace Snowball
 
         public void ToStream(object data, ref MemoryStream stream)
         {
-            if (Compression == CompressionType.LZ4)
+            if (Compression == Compression.LZ4)
             {
                 LZ4MessagePackSerializer.Serialize<T>(stream, (T)data);
             }

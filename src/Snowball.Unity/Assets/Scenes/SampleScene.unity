@@ -530,6 +530,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Client
       objectReference: {fileID: 0}
+    - target: {fileID: 1269959842642623626, guid: d640fdaedba4248b4bd49bcb9fc246ee,
+        type: 3}
+      propertyPath: DefaultBufferSize
+      value: 8192
+      objectReference: {fileID: 0}
     - target: {fileID: 1269959842642623625, guid: d640fdaedba4248b4bd49bcb9fc246ee,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -598,6 +603,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Server
+      objectReference: {fileID: 0}
+    - target: {fileID: 6607970637506395719, guid: 3c16f4e90a3324d17bfa81d4f341dce4,
+        type: 3}
+      propertyPath: DefaultBufferSize
+      value: 8192
       objectReference: {fileID: 0}
     - target: {fileID: 6607970637506395718, guid: 3c16f4e90a3324d17bfa81d4f341dce4,
         type: 3}

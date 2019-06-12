@@ -157,7 +157,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            CompressionType comp = CompressionType.None;
+            Compression comp = Compression.None;
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
@@ -282,7 +282,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            CompressionType comp = CompressionType.None;
+            Compression comp = Compression.None;
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
@@ -397,7 +397,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            CompressionType comp = CompressionType.None;
+            Compression comp = Compression.None;
 
             //Byte
             //Class
@@ -436,11 +436,93 @@ namespace Snowball.Tests
                 {
                     break;
                 }
-                else if (sw.Elapsed.Seconds >= 20)
+                else if (sw.Elapsed.Seconds >= 10)
                 {
                     Util.Log("recvTestNum;" + recvTestNum);
                     client.Close();
                     throw new TimeoutException();
+                }
+
+                Task.Delay(100);
+            }
+            sw.Stop();
+
+            Disconnect(ref client);
+        }
+
+        [Fact]
+        //[Fact(Skip = "Skipped")]
+        public void StressTestUnreliable()
+        {
+            Util.Log("StressTestUnreliable");
+
+            ComClient client = new ComClient();
+            client.ListenPortNumber = this.server.SendPort;
+            client.SendPortNumber = this.server.ListenPort;
+
+            client.BufferSize = 8192 * 10;
+
+            Connect(ref client);
+            server.Server.BeaconStop();
+
+            int recvTestNum = 0;
+            int sendTestNum = 0;
+
+            //AddChannel
+            TestClass testData = new TestClass();
+            testData.intData = 6;
+            testData.floatData = 6.6f;
+            testData.stringData = "Are you human?";
+
+            Compression comp = Compression.None;
+
+            //Byte
+            //Class
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            {
+                if (
+                    data.intData == testData.intData
+                    && data.floatData == testData.floatData
+                    && data.stringData == testData.stringData
+                )
+                {
+                    recvTestNum++;
+                }
+            }));
+
+            Random random = new Random();
+            sendTestNum = random.Next(500, 600);
+
+            Util.Log("sendTestNum:" + sendTestNum);
+
+            //Send
+            for (int i = 0; i < sendTestNum; i++)
+            {
+                client.SendData((short)ChannelId.ClassUnRel, testData);
+            }
+
+
+            Stopwatch sw = new Stopwatch();
+
+            sw.Reset();
+            sw.Start();
+
+            while (true)
+            {
+                if (recvTestNum == sendTestNum)
+                {
+                    break;
+                }
+                else if (sw.Elapsed.Seconds >= 10)
+                {
+                    float percennt = (float)recvTestNum / (float)sendTestNum * 100.0f;
+                    Util.Log("percent:" + percennt);
+                    if (percennt < 80.0f)
+                    {
+                        client.Close();
+                        throw new InvalidProgramException();
+                    }
+                    break;
                 }
 
                 Task.Delay(100);

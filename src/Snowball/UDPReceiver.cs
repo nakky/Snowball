@@ -9,6 +9,8 @@ namespace Snowball
 {
     public class UDPReceiver
     {
+        public const int DefaultBufferSize = 8192;
+
         private UdpClient client;
 
         int portNum;
@@ -19,10 +21,12 @@ namespace Snowball
 
         public bool IsActive { get; private set; }
 
-        public UDPReceiver(int portNum)
+        public UDPReceiver(int portNum, int bufferSize = DefaultBufferSize)
         {
             this.portNum = portNum;
             client = new UdpClient(portNum);
+            client.Client.SendBufferSize = bufferSize;
+            client.Client.ReceiveBufferSize = bufferSize;
         }
 
         ~UDPReceiver()

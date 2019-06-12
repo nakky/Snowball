@@ -52,7 +52,7 @@ namespace Snowball.Tests
 
         void AddEchoChannel()
         {
-            CompressionType comp = CompressionType.None;
+            Compression comp = Compression.None;
 
             //Byte
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
