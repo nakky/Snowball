@@ -202,16 +202,26 @@ namespace Snowball
         {
             int head = 0;
 
+           
+
             while (head < size)
             {
                 short datasize = BitConverter.ToInt16(data, head + 0);
+
+#if DISABLE_CHANNEL_VARINT
+                MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
                 short channelId = BitConverter.ToInt16(data, head + 2);
+#else
+                MemoryStream stream = new MemoryStream(data);
+                stream.Position = 2;
+                int s = 0;
+                short channelId = VarintBitConverter.ToInt16(stream, out s);
+#endif
 
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
                     if (acceptBeacon && !isConnecting && !IsConnected)
                     {
-                        MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
                         string beaconData = (string)MessagePackSerializer.Deserialize<string>(stream);
 
                         if(BeaconAccept(beaconData)) Connect(endPointIp);
@@ -225,7 +235,6 @@ namespace Snowball
                     if (endPointIp != serverNode.IP) continue;
 
                     IDataChannel channel = dataChannelMap[channelId];
-                    MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
 
                     object container = channel.FromStream(ref stream);
 
@@ -240,35 +249,25 @@ namespace Snowball
           
         }
 
-        void OnTCPReceived(string endPointIp, byte[] data, int size)
+        void OnTCPReceived(string endPointIp, short channelId, byte[] data, int size)
         {
-            int head = 0;
-
-            while (head < size)
+            if (channelId == (short)PreservedChannelId.Beacon)
             {
-                short datasize = BitConverter.ToInt16(data, head + 0);
-                short channelId = BitConverter.ToInt16(data, head + 2);
+            }
+            else if (!dataChannelMap.ContainsKey(channelId))
+            {
+            }
+            else
+            {
+                MemoryStream stream = new MemoryStream(data, 0, size);
 
-                if (channelId == (short)PreservedChannelId.Beacon)
-                {
-                }
-                else if (!dataChannelMap.ContainsKey(channelId))
-                {
-                }
-                else
-                {
-                    if (endPointIp != serverNode.IP) continue;
+                if (endPointIp != serverNode.IP) return;
 
-                    IDataChannel channel = dataChannelMap[channelId];
-                    MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
+                IDataChannel channel = dataChannelMap[channelId];
 
-                    object container = channel.FromStream(ref stream);
+                object container = channel.FromStream(ref stream);
 
-                    channel.Received(serverNode, container);
-                }
-
-                head += datasize + 4;
-
+                channel.Received(serverNode, container);
             }
         }
 
@@ -282,8 +281,13 @@ namespace Snowball
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write((short)0);
-            writer.Write(channelId);
 
+#if DISABLE_CHANNEL_VARINT
+            writer.Write(channelId);
+#else
+            int s = 0;
+            VarintBitConverter.SerializeShort(channelId, stream, out s);
+#endif
             int pos = (int)stream.Position;
 
             channel.ToStream(data, ref stream);

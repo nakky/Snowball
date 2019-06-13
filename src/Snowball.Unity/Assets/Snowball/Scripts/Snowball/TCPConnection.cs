@@ -23,7 +23,7 @@ namespace Snowball
 
         NetworkStream nStream;
 
-        public delegate void ReceiveHandler(string endPointIp, byte[] data, int size);
+        public delegate void ReceiveHandler(string endPointIp, short id, byte[] data, int dataSize);
         public ReceiveHandler OnReceive;
 
         public delegate void DiconnectedHandler(TCPConnection connection);
@@ -71,6 +71,7 @@ namespace Snowball
         public async Task Start()
         {
             int resSize = 0;
+            short channelId = 0;
 
             do
             {
@@ -80,9 +81,16 @@ namespace Snowball
                     if(resSize != 0)
                     {
                         resSize = BitConverter.ToInt16(receiveBuffer, 0);
-                        nStream.Read(receiveBuffer, 2, resSize + 2);
+#if DISABLE_CHANNEL_VARINT
+                        nStream.Read(receiveBuffer, 0, 2);
+                        channelId = BitConverter.ToInt16(receiveBuffer, 0);
+                        nStream.Read(receiveBuffer, 0, resSize);
+#else
+                        int s = 0;
+                        channelId = VarintBitConverter.ToInt16(nStream, out s);
+                        nStream.Read(receiveBuffer, 0, resSize);
+#endif
 
-                        resSize = resSize + 4;
                     }
                 }
                 catch//(Exception e)
@@ -95,7 +103,7 @@ namespace Snowball
                     break;
                 }
                                 
-                if (OnReceive != null) OnReceive(IP, receiveBuffer, resSize);
+                if (OnReceive != null) OnReceive(IP, channelId, receiveBuffer, resSize);
 
             } while (client.Connected);
 

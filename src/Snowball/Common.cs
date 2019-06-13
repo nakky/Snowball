@@ -19,10 +19,10 @@ namespace Snowball
 
     public enum PreservedChannelId
     {
-        Beacon = 30001,
-        Login = 30002,
-        Health = 30003,
-        //User can use 0 - 29999
+        Beacon = -1,
+        Login = -2,
+        Health = -3,
+        //User can use 0 - 32767
     }
 
 }
