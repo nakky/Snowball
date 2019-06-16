@@ -35,7 +35,7 @@ public class SampleSceneMain : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 
-        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        server.AddChannel(new DataChannel<ObjState>(0, QosType.Reliable, Snowball.Compression.LZ4, (node, data) => {
             serverObject.transform.localPosition = data.position;
             serverObject.transform.localRotation = data.rotation;
         }));
@@ -44,7 +44,7 @@ public class SampleSceneMain : MonoBehaviour
             Debug.Log("rec:" + data);
         }));
 
-        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        client.AddChannel(new DataChannel<ObjState>(0, QosType.Reliable, Snowball.Compression.LZ4, (node, data) => {
         }));
 
         client.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {

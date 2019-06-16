@@ -33,12 +33,6 @@ namespace Snowball
         ComServer com = new ComServer();
         public ComServer ComServer { get { return com; } }
 
-        private Server()
-        {
-            com.SendPortNumber = DefaultSendPort;
-            com.ListenPortNumber = DefaultListenPort;
-            com.BufferSize = DefaultBufferSize;
-        }
 
         private void OnDestroy()
         {
@@ -58,7 +52,11 @@ namespace Snowball
 
         public void Open()
         {
-            com.Open();
+			this.SendPort = DefaultSendPort;
+			this.ListenPort = DefaultListenPort;
+			this.BufferSize = DefaultBufferSize;
+
+			com.Open();
         }
 
         public void Close()

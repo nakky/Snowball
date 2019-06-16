@@ -6,7 +6,10 @@ namespace Snowball
 {
     public class Client : MonoBehaviour
     {
-        [SerializeField]
+		[SerializeField]
+		string DefaultUserName = "u001";
+
+		[SerializeField]
         int DefaultSendPort = 59901;
 
         [SerializeField]
@@ -17,7 +20,9 @@ namespace Snowball
 
         public bool IsOpened { get { return com.IsOpened; } }
 
-        public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
+		public string UserName { get { return com.UserName; } set { com.UserName = value; } }
+
+		public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
         public int ListenPort { get { return com.ListenPortNumber; } set { com.ListenPortNumber = value; } }
         [SerializeField]
         public int BufferSize { get { return com.BufferSize; } set { com.BufferSize = value; } }
@@ -38,21 +43,19 @@ namespace Snowball
         public ComClient ComClient { get { return com; } }
 
 
-        private Client()
-        {
-            com.SendPortNumber = DefaultSendPort;
-            com.ListenPortNumber = DefaultListenPort;
-            com.BufferSize = DefaultBufferSize;
-        }
-
-        private void OnDestroy()
+		public void OnDestroy()
         {
             com.Close();
         }
 
         public void Open()
         {
-            com.Open();
+			this.UserName = DefaultUserName;
+			this.SendPort = DefaultSendPort;
+			this.ListenPort = DefaultListenPort;
+			this.BufferSize = DefaultBufferSize;
+
+			com.Open();
         }
 
         public void Close()
