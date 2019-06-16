@@ -1,8 +1,8 @@
-# Snowball (.NET Core, Unity)
+# Snowball (.NET, .NET Core, Unity)
 
 <img src="https://user-images.githubusercontent.com/5203051/59557925-fd07a280-9020-11e9-8a39-aa5d48fc5215.png" height="400">
 
-Simple Communication Engine for .NET Core and Unity.
+Simple Communication Engine for .NET and Unity.
 
 ## What is Snowball?
 
