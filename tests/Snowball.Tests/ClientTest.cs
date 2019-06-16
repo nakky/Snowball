@@ -57,6 +57,7 @@ namespace Snowball.Tests
             client.AcceptBeacon = true;
 
             server.Server.BeaconStart();
+            //server.Server.SendConnectBeacon("127.0.0.1");
 
             sw.Start();
             while (true)
@@ -533,7 +534,7 @@ namespace Snowball.Tests
             Disconnect(ref client);
         }
 
-
+        /*
         [Fact]
         //[Fact(Skip = "Skipped")]
         public void VariantEffectTestFloat()
@@ -682,6 +683,7 @@ namespace Snowball.Tests
 
             Disconnect(ref client);
         }
+        */
 
     }
 }

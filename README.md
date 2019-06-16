@@ -1,6 +1,6 @@
 # Snowball (.NET Core, Unity)
 
-<img src="https://user-images.githubusercontent.com/5203051/59282651-39937100-8ca4-11e9-947c-b822a5e61592.png" height="400">
+<img src="https://user-images.githubusercontent.com/5203051/59557925-fd07a280-9020-11e9-8a39-aa5d48fc5215.png" height="400">
 
 Simple Communication Engine for .NET Core and Unity.
 
@@ -8,7 +8,7 @@ Simple Communication Engine for .NET Core and Unity.
 
 Snowball is a Server-Client network engine for C#. It communicate with other terminals on TCP and UDP.
 
-You can use Snowball for communication in LAN (ex. VR/AR, IoT, and so on), and communication via Internet. Programming Interfaces of this engine are very simple, and allow intuitive use. Configuration and Data Channel Registration, almost all these things have to be done.
+Snowball can be used for communication in LAN (ex. VR/AR, IoT, and so on), and communication via Internet. Programming Interfaces of this engine are very simple, and allow intuitive use. Configuration and Data Channel Registration, almost all these things have to be done.
 
 
 ## Installation
@@ -21,29 +21,29 @@ Install-Package Snowball
 ```
 
 ### Unity  
-We recommend to download Unity Package from [github](https://github.com/nakky/Snowball/releases/).
+You can download Unity Package of Snowball from [github](https://github.com/nakky/Snowball/releases/).
 
 You must install [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) because Snowball depends on it. Unity Packages of MessagePack are distributed in [github](https://github.com/neuecc/MessagePack-CSharp/releases).
 
 In Snowball, relatively new features of C# are userd (ex. async/await), so you must set "Scripting Runtime Version" to ". NET 4.x".
 
-Some features of MessagePack are limited by setting of Player Settings. 
+Some features of MessagePack are limited by environment and settings. 
 You must set "API Compatibility Level" to ". NET 4.x" in Player Settings. Refer to MessagePack documentations for more details.
 
 ## Quick Start
-Declear using directive if you need.
+Declear "using" directive if you need.
 
 ```csharp
 using Snowball;
 ```
 
-Server side sample code is as follows.  
+Server side examples are as follows.  
 
 ```csharp
 ComServer server = new ComServer();
 
 //Add Data Channel (Id 0 is string data transfar)
-server.AddChannel(new DataChannel<string>(0, QosType.Reliable, CompressionType.None, (node, data) =>{
+server.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) =>{
 	Util.Log("Server Receive:" + data);                
 }));
 
@@ -57,13 +57,13 @@ server.Open();
 server.BeaconStart();
 ```
 
-Those of client side is as follows. 
+Those of client side are as follows. 
 
 ```csharp
 ComClient client = new ComClient();
 
 //Add Data Channel (Id 0 is string data transfar)
-client.AddChannel(new DataChannel<string>(0, QosType.Reliable, CompressionType.None, (node, data) => {
+client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
 
@@ -72,9 +72,9 @@ client.AcceptBeacon = true;
 //Start Client
 client.Open();
 ```
-Beacon is useful to connect and to reconnet to server. But Beacon includes Security Risk, so if you use Beacon via internet, the service must be carefully designed.
+Beacon is useful to connect/reconnet to a server. But Beacon involves Security Risk, so if you use Beacon via internet, the service must be carefully designed.
 
-Sending sample code is as follows. 
+Sending examples are as follows. 
 
 ```csharp
 ComNode node = server.GetNodeByIp(ip);
@@ -84,7 +84,7 @@ server.SendData(node, 0, "Hello Client!");
 client.SendData(0, "Hello Server!");
 ```
 
-And ComClient and ComServer should be closed on terminate step  (ex. Dispose()).
+And ComClient and ComServer should be closed on termination. (ex. Dispose())
  
 ```csharp
 server.Close();
@@ -95,8 +95,9 @@ client.Close();
 ```
 ### Unity
 
-In Unity project, you can use ComServer/ComClient like .NET.
-But Unity has useful archtecture (Inspector, and so on), so we implement wrapper which is inherited from MonoBehaviour. (Snowball.Server, Snowball.Client). You can use them like ComServer and ComClient, and also set default parameters by Inspector.
+In Unity project, you can use ComServer/ComClient as in .NET.
+But Unity has useful archtecture (Inspector, and so on), so we implement wrapper which is inherited from MonoBehaviour. (Snowball.Server/Snowball.Client)  
+You can use them like ComServer and ComClient, and also set default parameters by Inspector.
 
 ```csharp
 [SerializeField]
@@ -105,17 +106,17 @@ Server server;
 server.Open();
 ```
 
-In Unity, Prefab is also useful function, so we prepared some Prefabs in Snowball Unity Package.
+In Unity, Prefab is also useful features, so we prepared some Prefabs in Snowball Unity Package.
 
 ## Overview
 
-Snowball consists of "ComServer" and "ComClient". ComClient connect to ComServer, and transfar data via Data Channels.  
+Snowball consists of "ComServer" and "ComClient". ComClient connect to ComServer, and transfer data via Data Channels.  
 
 ### Server/Client
 
 ComServer and ComClient can be set some parameters (ex. Send Port, Receive Port, Buffer Size...). You can set those parameters before Open().  
-Snowball use UDP, though if you want to test on localhost, you can not use same port in Send and Receive (Two UDP sockets can not bind to same port). In those case, you should set contrasting numbers to Server and Client respectively.  
-(Default port numbers are constracting.)
+Snowball use UDP, though if you want to test on localhost, you can not use same port in Send and Receive (Two UDP sockets can not be bind to the same port). In those case, you should set contrasting numbers to Server and Client respectively.  
+(Default port numbers are contrasting.)
 
 ```csharp
 server.SendPortNumber = 50001;
@@ -132,25 +133,25 @@ client.Open();
 
 ### Data Channel
 
-<img src="https://user-images.githubusercontent.com/5203051/59282651-39937100-8ca4-11e9-947c-b822a5e61592.png" height="400">
+<img src="https://user-images.githubusercontent.com/5203051/59557925-fd07a280-9020-11e9-8a39-aa5d48fc5215.png" height="400">
 
-ComServer and ComClient are registered some Data Channels. Data Channel has transfer settings and be set a Data Receive Handler.  
-For example, you want to transfar chat text data between server and client, you should create a Data Channel for text data translation and register server and client respectively.  
+ComServer and ComClient are registered some Data Channels. A Data Channel has transfer settings and can be set a Data Receive Handler.  
+For example, if you want to transfer chat text data between server and client, you should create a Data Channel for text data translation and register server and client respectively.  
 
 Data Channel also can be set QoS Type (Reliable / Unreliable), and compression setting. 
 
 ```csharp
-client.AddChannel(new DataChannel<string>(0, QosType.Reliable, CompressionType.None, (node, data) => {
+client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
-client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, CompressionType.LZ4, (node, data) => {
+client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.LZ4, (node, data) => {
 	Util.Log("Client Receive:" + data.ToString());       
 }));
 ```
 
 ### Data Types
 
-Because of using "[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)", Snowball can transfer data types which are supported by MessagePack.
+Because of using "[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)", Snowball can transfer data which type is supported by MessagePack.
 So you can transfer class instances if you define those classes in a way of MessagePack.
 
 ```csharp
@@ -171,21 +172,21 @@ TestClass testClass = new TestClass();
 client.SendData(1, testClass);
 ```
 ### Broadcast
-In Snowball, each terminals are expressed as ComNode, so in Server, ComNode is specified in Send API.  
-We also implement BroadCast API and Group of ComNode as ComGroup, and ComGroup is specified in BroadCast API in Server. 
+In Snowball, each terminals are expressed as ComNode. So in Server, ComNode is specified in Sending APIs.  
+We also implement BroadCasting API and Group of ComNode as ComGroup, and ComGroup is specified in BroadCasting API in Server. 
 
 ```csharp
 ComNode node = server.GetNodeByIp(ip);
 server.SendData(node, 0, "Hello Client!");
 
-ComGroup group = new ComGroup();
+ComGroup group = new ComGroup("testGroup");
 group.Add(node);
-server.Broadcast(group.Add, 0, "Hello Everyone!");
+server.Broadcast(group, 0, "Hello Everyone!");
 ```
 
 ### Beacon
 
-<img src="https://user-images.githubusercontent.com/5203051/59289407-fa1f5180-8cb0-11e9-9c09-6baf794a61b0.png" height="400">
+<img src="https://user-images.githubusercontent.com/5203051/59557933-1c9ecb00-9021-11e9-923d-531089a22b3c.png" height="400">
 
 ComServer can send beacon signals at regular intervals, and when a client catches a beacon, it connects to server without setting IP Address manually.  
 If you want to implement communication between terminals in a LAN, Broadcast beacon is very useful.

@@ -118,9 +118,8 @@ namespace Snowball
             HealthCheck();
         }
 
-        void OnBeaconTimer(object sender, ElapsedEventArgs args)
+        int CreateBeaconData(MemoryStream stream)
         {
-            MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
 
             writer.Write((short)0);
@@ -143,9 +142,26 @@ namespace Snowball
             stream.Position = 0;
             writer.Write((short)(maxpos - pos));
 
-            foreach(var ip in beaaconList)
+            return maxpos;
+
+        }
+
+        public void SendConnectBeacon(string ip)
+        {
+            MemoryStream stream = new MemoryStream();
+            int length = CreateBeaconData(stream);
+
+            udpSender.Send(ip, length, stream.GetBuffer());
+        }
+
+        void OnBeaconTimer(object sender, ElapsedEventArgs args)
+        {
+            MemoryStream stream = new MemoryStream();
+            int length = CreateBeaconData(stream);
+
+            foreach (var ip in beaaconList)
             {
-                udpSender.Send(ip, maxpos, stream.GetBuffer());
+                udpSender.Send(ip, length, stream.GetBuffer());
             }
         }
 
