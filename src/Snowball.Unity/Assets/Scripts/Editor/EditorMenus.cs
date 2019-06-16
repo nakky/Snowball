@@ -7,7 +7,7 @@ using System.IO;
 
 static class EditorMenus
 {
-    [MenuItem("Tools/Update Sources")]
+	[MenuItem("Tools/Update Sources", false, 1)]
     static void LoadServerWaitingScenes()
     {
         if(EditorUtility.DisplayDialog("Update Sources", " Would you like to update sources?", "Yes", "No"))
