@@ -42,18 +42,18 @@ Server side examples are as follows.
 ```csharp
 ComServer server = new ComServer();
 
-//Add Data Channel (Id 0 is string data transfar)
+//Add Data Channel (Channel Id 0 is string data transfer.)
 server.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) =>{
-	Util.Log("Server Receive:" + data);                
+	Util.Log("Server-Receive:" + data);                
 }));
 
-//Beacon Settings(Broadcast)
+//Beacon Setting(Broadcast)
 server.AddBeaconList(IPAddress.Broadcast.ToString());
 
 //Start Server
 server.Open();
 
-//Beacon Start
+//Start Beacon
 server.BeaconStart();
 ```
 
@@ -62,12 +62,12 @@ Those of client side are as follows.
 ```csharp
 ComClient client = new ComClient();
 
-//Add Data Channel (Id 0 is string data transfar)
+//Add Data Channel (Channel Id 0 is string data transfer.)
 client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
 
-//Set Accept Beacon Flag 
+//Beacon Setting(Accept)
 client.AcceptBeacon = true;
 //Start Client
 client.Open();
@@ -168,7 +168,9 @@ public class TestClass
 ```
 ```csharp
 TestClass testClass = new TestClass();
+
 ~~~
+
 client.SendData(1, testClass);
 ```
 ### Broadcast
