@@ -60,18 +60,28 @@ public class SampleSceneMain : MonoBehaviour
 
     }
 
-    int sw = 0;
+
+    float time = 0.0f;
 
     // Update is called once per frame
     void Update()
     {
+        clientObject.transform.localPosition = new Vector3(0.0f, Mathf.Sin(time), 0.0f);
+
+        time += 0.1f;
+        
+        
         if(client.IsConnected)
         {
             ObjState state = new ObjState();
             state.position = clientObject.transform.localPosition;
             state.rotation = clientObject.transform.localRotation;
 
-            client.SendData(0, state);
+            for(int i = 0; i < 6; i++)
+            {
+                client.SendData(0, state);
+            }
+            
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))

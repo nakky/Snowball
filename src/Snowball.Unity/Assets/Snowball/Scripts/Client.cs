@@ -20,9 +20,9 @@ namespace Snowball
 
         public bool IsOpened { get { return com.IsOpened; } }
 
-		public string UserName { get { return com.UserName; } set { com.UserName = value; } }
+        public string UserName { get { return com.UserName; } set { com.UserName = value; DefaultUserName = value; } }
 
-		public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
+        public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
         public int ListenPort { get { return com.ListenPortNumber; } set { com.ListenPortNumber = value; } }
         [SerializeField]
         public int BufferSize { get { return com.BufferSize; } set { com.BufferSize = value; } }

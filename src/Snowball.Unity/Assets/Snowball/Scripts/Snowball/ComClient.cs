@@ -273,6 +273,8 @@ namespace Snowball
 
         public bool SendData<T>(short channelId, T data)
         {
+            if (!IsConnected) return false;
+
             if (!dataChannelMap.ContainsKey(channelId)) return false;
 
             IDataChannel channel = dataChannelMap[channelId];

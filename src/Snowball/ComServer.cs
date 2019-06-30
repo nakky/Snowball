@@ -64,7 +64,7 @@ namespace Snowball
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
-                node.UserName = (string)data;
+                node.UserName = data;
 
                 if (OnConnected != null) OnConnected(node);
 
@@ -363,6 +363,8 @@ namespace Snowball
 
         public bool SendData<T>(ComNode node, short channelId, T data)
         {
+            if (!connectionMap.ContainsKey(node)) return false;
+
             if (!dataChannelMap.ContainsKey(channelId)) return false;
 
             IDataChannel channel = dataChannelMap[channelId];

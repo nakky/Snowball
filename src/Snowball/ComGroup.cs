@@ -7,7 +7,7 @@ namespace Snowball
     {
         public string Name { get; private set; }
 
-        internal List<ComNode> NodeList { get; private set; }
+        public List<ComNode> NodeList { get; private set; }
 
         public ComGroup(string name)
         {

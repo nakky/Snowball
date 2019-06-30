@@ -48,6 +48,9 @@ namespace Snowball
             lock(this){
                 if (nStream != null)
                 {
+                    cancelToken.Cancel();
+                    OnReceive = null;
+
                     nStream = null;
 
                     client.Close();
@@ -68,28 +71,40 @@ namespace Snowball
 
         public bool IsConnected{ get{return client.Connected;} }
 
+        CancellationTokenSource cancelToken = new CancellationTokenSource();
+
         public async Task Start()
         {
             int resSize = 0;
             short channelId = 0;
 
+#if UNITY_2019_1_OR_NEWER
+            SynchronizationContext syncContext = SynchronizationContext.Current;
+#else
+            SynchronizationContext syncContext = null;
+#endif
+
+            byte[] buffer = null;
+
             do
             {
                 try
                 {
-                    resSize = await nStream.ReadAsync(receiveBuffer, 0, 2);
-                    if(resSize != 0)
+                    resSize = await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
+                    if (resSize != 0)
                     {
                         resSize = BitConverter.ToInt16(receiveBuffer, 0);
 #if DISABLE_CHANNEL_VARINT
-                        nStream.Read(receiveBuffer, 0, 2);
+                        await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
                         channelId = BitConverter.ToInt16(receiveBuffer, 0);
-                        nStream.Read(receiveBuffer, 0, resSize);
+                        await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
 #else
                         int s = 0;
                         channelId = VarintBitConverter.ToInt16(nStream, out s);
-                        nStream.Read(receiveBuffer, 0, resSize);
+                        await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
 #endif
+                        buffer = new byte[receiveBuffer.Length];
+                        receiveBuffer.CopyTo(buffer, 0);
 
                     }
                 }
@@ -102,8 +117,21 @@ namespace Snowball
                 {
                     break;
                 }
-                                
-                if (OnReceive != null) OnReceive(IP, channelId, receiveBuffer, resSize);
+
+                if (cancelToken.IsCancellationRequested) break;
+
+                if (syncContext != null)
+                {
+                    syncContext.Post((state) => {
+                        if (cancelToken.IsCancellationRequested) return;
+                        if (OnReceive != null) OnReceive(IP, channelId, buffer, resSize);
+                    }, null);                    
+                }
+                else
+                {
+                    if (OnReceive != null) OnReceive(IP, channelId, receiveBuffer, resSize);
+                }
+                
 
             } while (client.Connected);
 
