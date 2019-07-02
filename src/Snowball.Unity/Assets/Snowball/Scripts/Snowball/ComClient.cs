@@ -67,7 +67,7 @@ namespace Snowball
             {
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Reliable, Compression.None, (endPointIp, data) =>
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) =>
             {
                 healthLostCount = 0;
             }));

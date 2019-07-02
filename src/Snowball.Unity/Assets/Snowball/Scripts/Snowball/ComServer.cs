@@ -71,7 +71,7 @@ namespace Snowball
                 Util.Log("SetUsername:" + node.UserName);
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Reliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
             {
                 node.HealthLostCount = 0;
             }));
