@@ -22,7 +22,8 @@ namespace Snowball
 
         public bool IsActive { get; private set; }
 
-        SynchronizationContext syncContext;
+        public SynchronizationContext SyncContext { get; private set; }
+        public static bool UseSyncContextPost = true;
 
         public UDPReceiver(int portNum, int bufferSize = DefaultBufferSize)
         {
@@ -31,11 +32,8 @@ namespace Snowball
             client.Client.SendBufferSize = bufferSize;
             client.Client.ReceiveBufferSize = bufferSize;
 
-#if UNITY_2019_1_OR_NEWER
-            syncContext = SynchronizationContext.Current;
-#else
-            syncContext = null;
-#endif
+            if (UseSyncContextPost) SyncContext = SynchronizationContext.Current;
+            else SyncContext = null;
         }
 
         ~UDPReceiver()
@@ -51,7 +49,7 @@ namespace Snowball
                 cancelToken.Cancel();
                 OnReceive = null;
                 client.Close();
-                syncContext = null;
+                SyncContext = null;
             }
         }
 
@@ -85,9 +83,9 @@ namespace Snowball
                     if (!IsActive) break;
                     if (cancelToken.IsCancellationRequested) break;
 
-                    if (syncContext != null)
+                    if (SyncContext != null)
                     {
-                        syncContext.Post((state) =>
+                        SyncContext.Post((state) =>
                         {
                             if (cancelToken.IsCancellationRequested) return;
 

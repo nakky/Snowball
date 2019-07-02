@@ -29,13 +29,18 @@ namespace Snowball
         public delegate void DiconnectedHandler(TCPConnection connection);
         public DiconnectedHandler OnDisconnected;
 
+        public SynchronizationContext SyncContext { get; private set; }
+        public static bool UseSyncContextPost = true;
+
         public TCPConnection(TcpClient client, int receiveBufferSize = DefaultBufferSize)
         {
             receiveBuffer = new byte[receiveBufferSize];
             
-
             UpdateClient(client);
             nStream = client.GetStream();
+
+            if (UseSyncContextPost) SyncContext = SynchronizationContext.Current;
+            else SyncContext = null;
         }
 
         ~TCPConnection()
@@ -78,12 +83,6 @@ namespace Snowball
             int resSize = 0;
             short channelId = 0;
 
-#if UNITY_2019_1_OR_NEWER
-            SynchronizationContext syncContext = SynchronizationContext.Current;
-#else
-            SynchronizationContext syncContext = null;
-#endif
-
             byte[] buffer = null;
 
             do
@@ -120,9 +119,9 @@ namespace Snowball
 
                 if (cancelToken.IsCancellationRequested) break;
 
-                if (syncContext != null)
+                if (SyncContext != null)
                 {
-                    syncContext.Post((state) => {
+                    SyncContext.Post((state) => {
                         if (cancelToken.IsCancellationRequested) return;
                         if (OnReceive != null) OnReceive(IP, channelId, buffer, resSize);
                     }, null);                    
