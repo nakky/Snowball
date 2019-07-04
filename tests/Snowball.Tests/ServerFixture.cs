@@ -14,6 +14,8 @@ namespace Snowball.Tests
 
         public ComServer Server { get; private set; }
 
+        Compression comp = Compression.LZ4;
+
         public ServerFixture()
         {
             TCPConnection.UseSyncContextPost = false;
@@ -55,7 +57,7 @@ namespace Snowball.Tests
 
         void AddEchoChannel()
         {
-            Compression comp = Compression.None;
+            
 
             //Byte
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>

@@ -16,6 +16,8 @@ namespace Snowball.Tests
         ITestOutputHelper logger;
         ServerFixture server;
 
+        Compression comp = Compression.LZ4;
+
         public ClientTest(ITestOutputHelper logger, ServerFixture server)
         {
             this.logger = logger;
@@ -159,7 +161,7 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            Compression comp = Compression.None;
+            
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
@@ -284,8 +286,6 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            Compression comp = Compression.None;
-
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
             {
@@ -399,8 +399,6 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            Compression comp = Compression.None;
-
             //Byte
             //Class
             client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
@@ -475,8 +473,6 @@ namespace Snowball.Tests
             testData.intData = 6;
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
-
-            Compression comp = Compression.None;
 
             //Byte
             //Class
@@ -556,8 +552,6 @@ namespace Snowball.Tests
             //AddChannel
             float testfloat = 1.0f;
 
-            Compression comp = Compression.None;
-
             //Byte
             //Class
             client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, (node, data) =>
@@ -630,8 +624,6 @@ namespace Snowball.Tests
             testData.intData = 6;
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
-
-            Compression comp = Compression.None;
 
             //Byte
             //Class

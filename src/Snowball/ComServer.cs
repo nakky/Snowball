@@ -7,8 +7,6 @@ using System.Timers;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 
-using MessagePack;
-
 namespace Snowball
 {
 
@@ -135,7 +133,7 @@ namespace Snowball
 
             string data = BeaconDataCreate();
 
-            MessagePackSerializer.Serialize(stream, data);
+            DataSerializer.Serialize(stream, data);
 
             int maxpos = (int)stream.Position;
 

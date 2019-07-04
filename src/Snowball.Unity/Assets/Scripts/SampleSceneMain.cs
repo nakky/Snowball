@@ -4,15 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Snowball;
-using MessagePack;
 
-[MessagePackObject]
+[Transferable]
 public class ObjState
 {
-    [Key(0)]
-    public Vector3 position { get; set; }
-    [Key(1)]
-    public Quaternion rotation { get; set; }
+    [Data(0)]
+    public Vector3 position;
+    [Data(1)]
+    public Quaternion rotation;
 }
 
 public class SampleSceneMain : MonoBehaviour
@@ -32,6 +31,13 @@ public class SampleSceneMain : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (Application.platform == RuntimePlatform.WindowsPlayer ||
+            Application.platform == RuntimePlatform.OSXPlayer ||
+            Application.platform == RuntimePlatform.LinuxPlayer)
+        {
+            Screen.SetResolution(1280, 1024, false);
+        }
+
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 

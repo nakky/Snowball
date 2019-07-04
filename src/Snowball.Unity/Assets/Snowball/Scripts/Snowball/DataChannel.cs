@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Net;
 
-using MessagePack;
+using K4os.Compression.LZ4;
 
 namespace Snowball
 {
@@ -29,23 +29,31 @@ namespace Snowball
 
         public ReceivedHandler OnReceived { get; private set; }
 
+        Converter converter;
+        Converter lz4converter;
+
         public DataChannel(short channelID, QosType qos, Compression compression, ReceivedHandler onReceived)
         {
             ChannelID = channelID;
             Qos = qos;
             Compression = Compression;
             OnReceived += onReceived;
+
+            converter = DataSerializer.GetConverter(typeof(T));
+            lz4converter = DataSerializer.GetConverter(typeof(byte[]));
         }
 
         public object FromStream(ref MemoryStream stream)
         {
             if (Compression == Compression.LZ4)
             {
-                return LZ4MessagePackSerializer.Deserialize<T>(stream);
+                byte[] encoded = (byte[])lz4converter.Deserialize(stream);
+                MemoryStream lz4stream = new MemoryStream(encoded);
+                return converter.Deserialize(lz4stream);
             }
             else
             {
-                return MessagePackSerializer.Deserialize<T>(stream);
+                return DataSerializer.Deserialize<T>(stream);
             }
         }
 
@@ -53,11 +61,14 @@ namespace Snowball
         {
             if (Compression == Compression.LZ4)
             {
-                LZ4MessagePackSerializer.Serialize<T>(stream, (T)data);
+                MemoryStream lz4stream = new MemoryStream();
+                lz4converter.Serialize(lz4stream, data);
+                byte[] encoded = LZ4Pickler.Pickle(lz4stream.GetBuffer());
+                converter.Serialize(stream, encoded);
             }
             else
             {
-                MessagePackSerializer.Serialize<T>(stream, (T)data);
+                DataSerializer.Serialize<T>(stream, (T)data);
             }
 
         }

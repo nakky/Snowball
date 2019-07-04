@@ -13,16 +13,18 @@
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
     <DefineConstants>TRACE;RELEASE;NETSTANDARD;NETSTANDARD2_0;</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Class1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="1.7.3.7" />
-    <PackageReference Include="NuGet.Build.Packaging" Version="0.2.0" />
+    <Folder Include="Serializer\" />
+    <Folder Include="Serializer\Converters\" />
   </ItemGroup>
 </Project>

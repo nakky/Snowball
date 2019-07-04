@@ -1,5 +1,6 @@
 ﻿using System;
-using MessagePack;
+
+using Snowball;
 
 namespace Snowball.Tests
 {
@@ -22,20 +23,21 @@ namespace Snowball.Tests
     };
 
 
-    [MessagePackObject]
+    [Transferable]
     public class TestClass
     {
-        [Key(0)]
+        [Data(0)]
         public int intData;
-        [Key(1)]
+        [Data(1)]
         public float floatData;
-        [Key(2)]
+        [Data(2)]
         public string stringData;
 
         public override string ToString()
         {
             return "{" + intData + "," + floatData + "," + stringData + "}";
         }
+
     };
     
 }

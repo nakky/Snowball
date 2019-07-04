@@ -6,8 +6,6 @@ using System.Net;
 using System.Timers;
 using System.Threading.Tasks;
 
-using MessagePack;
-
 namespace Snowball
 {
     public class ComClient : IDisposable
@@ -222,7 +220,7 @@ namespace Snowball
                 {
                     if (acceptBeacon && !isConnecting && !IsConnected)
                     {
-                        string beaconData = (string)MessagePackSerializer.Deserialize<string>(stream);
+                        string beaconData = (string)DataSerializer.Deserialize<string>(stream);
 
                         if(BeaconAccept(beaconData)) Connect(endPointIp);
                     }
