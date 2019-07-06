@@ -9,7 +9,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Snowball\Snowball.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="1.7.3.7" />
-  </ItemGroup>
 </Project>
