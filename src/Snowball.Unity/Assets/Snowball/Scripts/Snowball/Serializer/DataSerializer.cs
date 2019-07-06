@@ -63,8 +63,30 @@ namespace Snowball
             {
                 return new ArrayConverter(type);
             }
+            else if (typeof(System.Collections.IList).IsAssignableFrom(type))
+            {
+                return new IListConverter(type);
+            }
+            else if (typeof(System.Collections.IDictionary).IsAssignableFrom(type))
+            {
+                return new IDictionaryConverter(type);
+            }
+            else if (type.IsSerializable)
+            {
+                return new SerializableConverter(type);
+            }
 
             return new ClassConverter(type);
+        }
+
+        public static void AddConverterConstructor(Type type, ConverterConstractor constractor)
+        {
+            constractorMap.Add(type, constractor);
+        }
+
+        public static void RemoveConverterConstructor(Type type)
+        {
+            constractorMap.Remove(type);
         }
 
         public static void Setup()
@@ -83,6 +105,9 @@ namespace Snowball
             constractorMap.Add(typeof(double), DoubleConverter.constract);
 
             constractorMap.Add(typeof(string), StringUtf8Converter.constract);
+
+            constractorMap.Add(typeof(DateTime), DateTimeConverter.constract);
+            constractorMap.Add(typeof(TimeSpan), TimeSpanConverter.constract);
 
             constractorMap.Add(typeof(byte[]), ByteArrayConverter.constract);
 

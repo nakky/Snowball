@@ -9,9 +9,9 @@ using Snowball;
 public class ObjState
 {
     [Data(0)]
-    public Vector3 position;
+    public Vector3 position { get; set; }
     [Data(1)]
-    public Quaternion rotation;
+    public Quaternion rotation { get; set; }
 }
 
 public class SampleSceneMain : MonoBehaviour

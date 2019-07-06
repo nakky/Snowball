@@ -10,11 +10,12 @@ namespace Snowball
 {
     public class ClassConverter : Converter
     {
-        List<Converter> converters = new List<Converter>();
-
         Type type;
 
-        List<FieldInfo> parameters = new List<FieldInfo>();
+        List<Converter> converters = new List<Converter>();
+        List<PropertyInfo> parameters = new List<PropertyInfo>();
+
+        byte[] buf = new byte[sizeof(byte)];
 
         public ClassConverter(Type type)
         {
@@ -24,20 +25,21 @@ namespace Snowball
 
             foreach (TransferableAttribute attr in attributes)
             {
-                FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-                var fs = fields.OrderBy(x => ((DataAttribute)Attribute.GetCustomAttributes(x, typeof(DataAttribute))[0]).Index);
+                var props = properties.Where(x => Attribute.GetCustomAttributes(x, typeof(DataAttribute)).Length > 0)
+                    .OrderBy(x => ((DataAttribute)Attribute.GetCustomAttributes(x, typeof(DataAttribute))[0]).Index);
 
-                foreach (FieldInfo f in fs)
+                foreach (PropertyInfo p in props)
                 {
                     //Util.Log("name:" + f.Name);
 
-                    var dattrs = Attribute.GetCustomAttributes(f, typeof(DataAttribute));
+                    var dattrs = Attribute.GetCustomAttributes(p, typeof(DataAttribute));
 
                     foreach(var datt in dattrs)
                     {
-                        parameters.Add(f);
-                        converters.Add(DataSerializer.GetConverter(f.FieldType));
+                        parameters.Add(p);
+                        converters.Add(DataSerializer.GetConverter(p.PropertyType));
                         break;
                     }
                 }
@@ -50,22 +52,40 @@ namespace Snowball
 
         public override void Serialize(Stream stream, object data)
         {
-            for(int i = 0; i < parameters.Count ; i++)
+            if(data == null)
             {
-                converters[i].Serialize(stream, parameters[i].GetValue(data));
+                byte[] lbuf = { 0 };
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                byte[] lbuf = { 1 };
+                stream.Write(lbuf, 0, lbuf.Length);
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    converters[i].Serialize(stream, parameters[i].GetValue(data));
+                }
             }
         }
 
         public override object Deserialize(Stream stream)
         {
-            object data = Activator.CreateInstance(type);
-
-            for (int i = 0; i < parameters.Count; i++)
+            stream.Read(buf, 0, sizeof(byte));
+            if(buf[0] == 0)
             {
-                parameters[i].SetValue(data, converters[i].Deserialize(stream));
+                return null;
             }
+            else
+            {
+                object data = Activator.CreateInstance(type);
 
-            return data;
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    parameters[i].SetValue(data, converters[i].Deserialize(stream));
+                }
+
+                return data;
+            }
         }
     }
 }

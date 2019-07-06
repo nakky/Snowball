@@ -8,7 +8,7 @@ using System.IO;
 static class EditorMenus
 {
 	[MenuItem("Tools/Update Sources", false, 1)]
-    static void LoadServerWaitingScenes()
+    static void UpdateSources()
     {
         if(EditorUtility.DisplayDialog("Update Sources", " Would you like to update sources?", "Yes", "No"))
         {
@@ -44,13 +44,14 @@ static class EditorMenus
             }
         }
 
-        /*
         //Process Recursive
         foreach (DirectoryInfo dInfo in sDir.GetDirectories())
         {
+            if (dInfo.Name == "bin") continue;
+            else if (dInfo.Name == "obj") continue;
             CopyFilesInDirectoryInternal(dInfo.FullName, dDir.FullName + "/" + dInfo.Name);
         }
-        */
+
     }
 
 }

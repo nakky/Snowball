@@ -230,13 +230,20 @@ namespace Snowball
         {
             string strData = (string)data;
 
-            byte[] strbuf = System.Text.Encoding.ASCII.GetBytes(strData);
+            if(strData == null)
+            {
+                byte[] lbuf = BitConverter.GetBytes(-1);
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                byte[] strbuf = System.Text.Encoding.ASCII.GetBytes(strData);
 
-            byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
-            stream.Write(lbuf, 0, lbuf.Length);
+                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
+                stream.Write(lbuf, 0, lbuf.Length);
 
-            if(strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
-
+                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+            }
         }
 
         public override object Deserialize(Stream stream)
@@ -246,7 +253,11 @@ namespace Snowball
             stream.Read(buf, 0, sizeof(int));
             int length = BitConverter.ToInt32(buf, 0);
 
-            if(length > 0){
+            if(length < 0)
+            {
+                return null;
+            }
+            else if(length > 0){
                 byte[] strData = new byte[length];
                 stream.Read(strData, 0, length);
 
@@ -263,6 +274,7 @@ namespace Snowball
 
     public class StringUnicodeConverter : Converter
     {
+
         byte[] buf = new byte[sizeof(int)];
 
         public static Converter constract() { return new StringUnicodeConverter(); }
@@ -271,13 +283,20 @@ namespace Snowball
         {
             string strData = (string)data;
 
-            byte[] strbuf = System.Text.Encoding.Unicode.GetBytes(strData);
+            if (strData == null)
+            {
+                byte[] lbuf = BitConverter.GetBytes(-1);
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                byte[] strbuf = System.Text.Encoding.Unicode.GetBytes(strData);
 
-            buf = BitConverter.GetBytes(strbuf.Length);
-            stream.Write(buf, 0, buf.Length);
+                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
+                stream.Write(lbuf, 0, lbuf.Length);
 
-            if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
-
+                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+            }
         }
 
         public override object Deserialize(Stream stream)
@@ -287,7 +306,11 @@ namespace Snowball
             stream.Read(buf, 0, sizeof(int));
             int length = BitConverter.ToInt32(buf, 0);
 
-            if (length > 0)
+            if (length < 0)
+            {
+                return null;
+            }
+            else if (length > 0)
             {
                 byte[] strData = new byte[length];
                 stream.Read(strData, 0, length);
@@ -300,7 +323,6 @@ namespace Snowball
             {
                 data = "";
             }
-
             return data;
         }
 
@@ -317,13 +339,20 @@ namespace Snowball
         {
             string strData = (string)data;
 
-            byte[] strbuf = System.Text.Encoding.UTF8.GetBytes(strData);
+            if (strData == null)
+            {
+                byte[] lbuf = BitConverter.GetBytes(-1);
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                byte[] strbuf = System.Text.Encoding.UTF8.GetBytes(strData);
 
-            buf = BitConverter.GetBytes(strbuf.Length);
-            stream.Write(buf, 0, buf.Length);
+                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
+                stream.Write(lbuf, 0, lbuf.Length);
 
-            if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
-
+                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+            }
         }
 
         public override object Deserialize(Stream stream)
@@ -333,7 +362,11 @@ namespace Snowball
             stream.Read(buf, 0, sizeof(int));
             int length = BitConverter.ToInt32(buf, 0);
 
-            if (length > 0)
+            if (length < 0)
+            {
+                return null;
+            }
+            else if (length > 0)
             {
                 byte[] strData = new byte[length];
                 stream.Read(strData, 0, length);
