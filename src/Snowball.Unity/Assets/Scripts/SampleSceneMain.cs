@@ -8,10 +8,20 @@ using Snowball;
 [Transferable]
 public class ObjState
 {
+    public ObjState()
+    {
+    }
+
+    public ObjState(Vector3 position, Quaternion rotation)
+    {
+        this.Position = position;
+        this.Rotation = rotation;
+    }
+
     [Data(0)]
-    public Vector3 position { get; set; }
+    public Vector3 Position { get; private set; }
     [Data(1)]
-    public Quaternion rotation { get; set; }
+    public Quaternion Rotation { get; private set; }
 }
 
 public class SampleSceneMain : MonoBehaviour
@@ -42,8 +52,8 @@ public class SampleSceneMain : MonoBehaviour
         Application.targetFrameRate = 60;
 
         server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
-            serverObject.transform.localPosition = data.position;
-            serverObject.transform.localRotation = data.rotation;
+            serverObject.transform.localPosition = data.Position;
+            serverObject.transform.localRotation = data.Rotation;
         }));
 
         server.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {
@@ -79,9 +89,7 @@ public class SampleSceneMain : MonoBehaviour
         
         if(client.IsConnected)
         {
-            ObjState state = new ObjState();
-            state.position = clientObject.transform.localPosition;
-            state.rotation = clientObject.transform.localRotation;
+            ObjState state = new ObjState(clientObject.transform.localPosition, clientObject.transform.localRotation);
 
             for(int i = 0; i < 70; i++)
             {

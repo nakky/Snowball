@@ -37,16 +37,16 @@ namespace Snowball.Tests
         public int unused;
 
         [Data(2)]
-        public int intData { get; set; }
+        public int IntData { get; set; }
 
         [Data(0)]
-        public string stringData { get; set; }
+        public string StringData { get; set; }
 
         public bool Equals(TestParamClass other)
         {
             if (other == null) return false;
 
-            return intData == other.intData && stringData == other.stringData;
+            return IntData == other.IntData && StringData == other.StringData;
         }
     };
 
@@ -54,13 +54,13 @@ namespace Snowball.Tests
     class TestConvertClass
     {
         [Data(2)]
-        public int intData { get; set; }
+        public int IntData { get; set; }
 
         [Data(3)]
-        public string stringData { get; set; }
+        public string StringData { get; set; }
 
         [Data(1)]
-        public float flaotData { get; set; }
+        public float FlaotData { get; set; }
 
         [Data(0)]
         public TestParamClass classData { get; set; }
@@ -69,9 +69,9 @@ namespace Snowball.Tests
         {
             if (other == null) return false;
 
-            return intData == other.intData
-                && stringData == other.stringData
-                && flaotData == other.flaotData
+            return IntData == other.IntData
+                && StringData == other.StringData
+                && FlaotData == other.FlaotData
                 && ( (classData == null && other.classData == null) || (classData.Equals(other.classData) ) )
                 ;
         }
@@ -263,12 +263,12 @@ namespace Snowball.Tests
             //class
             stream = new MemoryStream();
             TestConvertClass classSrc = new TestConvertClass();
-            classSrc.intData = random.Next();
-            classSrc.stringData = "asfeaefaw";
-            classSrc.flaotData = (float)random.NextDouble();
+            classSrc.IntData = random.Next();
+            classSrc.StringData = "asfeaefaw";
+            classSrc.FlaotData = (float)random.NextDouble();
             classSrc.classData = new TestParamClass();
-            classSrc.classData.intData = random.Next();
-            classSrc.classData.stringData = "igi3u8z2";
+            classSrc.classData.IntData = random.Next();
+            classSrc.classData.StringData = "igi3u8z2";
 
             TestConvertClass classDst;
             DataSerializer.Serialize(stream, classSrc);
@@ -296,7 +296,7 @@ namespace Snowball.Tests
             //array class
             stream = new MemoryStream();
             TestConvertClass[] cArraySrc = { new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass() };
-            cArraySrc[1].intData = 90;
+            cArraySrc[1].IntData = 90;
             TestConvertClass[] cArrayDst = null;
             DataSerializer.Serialize(stream, cArraySrc);
             stream.Position = 0;
@@ -312,7 +312,7 @@ namespace Snowball.Tests
             //list class
             stream = new MemoryStream();
             List<TestConvertClass> cListSrc = new List<TestConvertClass>{ new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass() };
-            cListSrc[1].intData = 90;
+            cListSrc[1].IntData = 90;
             List<TestConvertClass> cListDst = null;
             DataSerializer.Serialize(stream, cArraySrc);
             stream.Position = 0;
@@ -330,10 +330,10 @@ namespace Snowball.Tests
             Dictionary<string, TestConvertClass> cDictSrc = new Dictionary<string, TestConvertClass>();
 
             TestConvertClass tcc = new TestConvertClass();
-            tcc.intData = 90;
+            tcc.IntData = 90;
             cDictSrc.Add("aaaa", tcc);
             tcc = new TestConvertClass();
-            tcc.intData = 270;
+            tcc.IntData = 270;
             cDictSrc.Add("bbbb", tcc);
 
             Dictionary<string, TestConvertClass> cDictDst = null;

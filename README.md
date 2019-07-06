@@ -170,13 +170,16 @@ You can transfer instances if you define those classes as follows.
 public class TestClass
 {
     [Data(0)]
-    public int intData;
+    public int IntData { get; set; }
     [Data(1)]
-    public float floatData;
+    public float FloatData { get; set; }
     [Data(2)]
-    public string stringData;
+    public string StringData { get; set; }
 };
 ```
+Transferable classes must have a default constructor.  
+Data Attribute can be set to properties only. Index parameter shold be set a unique number.
+
 ```csharp
 TestClass testClass = new TestClass();
 
@@ -184,16 +187,18 @@ TestClass testClass = new TestClass();
 
 client.SendData(1, testClass);
 ```
-Instances with [Serializable] Attribute can be transfered, but [Transferable] Attribute is more efficient. 
+Instances with [Serializable] Attribute can be transfered, but [Transferable] Attributed classes are more efficient. 
 
 ### Broadcast
 In Snowball, each terminals are expressed as ComNode. So in Server, ComNode is specified in Sending APIs.  
 We also implement BroadCasting API and Group of ComNode as ComGroup, and ComGroup is specified in BroadCasting API in Server. 
 
 ```csharp
+//Send to a client
 ComNode node = server.GetNodeByIp(ip);
 server.SendData(node, 0, "Hello Client!");
 
+//Send to group members
 ComGroup group = new ComGroup("testGroup");
 group.Add(node);
 server.Broadcast(group, 0, "Hello Everyone!");
