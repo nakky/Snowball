@@ -23,12 +23,9 @@ Install-Package Snowball
 ### Unity  
 You can download Unity Package of Snowball from [github](https://github.com/nakky/Snowball/releases/).
 
-You must install [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) because Snowball depends on it. Unity Packages of MessagePack are distributed in [github](https://github.com/neuecc/MessagePack-CSharp/releases).
-
 In Snowball, relatively new features of C# are userd (ex. async/await), so you must set "Scripting Runtime Version" to ". NET 4.x".
 
-Some features of MessagePack are limited by environment and settings. 
-You must set "API Compatibility Level" to ". NET 4.x" in Player Settings. Refer to MessagePack documentations for more details.
+LZ4 Compression uses unsafe functions, so you must allow unsafe code in Player Settings.
 
 ## Quick Start
 Declear "using" directive if you need.
@@ -151,18 +148,32 @@ client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.
 
 ### Data Types
 
-Because of using "[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)", Snowball can transfer data which type is supported by MessagePack.
-So you can transfer class instances if you define those classes in a way of MessagePack.
+These types are supported by default.
+
+#### Common
+
+Primitive : [bool, char, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, string]  
+Container : [Array, Enum, IList, IDictionary]  
+Othres : [DateTime, TimeSpan]  
+and Serializable attributed classes.
+
+#### Unity Extension
+
+Transform : [Vector2, Vector3, Vector4, Quaternion]
+
+#### Custom Attributed Class
+
+You can transfer instances if you define those classes as follows.
 
 ```csharp
-[MessagePackObject]
+[Transferable]
 public class TestClass
 {
-    [Key(0)]
+    [Data(0)]
     public int intData;
-    [Key(1)]
+    [Data(1)]
     public float floatData;
-    [Key(2)]
+    [Data(2)]
     public string stringData;
 };
 ```
@@ -173,6 +184,8 @@ TestClass testClass = new TestClass();
 
 client.SendData(1, testClass);
 ```
+Instances with [Serializable] Attribute can be transfered, but [Transferable] Attribute is more efficient. 
+
 ### Broadcast
 In Snowball, each terminals are expressed as ComNode. So in Server, ComNode is specified in Sending APIs.  
 We also implement BroadCasting API and Group of ComNode as ComGroup, and ComGroup is specified in BroadCasting API in Server. 
@@ -225,4 +238,4 @@ client.SetBeaconAcceptFunction((data) => {
 ## License
 
 This library is under the MIT License.  
-Snowball is using [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) for packing data.
+Snowball is using [K4os.Compression.LZ4](https://github.com/MiloszKrajewski/K4os.Compression.LZ4) for LZ4 compression.

@@ -20,13 +20,22 @@ namespace Snowball
 
         public override void Serialize(Stream stream, object data)
         {
-            Array array = (Array)data;
-            
-            byte[] lbuf = BitConverter.GetBytes(array.Length);
-            stream.Write(lbuf, 0, lbuf.Length);
+            if (data == null)
+            {
+                byte[] lbuf = BitConverter.GetBytes(-1);
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                Array array = (Array)data;
 
-            for (int i = 0 ; i < array.Length; i++) {
-                converter.Serialize(stream, array.GetValue(i));
+                byte[] lbuf = BitConverter.GetBytes(array.Length);
+                stream.Write(lbuf, 0, lbuf.Length);
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    converter.Serialize(stream, array.GetValue(i));
+                }
             }
         }
 
@@ -35,14 +44,20 @@ namespace Snowball
             stream.Read(buf, 0, sizeof(int));
             int length = BitConverter.ToInt32(buf, 0);
 
-            Array array = Array.CreateInstance(type.GetElementType(), length);
-
-            for (int i = 0; i < length; i++)
+            if (length < 0)
             {
-                array.SetValue(converter.Deserialize(stream), i);
+                return null;
             }
+            else
+            {
+                Array array = Array.CreateInstance(type.GetElementType(), length);
 
-            return array;
+                for (int i = 0; i < length; i++)
+                {
+                    array.SetValue(converter.Deserialize(stream), i);
+                }
+                return array;
+            }
         }
     }
 
@@ -55,12 +70,20 @@ namespace Snowball
 
         public override void Serialize(Stream stream, object data)
         {
-            byte[] array = (byte[])data;
+            if (data == null)
+            {
+                byte[] lbuf = BitConverter.GetBytes(-1);
+                stream.Write(lbuf, 0, lbuf.Length);
+            }
+            else
+            {
+                byte[] array = (byte[])data;
 
-            byte[] lbuf = BitConverter.GetBytes(array.Length);
-            stream.Write(lbuf, 0, lbuf.Length);
+                byte[] lbuf = BitConverter.GetBytes(array.Length);
+                stream.Write(lbuf, 0, lbuf.Length);
 
-            stream.Write(array, 0, array.Length);
+                stream.Write(array, 0, array.Length);
+            }
         }
 
         public override object Deserialize(Stream stream)
@@ -68,10 +91,17 @@ namespace Snowball
             stream.Read(buf, 0, sizeof(int));
             int length = BitConverter.ToInt32(buf, 0);
 
-            byte[] array = new byte[length];
+            if (length < 0)
+            {
+                return null;
+            }
+            else
+            {
+                byte[] array = new byte[length];
 
-            stream.Read(array, 0, length);
-            return array;
+                stream.Read(array, 0, length);
+                return array;
+            }
         }
     }
 }

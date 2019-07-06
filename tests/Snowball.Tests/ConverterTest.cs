@@ -3,6 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
+using System.Collections.Generic;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,17 +19,33 @@ namespace Snowball.Tests
         C
     }
 
+    [Serializable]
+    class TestSerializableClass
+    {
+        public int intData;
+        public string stringData = "";
+
+        public bool Equals(TestSerializableClass other)
+        {
+            return intData == other.intData && stringData == other.stringData;
+        }
+    };
+
     [Transferable]
     class TestParamClass
     {
+        public int unused;
+
         [Data(2)]
-        public int intData;
+        public int intData { get; set; }
 
         [Data(0)]
-        public string stringData = "";
+        public string stringData { get; set; }
 
         public bool Equals(TestParamClass other)
         {
+            if (other == null) return false;
+
             return intData == other.intData && stringData == other.stringData;
         }
     };
@@ -36,23 +54,25 @@ namespace Snowball.Tests
     class TestConvertClass
     {
         [Data(2)]
-        public int intData;
+        public int intData { get; set; }
 
         [Data(3)]
-        public string stringData = "";
+        public string stringData { get; set; }
 
         [Data(1)]
-        public float flaotData;
+        public float flaotData { get; set; }
 
         [Data(0)]
-        public TestParamClass classData = new TestParamClass();
+        public TestParamClass classData { get; set; }
 
-        public bool Equals(TestConvertClass other)
+    public bool Equals(TestConvertClass other)
         {
+            if (other == null) return false;
+
             return intData == other.intData
                 && stringData == other.stringData
                 && flaotData == other.flaotData
-                && classData.Equals(other.classData)
+                && ( (classData == null && other.classData == null) || (classData.Equals(other.classData) ) )
                 ;
         }
     };
@@ -220,6 +240,26 @@ namespace Snowball.Tests
 
             if (enumSrc != enumDst) throw new InvalidProgramException("enum");
 
+            //DateTime
+            stream = new MemoryStream();
+            DateTime dateTimeSrc = DateTime.Now;
+            DateTime dateTimeDst;
+            DataSerializer.Serialize(stream, dateTimeSrc);
+            stream.Position = 0;
+            dateTimeDst = DataSerializer.Deserialize<DateTime>(stream);
+
+            if (dateTimeSrc != dateTimeDst) throw new InvalidProgramException("DateTime");
+
+            //TimeSpan
+            stream = new MemoryStream();
+            TimeSpan timeSpanSrc = new TimeSpan(98271983172893);
+            TimeSpan timeSpanDst;
+            DataSerializer.Serialize(stream, timeSpanSrc);
+            stream.Position = 0;
+            timeSpanDst = DataSerializer.Deserialize<TimeSpan>(stream);
+
+            if (timeSpanSrc != timeSpanDst) throw new InvalidProgramException("TimeSpan");
+
             //class
             stream = new MemoryStream();
             TestConvertClass classSrc = new TestConvertClass();
@@ -236,6 +276,7 @@ namespace Snowball.Tests
             classDst = DataSerializer.Deserialize<TestConvertClass>(stream);
 
             if (!classSrc.Equals(classDst)) throw new InvalidProgramException("TestConvertClass");
+
 
             //array primitive
             stream = new MemoryStream();
@@ -268,12 +309,67 @@ namespace Snowball.Tests
                     throw new InvalidProgramException("TestConvertClass[]");
             }
 
-            
+            //list class
+            stream = new MemoryStream();
+            List<TestConvertClass> cListSrc = new List<TestConvertClass>{ new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass() };
+            cListSrc[1].intData = 90;
+            List<TestConvertClass> cListDst = null;
+            DataSerializer.Serialize(stream, cArraySrc);
+            stream.Position = 0;
+            cListDst = DataSerializer.Deserialize<List<TestConvertClass>>(stream);
+
+            if (cListSrc.Count != cListDst.Count) throw new InvalidProgramException("List<TestConvertClass>");
+            for (int i = 0; i < bArraySrc.Length; i++)
+            {
+                if (!cArraySrc[i].Equals(cListDst[i]))
+                    throw new InvalidProgramException("List<TestConvertClass>");
+            }
+
+            //Dictionary class
+            stream = new MemoryStream();
+            Dictionary<string, TestConvertClass> cDictSrc = new Dictionary<string, TestConvertClass>();
+
+            TestConvertClass tcc = new TestConvertClass();
+            tcc.intData = 90;
+            cDictSrc.Add("aaaa", tcc);
+            tcc = new TestConvertClass();
+            tcc.intData = 270;
+            cDictSrc.Add("bbbb", tcc);
+
+            Dictionary<string, TestConvertClass> cDictDst = null;
+
+            DataSerializer.Serialize(stream, cDictSrc);
+            stream.Position = 0;
+            cDictDst = DataSerializer.Deserialize<Dictionary<string, TestConvertClass>>(stream);
+
+            if (cDictSrc.Count != cDictDst.Count) throw new InvalidProgramException("Dictionary<string, TestConvertClass>");
+            foreach(var pair in cDictSrc)
+            {
+                if (!pair.Value.Equals(cDictDst[pair.Key]))
+                    throw new InvalidProgramException("Dictionary<string, TestConvertClass>");
+            }
+
+
+            //serializable class
+            stream = new MemoryStream();
+            TestSerializableClass serialiableSrc = new TestSerializableClass();
+            serialiableSrc.intData = random.Next();
+            serialiableSrc.stringData = "asfeaefaw";
+
+            TestSerializableClass serialiableDst;
+            DataSerializer.Serialize(stream, serialiableSrc);
+            stream.Position = 0;
+            serialiableDst = DataSerializer.Deserialize<TestSerializableClass>(stream);
+
+            if (!serialiableSrc.Equals(serialiableDst)) throw new InvalidProgramException("TestSerializableClass");
+
+
+
 
         }
 
 
-       
+
 
     }
 }

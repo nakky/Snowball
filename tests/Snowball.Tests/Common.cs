@@ -27,11 +27,11 @@ namespace Snowball.Tests
     public class TestClass
     {
         [Data(0)]
-        public int intData;
+        public int intData { get; set; }
         [Data(1)]
-        public float floatData;
+        public float floatData { get; set; }
         [Data(2)]
-        public string stringData;
+        public string stringData { get; set; }
 
         public override string ToString()
         {
