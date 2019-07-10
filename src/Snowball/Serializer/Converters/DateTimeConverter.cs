@@ -7,7 +7,7 @@ namespace Snowball
 {
     public class DateTimeConverter : Converter
     {
-        byte[] buf = new byte[sizeof(long)];
+        byte[] dbuf = new byte[sizeof(long)];
 
         public static Converter constract() { return new DateTimeConverter(); }
 
@@ -30,22 +30,22 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if (dbuf[0] == 0)
             {
                 return null;
             }
             else
             {
-                stream.Read(buf, 0, sizeof(long));
-                return DateTime.FromBinary(BitConverter.ToInt64(buf, 0));
+                stream.Read(dbuf, 0, sizeof(long));
+                return DateTime.FromBinary(BitConverter.ToInt64(dbuf, 0));
             }
         }
     }
 
     public class TimeSpanConverter : Converter
     {
-        byte[] buf = new byte[sizeof(long)];
+        byte[] dbuf = new byte[sizeof(long)];
 
         public static Converter constract() { return new TimeSpanConverter(); }
 
@@ -68,15 +68,15 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if (dbuf[0] == 0)
             {
                 return null;
             }
             else
             {
-                stream.Read(buf, 0, sizeof(long));
-                return TimeSpan.FromTicks(BitConverter.ToInt64(buf, 0));
+                stream.Read(dbuf, 0, sizeof(long));
+                return TimeSpan.FromTicks(BitConverter.ToInt64(dbuf, 0));
             }
         }
     }

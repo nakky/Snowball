@@ -9,7 +9,7 @@ namespace Snowball
 {
     public class Vector2Converter : Converter
     {
-        byte[] buf = new byte[sizeof(float)];
+        byte[] dbuf = new byte[sizeof(float)];
 
         public static Converter constract() { return new Vector2Converter(); }
 
@@ -34,8 +34,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if (dbuf[0] == 0)
             {
                 return null;
             }
@@ -43,10 +43,10 @@ namespace Snowball
             {
                 Vector2 vector = new Vector2();
 
-                stream.Read(buf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(buf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.x = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.y = BitConverter.ToSingle(dbuf, 0);
 
                 return vector;
             }
@@ -55,7 +55,7 @@ namespace Snowball
 
     public class Vector3Converter : Converter
     {
-        byte[] buf = new byte[sizeof(float)];
+        byte[] dbuf = new byte[sizeof(float)];
 
         public static Converter constract() { return new Vector3Converter(); }
 
@@ -81,8 +81,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if (dbuf[0] == 0)
             {
                 return null;
             }
@@ -90,12 +90,12 @@ namespace Snowball
             {
                 Vector3 vector = new Vector3();
 
-                stream.Read(buf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.z = BitConverter.ToSingle(buf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.x = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.y = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.z = BitConverter.ToSingle(dbuf, 0);
 
                 return vector;
             } 
@@ -104,7 +104,7 @@ namespace Snowball
 
     public class Vector4Converter : Converter
     {
-        byte[] buf = new byte[sizeof(float)];
+        byte[] dbuf = new byte[sizeof(float)];
 
         public static Converter constract() { return new Vector4Converter(); }
 
@@ -131,7 +131,7 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
+            stream.Read(dbuf, 0, sizeof(byte));
             if (buf[0] == 0)
             {
                 return null;
@@ -140,14 +140,14 @@ namespace Snowball
             {
                 Vector4 vector = new Vector4();
 
-                stream.Read(buf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.z = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                vector.w = BitConverter.ToSingle(buf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.x = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.y = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.z = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                vector.w = BitConverter.ToSingle(dbuf, 0);
 
                 return vector;
             }
@@ -156,7 +156,7 @@ namespace Snowball
 
     public class QuaternionConverter : Converter
     {
-        byte[] buf = new byte[sizeof(float)];
+        byte[] dbuf = new byte[sizeof(float)];
 
         public static Converter constract() { return new QuaternionConverter(); }
 
@@ -183,7 +183,7 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
+            stream.Read(dbuf, 0, sizeof(byte));
             if (buf[0] == 0)
             {
                 return null;
@@ -192,14 +192,14 @@ namespace Snowball
             {
                 Quaternion quaternion = new Quaternion();
 
-                stream.Read(buf, 0, sizeof(float));
-                quaternion.x = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                quaternion.y = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                quaternion.z = BitConverter.ToSingle(buf, 0);
-                stream.Read(buf, 0, sizeof(float));
-                quaternion.w = BitConverter.ToSingle(buf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                quaternion.x = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                quaternion.y = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                quaternion.z = BitConverter.ToSingle(dbuf, 0);
+                stream.Read(dbuf, 0, sizeof(float));
+                quaternion.w = BitConverter.ToSingle(dbuf, 0);
 
                 return quaternion;
             }  

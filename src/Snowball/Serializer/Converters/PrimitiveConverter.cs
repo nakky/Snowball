@@ -5,7 +5,7 @@ namespace Snowball
 {
     public class BoolConverter : Converter
     {
-        byte[] buf = new byte[sizeof(bool)];
+        byte[] dbuf = new byte[sizeof(bool)];
 
         public static Converter constract() { return new BoolConverter(); }
 
@@ -16,15 +16,15 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(bool));
-            return BitConverter.ToBoolean(buf, 0);
+            stream.Read(dbuf, 0, sizeof(bool));
+            return BitConverter.ToBoolean(dbuf, 0);
         }
 
     }
 
     public class CharConverter : Converter
     {
-        byte[] buf = new byte[sizeof(char)];
+        byte[] dbuf = new byte[sizeof(char)];
 
         public static Converter constract() { return new CharConverter(); }
 
@@ -35,14 +35,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(char));
-            return BitConverter.ToChar(buf, 0);
+            stream.Read(dbuf, 0, sizeof(char));
+            return BitConverter.ToChar(dbuf, 0);
         }
     }
 
     public class SByteConverter : Converter
     {
-        byte[] buf = new byte[sizeof(sbyte)];
+        byte[] dbuf = new byte[sizeof(sbyte)];
 
         public static Converter constract() { return new SByteConverter(); }
 
@@ -53,14 +53,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(sbyte));
-            return (sbyte)buf[0];
+            stream.Read(dbuf, 0, sizeof(sbyte));
+            return (sbyte)dbuf[0];
         }
     }
 
     public class ByteConverter : Converter
     {
-        byte[] buf = new byte[sizeof(byte)];
+        byte[] dbuf = new byte[sizeof(byte)];
 
         public static Converter constract() { return new ByteConverter(); }
 
@@ -71,14 +71,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            return buf[0];
+            stream.Read(dbuf, 0, sizeof(byte));
+            return dbuf[0];
         }
     }
 
     public class ShortConverter : Converter
     {
-        byte[] buf = new byte[sizeof(short)];
+        byte[] dbuf = new byte[sizeof(short)];
 
         public static Converter constract() { return new ShortConverter(); }
 
@@ -89,14 +89,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(short));
-            return BitConverter.ToInt16(buf, 0);
+            stream.Read(dbuf, 0, sizeof(short));
+            return BitConverter.ToInt16(dbuf, 0);
         }
     }
 
     public class UShortConverter : Converter
     {
-        byte[] buf = new byte[sizeof(ushort)];
+        byte[] dbuf = new byte[sizeof(ushort)];
 
         public static Converter constract() { return new UShortConverter(); }
 
@@ -107,14 +107,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(ushort));
-            return BitConverter.ToUInt16(buf, 0);
+            stream.Read(dbuf, 0, sizeof(ushort));
+            return BitConverter.ToUInt16(dbuf, 0);
         }
     }
 
     public class IntConverter : Converter
     {
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         public static Converter constract() { return new IntConverter(); }
 
@@ -125,14 +125,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(int));
-            return BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            return BitConverter.ToInt32(dbuf, 0);
         }
     }
 
     public class UIntConverter : Converter
     {
-        byte[] buf = new byte[sizeof(uint)];
+        byte[] dbuf = new byte[sizeof(uint)];
 
         public static Converter constract() { return new UIntConverter(); }
 
@@ -143,14 +143,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(uint));
-            return BitConverter.ToUInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(uint));
+            return BitConverter.ToUInt32(dbuf, 0);
         }
     }
 
     public class LongConverter : Converter
     {
-        byte[] buf = new byte[sizeof(long)];
+        byte[] dbuf = new byte[sizeof(long)];
 
         public static Converter constract() { return new LongConverter(); }
 
@@ -161,14 +161,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(long));
-            return BitConverter.ToInt64(buf, 0);
+            stream.Read(dbuf, 0, sizeof(long));
+            return BitConverter.ToInt64(dbuf, 0);
         }
     }
 
     public class ULongConverter : Converter
     {
-        byte[] buf = new byte[sizeof(ulong)];
+        byte[] dbuf = new byte[sizeof(ulong)];
 
         public static Converter constract() { return new ULongConverter(); }
 
@@ -179,14 +179,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(ulong));
-            return BitConverter.ToUInt64(buf, 0);
+            stream.Read(dbuf, 0, sizeof(ulong));
+            return BitConverter.ToUInt64(dbuf, 0);
         }
     }
 
     public class FloatConverter : Converter
     {
-        byte[] buf = new byte[sizeof(float)];
+        byte[] dbuf = new byte[sizeof(float)];
 
         public static Converter constract() { return new FloatConverter(); }
 
@@ -197,14 +197,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(float));
-            return BitConverter.ToSingle(buf, 0);
+            stream.Read(dbuf, 0, sizeof(float));
+            return BitConverter.ToSingle(dbuf, 0);
         }
     }
 
     public class DoubleConverter : Converter
     {
-        byte[] buf = new byte[sizeof(double)];
+        byte[] dbuf = new byte[sizeof(double)];
 
         public static Converter constract() { return new DoubleConverter(); }
 
@@ -215,14 +215,14 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(double));
-            return BitConverter.ToDouble(buf, 0);
+            stream.Read(dbuf, 0, sizeof(double));
+            return BitConverter.ToDouble(dbuf, 0);
         }
     }
 
     public class StringASCIIConverter : Converter
     {
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         public static Converter constract() { return new StringASCIIConverter(); }
 
@@ -250,8 +250,8 @@ namespace Snowball
         {
             object data;
 
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if(length < 0)
             {
@@ -275,7 +275,7 @@ namespace Snowball
     public class StringUnicodeConverter : Converter
     {
 
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         public static Converter constract() { return new StringUnicodeConverter(); }
 
@@ -303,8 +303,8 @@ namespace Snowball
         {
             object data;
 
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if (length < 0)
             {
@@ -331,7 +331,7 @@ namespace Snowball
     public class StringUtf8Converter : Converter
     {
 
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         public static Converter constract() { return new StringUtf8Converter(); }
 
@@ -359,8 +359,8 @@ namespace Snowball
         {
             object data;
 
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if (length < 0)
             {

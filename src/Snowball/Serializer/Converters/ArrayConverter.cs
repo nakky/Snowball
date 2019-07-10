@@ -7,7 +7,7 @@ namespace Snowball
 {
     public class ArrayConverter : Converter
     {
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         Converter converter;
         Type type;
@@ -41,8 +41,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if (length < 0)
             {
@@ -64,7 +64,7 @@ namespace Snowball
 
     public class ByteArrayConverter : Converter
     {
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         public static Converter constract() { return new ByteArrayConverter(); }
 
@@ -88,8 +88,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if (length < 0)
             {
