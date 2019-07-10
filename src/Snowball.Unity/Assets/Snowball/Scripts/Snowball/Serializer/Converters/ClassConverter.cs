@@ -15,7 +15,7 @@ namespace Snowball
         List<Converter> converters = new List<Converter>();
         List<PropertyInfo> parameters = new List<PropertyInfo>();
 
-        byte[] buf = new byte[sizeof(byte)];
+        byte[] dbuf = new byte[sizeof(byte)];
 
         public ClassConverter(Type type)
         {
@@ -70,8 +70,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if(buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if(dbuf[0] == 0)
             {
                 return null;
             }

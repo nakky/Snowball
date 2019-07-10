@@ -53,7 +53,7 @@ namespace Snowball
             }
             else
             {
-                return DataSerializer.Deserialize<T>(stream);
+                return converter.Deserialize(stream);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Snowball
             }
             else
             {
-                DataSerializer.Serialize<T>(stream, (T)data);
+                converter.Serialize(stream, data);
             }
 
         }

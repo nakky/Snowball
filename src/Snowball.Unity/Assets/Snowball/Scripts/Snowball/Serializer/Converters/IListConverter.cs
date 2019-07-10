@@ -7,7 +7,7 @@ namespace Snowball
 {
     public class IListConverter : Converter
     {
-        byte[] buf = new byte[sizeof(int)];
+        byte[] dbuf = new byte[sizeof(int)];
 
         Converter converter;
         Type type;
@@ -43,8 +43,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(buf, 0);
+            stream.Read(dbuf, 0, sizeof(int));
+            int length = BitConverter.ToInt32(dbuf, 0);
 
             if (length < 0)
             {

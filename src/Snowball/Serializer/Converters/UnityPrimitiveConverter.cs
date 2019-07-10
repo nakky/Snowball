@@ -132,7 +132,7 @@ namespace Snowball
         public override object Deserialize(Stream stream)
         {
             stream.Read(dbuf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            if (dbuf[0] == 0)
             {
                 return null;
             }
@@ -184,7 +184,7 @@ namespace Snowball
         public override object Deserialize(Stream stream)
         {
             stream.Read(dbuf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            if (dbuf[0] == 0)
             {
                 return null;
             }

@@ -14,7 +14,7 @@ namespace Snowball
 
         Type type;
 
-        byte[] buf = new byte[sizeof(byte)];
+        byte[] dbuf = new byte[sizeof(byte)];
 
         public SerializableConverter(Type type)
         {
@@ -39,8 +39,8 @@ namespace Snowball
 
         public override object Deserialize(Stream stream)
         {
-            stream.Read(buf, 0, sizeof(byte));
-            if (buf[0] == 0)
+            stream.Read(dbuf, 0, sizeof(byte));
+            if (dbuf[0] == 0)
             {
                 return null;
             }
