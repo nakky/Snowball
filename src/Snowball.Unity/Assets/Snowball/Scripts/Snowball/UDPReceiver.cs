@@ -25,6 +25,17 @@ namespace Snowball
         public SynchronizationContext SyncContext { get; private set; }
         public static bool UseSyncContextPost = true;
 
+        public class CallbackParam
+        {
+            public CallbackParam(string ip, byte[] buffer, int size)
+            {
+                this.Ip = ip; this.buffer = buffer; this.size = size;
+            }
+            public string Ip;
+            public byte[] buffer;
+            public int size;
+        }
+
         public UDPReceiver(int portNum, int bufferSize = DefaultBufferSize)
         {
             this.portNum = portNum;
@@ -88,9 +99,9 @@ namespace Snowball
                         SyncContext.Post((state) =>
                         {
                             if (cancelToken.IsCancellationRequested) return;
-
-                            if (OnReceive != null) OnReceive(result.RemoteEndPoint.Address.ToString(), result.Buffer, result.Buffer.Length);
-                        }, null);
+                            CallbackParam param = (CallbackParam)state;
+                            if (OnReceive != null) OnReceive(param.Ip, param.buffer, param.size);
+                        }, new CallbackParam(result.RemoteEndPoint.Address.ToString(), result.Buffer, result.Buffer.Length));
                     }
                     else
                     {

@@ -32,6 +32,18 @@ namespace Snowball
         public SynchronizationContext SyncContext { get; private set; }
         public static bool UseSyncContextPost = true;
 
+        public class CallbackParam
+        {
+            public CallbackParam(string ip, short channelId, byte[] buffer, int size)
+            {
+                this.Ip = ip; this.channelId = channelId; this.buffer = buffer; this.size = size;
+            }
+            public string Ip;
+            public short channelId;
+            public byte[] buffer;
+            public int size;
+        }
+
         public TCPConnection(TcpClient client, int receiveBufferSize = DefaultBufferSize)
         {
             receiveBuffer = new byte[receiveBufferSize];
@@ -102,8 +114,8 @@ namespace Snowball
                         channelId = VarintBitConverter.ToInt16(nStream, out s);
                         await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
 #endif
-                        buffer = new byte[receiveBuffer.Length];
-                        receiveBuffer.CopyTo(buffer, 0);
+                        buffer = new byte[resSize];
+                        Array.Copy(receiveBuffer, buffer, resSize);
 
                     }
                 }
@@ -123,8 +135,9 @@ namespace Snowball
                 {
                     SyncContext.Post((state) => {
                         if (cancelToken.IsCancellationRequested) return;
-                        if (OnReceive != null) OnReceive(IP, channelId, buffer, resSize);
-                    }, null);                    
+                        CallbackParam param = (CallbackParam)state;
+                        if (OnReceive != null) OnReceive(param.Ip, param.channelId, param.buffer, param.size);
+                    }, new CallbackParam(IP, channelId, buffer, resSize));
                 }
                 else
                 {
@@ -134,7 +147,17 @@ namespace Snowball
 
             } while (client.Connected);
 
-            Disconnect();
+            if (SyncContext != null)
+            {
+                SyncContext.Post((state) => {
+                    Disconnect();
+                }, null);
+            }
+            else
+            {
+                Disconnect();
+            }
+            
 
         }
 

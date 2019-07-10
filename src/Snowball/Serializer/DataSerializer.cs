@@ -81,12 +81,19 @@ namespace Snowball
 
         public static void AddConverterConstructor(Type type, ConverterConstractor constractor)
         {
-            constractorMap.Add(type, constractor);
+            if (!constractorMap.ContainsKey(type))
+            {
+                constractorMap.Add(type, constractor);
+            }
         }
+
 
         public static void RemoveConverterConstructor(Type type)
         {
-            constractorMap.Remove(type);
+            if (constractorMap.ContainsKey(type))
+            {
+                constractorMap.Remove(type);
+            }
         }
 
         public static void Setup()
