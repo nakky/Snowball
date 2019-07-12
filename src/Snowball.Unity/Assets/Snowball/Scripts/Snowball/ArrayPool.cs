@@ -22,12 +22,9 @@ namespace Snowball
         public int maxArrayLength;
         public int maxArraysPerBucket;
 
-        const int MemoryPageBit = 12;
-        const int MemoryPageSize = 1 << MemoryPageBit;
-
         public Queue<T[]>[] buckets;
 
-        public SimpleArrayPool(int maxArrayLength = 1024, int maxArraysPerBucket = 256)
+        public SimpleArrayPool(int maxArrayLength = 4098, int maxArraysPerBucket = 256)
         {
             this.maxArrayLength = maxArrayLength;
             this.maxArraysPerBucket = maxArraysPerBucket;
