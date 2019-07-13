@@ -75,10 +75,10 @@ Sending examples are as follows.
 
 ```csharp
 ComNode node = server.GetNodeByIp(ip);
-server.SendData(node, 0, "Hello Client!");
+server.Send(node, 0, "Hello Client!");
 ```
 ```csharp
-client.SendData(0, "Hello Server!");
+client.Send(0, "Hello Server!");
 ```
 
 And ComClient and ComServer should be closed on termination. (ex. Dispose())
@@ -185,7 +185,7 @@ TestClass testClass = new TestClass();
 
 ~~~
 
-client.SendData(1, testClass);
+client.Send(1, testClass);
 ```
 Instances with [Serializable] Attribute can be transfered, but [Transferable] Attributed classes are more efficient. 
 
@@ -196,7 +196,7 @@ We also implement BroadCasting API and Group of ComNode as ComGroup, and ComGrou
 ```csharp
 //Send to a client
 ComNode node = server.GetNodeByIp(ip);
-server.SendData(node, 0, "Hello Client!");
+server.Send(node, 0, "Hello Client!");
 
 //Send to group members
 ComGroup group = new ComGroup("testGroup");
