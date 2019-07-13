@@ -123,7 +123,7 @@ namespace Snowball
                 {
                     byte dummy = 0;
 
-                    SendData((short)PreservedChannelId.Health, dummy);
+                    Send((short)PreservedChannelId.Health, dummy);
 
                     healthLostCount++;
                     if (healthLostCount > MaxHealthLostCount)
@@ -165,7 +165,7 @@ namespace Snowball
             connection.OnDisconnected = OnDisconnectedInternal;
             connection.OnReceive = OnTCPReceived;
 
-            SendData((short)PreservedChannelId.Login, UserName);
+            Send((short)PreservedChannelId.Login, UserName);
 
             isConnecting = false;
 
@@ -269,7 +269,7 @@ namespace Snowball
             }
         }
 
-        public bool SendData<T>(short channelId, T data)
+        public bool Send<T>(short channelId, T data)
         {
             if (!IsConnected) return false;
 

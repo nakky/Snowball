@@ -16,7 +16,7 @@ public partial class MainWindow : Gtk.Window
         {
             if(textviewInput.Buffer.Text.Length > 0)
             {
-                client.SendData(0, textviewInput.Buffer.Text);
+                client.Send(0, textviewInput.Buffer.Text);
                 textviewInput.Buffer.Text = "";
             }
 

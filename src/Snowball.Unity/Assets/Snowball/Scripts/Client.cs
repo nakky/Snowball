@@ -83,9 +83,9 @@ namespace Snowball
             return com.Disconnect();
         }
 
-        public bool SendData<T>(short channelId, T data)
+        public bool Send<T>(short channelId, T data)
         {
-            return com.SendData(channelId, data);
+            return com.Send(channelId, data);
         }
 
     }

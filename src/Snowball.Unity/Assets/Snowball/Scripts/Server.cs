@@ -94,9 +94,9 @@ namespace Snowball
             return com.Broadcast(group, channelId, data);
         }
 
-        public bool SendData<T>(ComNode node, short channelId, T data)
+        public bool Send<T>(ComNode node, short channelId, T data)
         {
-            return com.SendData(node, channelId, data);
+            return com.Send(node, channelId, data);
         }
 
     }

@@ -93,14 +93,14 @@ public class SampleSceneMain : MonoBehaviour
 
             for(int i = 0; i < 70; i++)
             {
-                client.SendData(0, state);
+                client.Send(0, state);
             }
             
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            client.SendData(1, "Hello Unity!");
+            client.Send(1, "Hello Unity!");
         }
     }
 }

@@ -217,7 +217,7 @@ namespace Snowball
                 byte dummy = 0;
                 foreach(var keypair in nodeMap)
                 {
-                    SendData(keypair.Value, (short)PreservedChannelId.Health, dummy);
+                    Send(keypair.Value, (short)PreservedChannelId.Health, dummy);
                     keypair.Value.HealthLostCount++;
                     if (keypair.Value.HealthLostCount > MaxHealthLostCount)
                     {
@@ -351,7 +351,7 @@ namespace Snowball
 
             foreach(var node in group.NodeList)
             {
-                if(!SendData(node, channelId, data))
+                if(!Send(node, channelId, data))
                 {
                     status = false;
                 }
@@ -359,7 +359,7 @@ namespace Snowball
             return status;
         }
 
-        public bool SendData<T>(ComNode node, short channelId, T data)
+        public bool Send<T>(ComNode node, short channelId, T data)
         {
             if (!connectionMap.ContainsKey(node)) return false;
 

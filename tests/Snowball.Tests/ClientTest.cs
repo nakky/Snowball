@@ -214,13 +214,13 @@ namespace Snowball.Tests
 
 
             //Send
-            client.SendData((short)ChannelId.ByteRel, byteData);
-            client.SendData((short)ChannelId.ShortRel, shortData);
-            client.SendData((short)ChannelId.IntRel, intData);
-            client.SendData((short)ChannelId.FloatRel, floatData);
-            client.SendData((short)ChannelId.DoubleRel, doubleData);
-            client.SendData((short)ChannelId.StringRel, stringData);
-            client.SendData((short)ChannelId.ClassRel, testData);
+            client.Send((short)ChannelId.ByteRel, byteData);
+            client.Send((short)ChannelId.ShortRel, shortData);
+            client.Send((short)ChannelId.IntRel, intData);
+            client.Send((short)ChannelId.FloatRel, floatData);
+            client.Send((short)ChannelId.DoubleRel, doubleData);
+            client.Send((short)ChannelId.StringRel, stringData);
+            client.Send((short)ChannelId.ClassRel, testData);
 
             Stopwatch sw = new Stopwatch();
 
@@ -336,13 +336,13 @@ namespace Snowball.Tests
             }));
 
             //Send
-            client.SendData((short)ChannelId.ByteUnRel, byteData);
-            client.SendData((short)ChannelId.ShortUnRel, shortData);
-            client.SendData((short)ChannelId.IntUnRel, intData);
-            client.SendData((short)ChannelId.FloatUnRel, floatData);
-            client.SendData((short)ChannelId.DoubleUnRel, doubleData);
-            client.SendData((short)ChannelId.StringUnRel, stringData);
-            client.SendData((short)ChannelId.ClassUnRel, testData);
+            client.Send((short)ChannelId.ByteUnRel, byteData);
+            client.Send((short)ChannelId.ShortUnRel, shortData);
+            client.Send((short)ChannelId.IntUnRel, intData);
+            client.Send((short)ChannelId.FloatUnRel, floatData);
+            client.Send((short)ChannelId.DoubleUnRel, doubleData);
+            client.Send((short)ChannelId.StringUnRel, stringData);
+            client.Send((short)ChannelId.ClassUnRel, testData);
 
             Stopwatch sw = new Stopwatch();
 
@@ -426,7 +426,7 @@ namespace Snowball.Tests
             //Send
             for (int i = 0; i < sendTestNum; i++)
             {
-                client.SendData((short)ChannelId.ClassRel, testData);
+                client.Send((short)ChannelId.ClassRel, testData);
             }
 
 
@@ -496,7 +496,7 @@ namespace Snowball.Tests
             //Send
             for (int i = 0; i < sendTestNum; i++)
             {
-                client.SendData((short)ChannelId.ClassUnRel, testData);
+                client.Send((short)ChannelId.ClassUnRel, testData);
             }
 
 

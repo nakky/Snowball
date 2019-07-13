@@ -41,7 +41,8 @@ namespace Snowball.Tests
 
             AddEchoChannel();
 
-            Server.SetBeaconDataCreateFunction(() => {
+            Server.SetBeaconDataCreateFunction(() =>
+            {
                 return "Test";
             });
 
@@ -57,84 +58,84 @@ namespace Snowball.Tests
 
         void AddEchoChannel()
         {
-            
+
 
             //Byte
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.ByteRel, data);
+                Server.Send(node, (short)ChannelId.ByteRel, data);
             }));
 
 
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.ByteUnRel, data);
+                Server.Send(node, (short)ChannelId.ByteUnRel, data);
             }));
 
             //Short
             Server.AddChannel(new DataChannel<short>((short)ChannelId.ShortRel, QosType.Reliable, comp, (node, data) =>
-            { 
-                Server.SendData(node, (short)ChannelId.ShortRel, data);
+            {
+                Server.Send(node, (short)ChannelId.ShortRel, data);
             }));
 
             Server.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.ShortUnRel, data);
+                Server.Send(node, (short)ChannelId.ShortUnRel, data);
             }));
 
             //Int
             Server.AddChannel(new DataChannel<int>((short)ChannelId.IntRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.IntRel, data);
+                Server.Send(node, (short)ChannelId.IntRel, data);
             }));
 
             Server.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.IntUnRel, data);
+                Server.Send(node, (short)ChannelId.IntUnRel, data);
             }));
 
             //Float
             Server.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.FloatRel, data);
+                Server.Send(node, (short)ChannelId.FloatRel, data);
             }));
 
             Server.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.FloatUnRel, data);
+                Server.Send(node, (short)ChannelId.FloatUnRel, data);
             }));
 
             //Double
             Server.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.DoubleRel, data);
+                Server.Send(node, (short)ChannelId.DoubleRel, data);
             }));
 
             Server.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.DoubleUnRel, data);
+                Server.Send(node, (short)ChannelId.DoubleUnRel, data);
             }));
 
             //String
             Server.AddChannel(new DataChannel<string>((short)ChannelId.StringRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.StringRel, data);
+                Server.Send(node, (short)ChannelId.StringRel, data);
             }));
 
             Server.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.StringUnRel, data);
+                Server.Send(node, (short)ChannelId.StringUnRel, data);
             }));
 
             //Class
             Server.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.ClassRel, data);
+                Server.Send(node, (short)ChannelId.ClassRel, data);
             }));
 
             Server.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Server.SendData(node, (short)ChannelId.ClassUnRel, data);
+                Server.Send(node, (short)ChannelId.ClassUnRel, data);
             }));
 
 
