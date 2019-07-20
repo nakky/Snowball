@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using System.Threading;
+
 namespace Snowball
 {
     public abstract class ArrayPool<T>
@@ -24,6 +26,9 @@ namespace Snowball
 
         public Queue<T[]>[] buckets;
 
+        SpinLock spinlock = new SpinLock();
+
+
         public SimpleArrayPool(int maxArrayLength = 4098, int maxArraysPerBucket = 256)
         {
             this.maxArrayLength = maxArrayLength;
@@ -32,7 +37,7 @@ namespace Snowball
             int numBuckets = calculateIndexFromSize(maxArrayLength) + 1;
             buckets = new Queue<T[]>[numBuckets];
 
-            for(int i = 0; i < numBuckets; i++)
+            for (int i = 0; i < numBuckets; i++)
             {
                 buckets[i] = new Queue<T[]>();
             }
@@ -55,8 +60,12 @@ namespace Snowball
 
             int index = calculateIndexFromSize(minimumLength);
 
-            lock (this)
+
+            bool lockTaken = false;
+            try
             {
+                spinlock.Enter(ref lockTaken);
+
                 if (buckets[index].Count > 0)
                 {
                     T[] stored = buckets[index].Peek();
@@ -65,6 +74,10 @@ namespace Snowball
                 }
 
                 if (buckets[index].Count > maxArraysPerBucket) return null;
+            }
+            finally
+            {
+                if (lockTaken) spinlock.Exit(false);
             }
 
 
@@ -81,10 +94,18 @@ namespace Snowball
             }
             int index = calculateIndexFromSize(array.Length);
 
-            lock (this)
+            bool lockTaken = false;
+            try
             {
+                spinlock.Enter(ref lockTaken);
+
                 buckets[index].Enqueue(array);
             }
+            finally
+            {
+                if (lockTaken) spinlock.Exit(false);
+            }
         }
+
     }
 }

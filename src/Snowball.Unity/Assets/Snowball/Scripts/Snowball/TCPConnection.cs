@@ -32,16 +32,19 @@ namespace Snowball
         public SynchronizationContext SyncContext { get; private set; }
         public static bool UseSyncContextPost = true;
 
+        ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
+
         public class CallbackParam
         {
-            public CallbackParam(string ip, short channelId, byte[] buffer, int size)
+            public CallbackParam(string ip, short channelId, byte[] buffer, int size, bool isRent)
             {
-                this.Ip = ip; this.channelId = channelId; this.buffer = buffer; this.size = size;
+                this.Ip = ip; this.channelId = channelId; this.buffer = buffer; this.size = size; this.isRent = isRent;
             }
             public string Ip;
             public short channelId;
             public byte[] buffer;
             public int size;
+            public bool isRent;
         }
 
         public TCPConnection(TcpClient client, int receiveBufferSize = DefaultBufferSize)
@@ -116,7 +119,18 @@ namespace Snowball
                         await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
 #endif
 
-                        buffer = new byte[resSize];
+
+                        buffer = arrayPool.Rent(resSize);
+                        if(buffer != null)
+                        {
+                            isRent = true;
+                        }
+                        else
+                        {
+                            buffer = new byte[resSize];
+                            isRent = false;
+                        }
+
                         Array.Copy(receiveBuffer, buffer, resSize);
 
                     }
@@ -139,7 +153,8 @@ namespace Snowball
                         if (cancelToken.IsCancellationRequested) return;
                         CallbackParam param = (CallbackParam)state;
                         if (OnReceive != null) OnReceive(param.Ip, param.channelId, param.buffer, param.size);
-                    }, new CallbackParam(IP, channelId, buffer, resSize));
+                        if (isRent) arrayPool.Return(buffer);
+                    }, new CallbackParam(IP, channelId, buffer, resSize, isRent));
                 }
                 else
                 {
