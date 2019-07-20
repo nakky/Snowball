@@ -90,6 +90,71 @@ namespace Snowball.Tests
 
         [Fact]
         //[Fact(Skip = "Skipped")]
+        public void BytePackerTest()
+        {
+            Random random = new Random();
+
+            byte[] buffer = new byte[64];
+
+            BytePacker packer = new BytePacker(buffer);
+
+            //Bool
+            bool boolVal = true;
+            packer.Write(boolVal);
+
+            sbyte sbyteVal = (sbyte)random.Next(sbyte.MinValue, sbyte.MaxValue);
+            packer.Write(sbyteVal);
+
+            byte byteVal = (byte)random.Next(byte.MinValue, byte.MaxValue);
+            packer.Write(byteVal);
+
+            char charVal = (char)random.Next(char.MinValue, char.MaxValue);
+            packer.Write(charVal);
+
+            short shortVal = (short)random.Next(short.MinValue, short.MaxValue);
+            packer.Write(shortVal);
+
+            ushort ushortVal = (ushort)random.Next(ushort.MinValue, ushort.MaxValue);
+            packer.Write(ushortVal);
+
+            int intVal = random.Next();
+            packer.Write(intVal);
+
+            uint uintVal = (uint)random.Next(0, int.MaxValue) * 2;
+            packer.Write(uintVal);
+
+            long longVal = (long)random.Next() * 2;
+            packer.Write(longVal);
+
+            ulong ulongVal = (uint)random.Next(0, int.MaxValue) * 2;
+            packer.Write(ulongVal);
+
+            float floatVal = (float)random.NextDouble();
+            packer.Write(floatVal);
+
+            double doubleVal = random.NextDouble();
+            packer.Write(doubleVal);
+
+            packer.Position = 0;
+
+            if(boolVal != packer.ReadBool()) throw new InvalidProgramException("bool");
+            else if (sbyteVal != packer.ReadSByte()) throw new InvalidProgramException("sbyte");
+            else if(byteVal != packer.ReadByte()) throw new InvalidProgramException("byte");
+            else if (charVal != packer.ReadChar()) throw new InvalidProgramException("char");
+            else if (shortVal != packer.ReadShort()) throw new InvalidProgramException("short");
+            else if (ushortVal != packer.ReadUShort()) throw new InvalidProgramException("ushort");
+            else if (intVal != packer.ReadInt()) throw new InvalidProgramException("int");
+            else if (uintVal != packer.ReadUInt()) throw new InvalidProgramException("uint");
+            else if (longVal != packer.ReadLong()) throw new InvalidProgramException("long");
+            else if (ulongVal != packer.ReadULong()) throw new InvalidProgramException("ulong");
+            else if (floatVal != packer.ReadFloat()) throw new InvalidProgramException("float");
+            else if (doubleVal != packer.ReadDouble()) throw new InvalidProgramException("double");
+
+
+        }
+
+        [Fact]
+        //[Fact(Skip = "Skipped")]
         public void PrimitiveConverterTest()
         {
             Util.Log("VariantBitConverterShortTest");
@@ -170,7 +235,7 @@ namespace Snowball.Tests
 
             //uint
             stream = new MemoryStream();
-            uint uintSrc = (uint)random.Next(0, int.MaxValue);
+            uint uintSrc = (uint)random.Next(0, int.MaxValue) * 2;
             uint uintDst = 0;
             DataSerializer.Serialize(stream, uintSrc);
             stream.Position = 0;
@@ -190,7 +255,7 @@ namespace Snowball.Tests
 
             //ulong
             stream = new MemoryStream();
-            ulong ulongSrc = (ulong)random.Next(0, int.MaxValue);
+            ulong ulongSrc = (ulong)random.Next(0, int.MaxValue) * 2;
             ulong ulongDst = 0;
             DataSerializer.Serialize(stream, ulongSrc);
             stream.Position = 0;
