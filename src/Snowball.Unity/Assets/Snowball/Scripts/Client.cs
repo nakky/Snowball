@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Snowball
@@ -83,9 +84,9 @@ namespace Snowball
             return com.Disconnect();
         }
 
-        public bool Send<T>(short channelId, T data)
+        public async Task<bool> Send<T>(short channelId, T data)
         {
-            return com.Send(channelId, data);
+            return await com.Send(channelId, data);
         }
 
     }

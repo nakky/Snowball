@@ -341,13 +341,13 @@ namespace Snowball
         }
 
 
-        public bool Broadcast<T>(ComGroup group, short channelId, T data)
+        public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data)
         {
             bool status = true;
 
             foreach(var node in group.NodeList)
             {
-                if(!Send(node, channelId, data))
+                if(! await Send(node, channelId, data))
                 {
                     status = false;
                 }
@@ -355,7 +355,9 @@ namespace Snowball
             return status;
         }
 
-        public bool Send<T>(ComNode node, short channelId, T data)
+        ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
+
+        public async Task<bool> Send<T>(ComNode node, short channelId, T data)
         {
             if (!connectionMap.ContainsKey(node)) return false;
 
@@ -363,8 +365,14 @@ namespace Snowball
 
             IDataChannel channel = dataChannelMap[channelId];
 
+            bool isRent = true;
             int bufSize = channel.GetDataSize(data);
-            byte[] buf = new byte[bufSize + 6];
+            byte[] buf = arrayPool.Rent(bufSize + 6);
+            if (buf == null)
+            {
+                isRent = false;
+                buf = new byte[bufSize + 6];
+            }
 
             BytePacker packer = new BytePacker(buf);
             packer.Write((short)bufSize);
@@ -382,12 +390,14 @@ namespace Snowball
             if (channel.Qos == QosType.Reliable)
             {
                 TCPConnection connection = connectionMap[node];
-                connection.Send(maxpos, buf);
+                await connection.Send(maxpos, buf);
             }
             else if(channel.Qos == QosType.Unreliable)
             {
-                udpSender.Send(node.IP, maxpos, buf);
+                await udpSender.Send(node.IP, maxpos, buf);
             }
+
+            if (isRent) arrayPool.Return(buf);
 
             return true;
         }

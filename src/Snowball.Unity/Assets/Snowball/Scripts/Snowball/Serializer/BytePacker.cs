@@ -44,7 +44,7 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(short value)
+        public void Write(short value)
         {
             unchecked
             {
@@ -55,13 +55,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(ushort value)
+        public void Write(ushort value)
         {
             Write((short)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(int value)
+        public void Write(int value)
         {
             unchecked
             {
@@ -75,13 +75,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(uint value)
+        public void Write(uint value)
         {
             Write((int)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(long value)
+        public void Write(long value)
         {
             unchecked
             {
@@ -98,13 +98,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(ulong value)
+        public void Write(ulong value)
         {
             Write((long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(float value)
+        public void Write(float value)
         {
             BitFloat bits = new BitFloat(value);
             if (BitConverter.IsLittleEndian)
@@ -126,7 +126,7 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(double value)
+        public void Write(double value)
         {
             BitDouble bits = new BitDouble(value);
             if (BitConverter.IsLittleEndian)
@@ -156,7 +156,7 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe void Write(byte[] array, int offset, int size)
+        public void Write(byte[] array, int offset, int size)
         {
             Array.Copy(array, offset, Buffer, Position, size);
             Position += size;

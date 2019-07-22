@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Snowball
@@ -89,14 +90,14 @@ namespace Snowball
             return com.Disconnect(node);
         }
 
-        public bool Broadcast<T>(ComGroup group, short channelId, T data)
+        public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data)
         {
-            return com.Broadcast(group, channelId, data);
+            return await com.Broadcast(group, channelId, data);
         }
 
-        public bool Send<T>(ComNode node, short channelId, T data)
+        public async Task<bool> Send<T>(ComNode node, short channelId, T data)
         {
-            return com.Send(node, channelId, data);
+            return await com.Send(node, channelId, data);
         }
 
     }
