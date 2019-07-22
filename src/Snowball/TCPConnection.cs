@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define DISABLE_CHANNEL_VARINT
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 
@@ -20,6 +22,7 @@ namespace Snowball
         public const int DefaultBufferSize = 8192;
 
         byte[] receiveBuffer;
+        BytePacker receivePacker;
 
         NetworkStream nStream;
 
@@ -50,7 +53,9 @@ namespace Snowball
         public TCPConnection(TcpClient client, int receiveBufferSize = DefaultBufferSize)
         {
             receiveBuffer = new byte[receiveBufferSize];
-            
+            receivePacker = new BytePacker(receiveBuffer);
+
+
             UpdateClient(client);
             nStream = client.GetStream();
 
@@ -106,12 +111,15 @@ namespace Snowball
                 try
                 {
                     resSize = await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
+
                     if (resSize != 0)
                     {
-                        resSize = BitConverter.ToInt16(receiveBuffer, 0);
+                        receivePacker.Position = 0;
+                        resSize = receivePacker.ReadShort();
 #if DISABLE_CHANNEL_VARINT
                         await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
-                        channelId = BitConverter.ToInt16(receiveBuffer, 0);
+                        receivePacker.Position = 0;
+                        channelId = receivePacker.ReadShort();
                         await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
 #else
                         int s = 0;
@@ -133,10 +141,12 @@ namespace Snowball
 
                         Array.Copy(receiveBuffer, buffer, resSize);
 
+                        //Util.Log("TCP:" + resSize);
                     }
                 }
                 catch//(Exception e)
                 {
+                    //Util.Log("TCP:" + e.Message);
                     break;
                 }
 

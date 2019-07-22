@@ -7,8 +7,6 @@ namespace Snowball
 {
     public class ArrayConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         Converter converter;
         Type type;
 
@@ -18,31 +16,28 @@ namespace Snowball
             converter = DataSerializer.GetConverter(type.GetElementType());
         }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 Array array = (Array)data;
 
-                byte[] lbuf = BitConverter.GetBytes(array.Length);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(array.Length);
 
                 for (int i = 0; i < array.Length; i++)
                 {
-                    converter.Serialize(stream, array.GetValue(i));
+                    converter.Serialize(packer, array.GetValue(i));
                 }
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if (length < 0)
             {
@@ -54,42 +49,58 @@ namespace Snowball
 
                 for (int i = 0; i < length; i++)
                 {
-                    array.SetValue(converter.Deserialize(stream), i);
+                    array.SetValue(converter.Deserialize(packer), i);
                 }
                 return array;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if(data == null)
+            {
+                return sizeof(int);
+            }
+            else
+            {
+                int size = sizeof(int);
+
+                Array array = (Array)data;
+                for (int i = 0; i < array.Length; i++)
+                {
+                    size += converter.GetDataSize(array.GetValue(i));
+                }
+
+                return size;
+            }
+            
         }
     }
 
 
     public class ByteArrayConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         public static Converter constract() { return new ByteArrayConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 byte[] array = (byte[])data;
 
-                byte[] lbuf = BitConverter.GetBytes(array.Length);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(array.Length);
 
-                stream.Write(array, 0, array.Length);
+                packer.Write(array, 0, array.Length);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if (length < 0)
             {
@@ -97,11 +108,26 @@ namespace Snowball
             }
             else
             {
-                byte[] array = new byte[length];
+                byte[] array;
 
-                stream.Read(array, 0, length);
+                packer.ReadByteArray(out array, 0, length);
+
                 return array;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(int);
+            }
+            else
+            {
+                byte[] array = (byte[])data;
+                return sizeof(int) + array.Length;
+            }
+
         }
     }
 }

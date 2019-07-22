@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define DISABLE_CHANNEL_VARINT
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -51,6 +53,8 @@ namespace Snowball
         public int BeaconIntervalMs { get { return beaconIntervalMs; } set { if (!IsOpened) beaconIntervalMs = value; } }
         Timer beaconTimer;
 
+        Converter beaconConverter;
+
         int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
 
@@ -73,6 +77,8 @@ namespace Snowball
             {
                 node.HealthLostCount = 0;
             }));
+
+            beaconConverter = DataSerializer.GetConverter(typeof(string));
         }
 
         public void Dispose()
@@ -116,50 +122,42 @@ namespace Snowball
             HealthCheck();
         }
 
-        int CreateBeaconData(MemoryStream stream)
+        int CreateBeaconData(BytePacker packer)
         {
-            BinaryWriter writer = new BinaryWriter(stream);
-
-            writer.Write((short)0);
+            string data = BeaconDataCreate();
+            int dataSize = beaconConverter.GetDataSize(data);
+            packer.Write((short)dataSize);
 
 #if DISABLE_CHANNEL_VARINT
-            writer.Write((short)PreservedChannelId.Beacon);
+            packer.Write((short)PreservedChannelId.Beacon);
 #else
             int s = 0;
-            VarintBitConverter.SerializeShort((short)PreservedChannelId.Beacon, stream, out s);
+            VarintBitConverter.SerializeShort((short)PreservedChannelId.Beacon, packer, out s);
 #endif
+            beaconConverter.Serialize(packer, data);
 
-            int pos = (int)stream.Position;
-
-            string data = BeaconDataCreate();
-
-            DataSerializer.Serialize(stream, data);
-
-            int maxpos = (int)stream.Position;
-
-            stream.Position = 0;
-            writer.Write((short)(maxpos - pos));
-
-            return maxpos;
+            return packer.Position;
 
         }
 
+        byte[] beaconBuf = new byte[512];
+
         public void SendConnectBeacon(string ip)
         {
-            MemoryStream stream = new MemoryStream();
-            int length = CreateBeaconData(stream);
+            BytePacker packer = new BytePacker(beaconBuf);
+            int length = CreateBeaconData(packer);
 
-            udpSender.Send(ip, length, stream.GetBuffer());
+            udpSender.Send(ip, length, beaconBuf);
         }
 
         void OnBeaconTimer(object sender, ElapsedEventArgs args)
         {
-            MemoryStream stream = new MemoryStream();
-            int length = CreateBeaconData(stream);
+            BytePacker packer = new BytePacker(beaconBuf);
+            int length = CreateBeaconData(packer);
 
             foreach (var ip in beaaconList)
             {
-                udpSender.Send(ip, length, stream.GetBuffer());
+                udpSender.Send(ip, length, beaconBuf);
             }
         }
 
@@ -287,15 +285,13 @@ namespace Snowball
 
             while (head < size)
             {
-                short datasize = BitConverter.ToInt16(data, head + 0);
+                BytePacker packer = new BytePacker(data);
+                short datasize = packer.ReadShort();
 #if DISABLE_CHANNEL_VARINT
-                MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
-                short channelId = BitConverter.ToInt16(data, head + 2);
+                short channelId = packer.ReadShort();
 #else
-                MemoryStream stream = new MemoryStream(data);
-                stream.Position = 2;
                 int s = 0;
-                short channelId = VarintBitConverter.ToInt16(stream, out s);
+                short channelId = VarintBitConverter.ToInt16(packer, out s);
 #endif
 
                 if (channelId == (short)PreservedChannelId.Beacon)
@@ -312,7 +308,7 @@ namespace Snowball
 
                     IDataChannel channel = dataChannelMap[channelId];
 
-                    object container = channel.FromStream(ref stream);
+                    object container = channel.FromStream(ref packer);
 
                     channel.Received(node, container);
                 }
@@ -331,14 +327,14 @@ namespace Snowball
             }
             else
             {
-                MemoryStream stream = new MemoryStream(data, 0, size);
+                BytePacker packer = new BytePacker(data);
 
                 if (!nodeMap.ContainsKey(endPointIp)) return;
                 ComNode node = nodeMap[endPointIp];
 
                 IDataChannel channel = dataChannelMap[channelId];
 
-                object container = channel.FromStream(ref stream);
+                object container = channel.FromStream(ref packer);
 
                 channel.Received(node, container);
             }
@@ -367,34 +363,30 @@ namespace Snowball
 
             IDataChannel channel = dataChannelMap[channelId];
 
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(stream);
+            int bufSize = channel.GetDataSize(data);
+            byte[] buf = new byte[bufSize + 6];
 
-            writer.Write((short)0);
+            BytePacker packer = new BytePacker(buf);
+            packer.Write((short)bufSize);
+
 #if DISABLE_CHANNEL_VARINT
-            writer.Write(channelId);
+            packer.Write(channelId);
 #else
             int s = 0;
-            VarintBitConverter.SerializeShort(channelId, stream, out s);
+            VarintBitConverter.SerializeShort(channelId, packer, out s);
 #endif
-            int pos = (int)stream.Position;
+            channel.ToStream(data, ref packer);
 
-            channel.ToStream(data, ref stream);
-
-            int maxpos = (int)stream.Position;
-
-            stream.Position = 0;
-
-            writer.Write((short)(maxpos - pos));
+            int maxpos = (int)packer.Position;
 
             if (channel.Qos == QosType.Reliable)
             {
                 TCPConnection connection = connectionMap[node];
-                connection.Send(maxpos, stream.GetBuffer());
+                connection.Send(maxpos, buf);
             }
             else if(channel.Qos == QosType.Unreliable)
             {
-                udpSender.Send(node.IP, maxpos, stream.GetBuffer());
+                udpSender.Send(node.IP, maxpos, buf);
             }
 
             return true;

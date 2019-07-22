@@ -7,8 +7,6 @@ namespace Snowball
 {
     public class IDictionaryConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         Converter keyConverter;
         Converter valueConverter;
 
@@ -26,32 +24,29 @@ namespace Snowball
             valueConverter = DataSerializer.GetConverter(valueType);
         }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 System.Collections.IDictionary dictionary = (System.Collections.IDictionary)data;
 
-                byte[] lbuf = BitConverter.GetBytes(dictionary.Count);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(dictionary.Count);
 
                 foreach (System.Collections.DictionaryEntry kvp in dictionary)
                 {
-                    keyConverter.Serialize(stream, kvp.Key);
-                    valueConverter.Serialize(stream, kvp.Value);
+                    keyConverter.Serialize(packer, kvp.Key);
+                    valueConverter.Serialize(packer, kvp.Value);
                 }
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if(length < 0)
             {
@@ -65,13 +60,36 @@ namespace Snowball
 
                 for (int i = 0; i < length; i++)
                 {
-                    key = keyConverter.Deserialize(stream);
-                    value = valueConverter.Deserialize(stream);
+                    key = keyConverter.Deserialize(packer);
+                    value = valueConverter.Deserialize(packer);
                     dictionary.Add(key, value);
                 }
 
                 return dictionary;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(int);
+            }
+            else
+            {
+                int size = sizeof(int);
+
+                System.Collections.IDictionary dictionary = (System.Collections.IDictionary)data;
+
+                foreach (System.Collections.DictionaryEntry kvp in dictionary)
+                {
+                    size += keyConverter.GetDataSize(kvp.Key);
+                    size += valueConverter.GetDataSize(kvp.Value);
+                }
+
+                return size;
+            }
+
         }
     }
 

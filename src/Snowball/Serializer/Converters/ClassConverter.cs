@@ -15,8 +15,6 @@ namespace Snowball
         List<Converter> converters = new List<Converter>();
         List<PropertyInfo> parameters = new List<PropertyInfo>();
 
-        byte[] dbuf = new byte[sizeof(byte)];
-
         public ClassConverter(Type type)
         {
             this.type = type;
@@ -50,28 +48,28 @@ namespace Snowball
             throw new InvalidDataException("The class " + type.Name + " is not supported.");
         }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if(data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
+
                 for (int i = 0; i < parameters.Count; i++)
                 {
-                    converters[i].Serialize(stream, parameters[i].GetValue(data));
+                    converters[i].Serialize(packer, parameters[i].GetValue(data));
                 }
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if(dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+
+            if(isNull == 0)
             {
                 return null;
             }
@@ -81,11 +79,31 @@ namespace Snowball
 
                 for (int i = 0; i < parameters.Count; i++)
                 {
-                    parameters[i].SetValue(data, converters[i].Deserialize(stream));
+                    parameters[i].SetValue(data, converters[i].Deserialize(packer));
                 }
 
                 return data;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(byte);
+            }
+            else
+            {
+                int size = sizeof(byte);
+
+                for (int i = 0; i < parameters.Count; i++)
+                {
+                    size += converters[i].GetDataSize(parameters[i].GetValue(data));
+                }
+
+                return size;
+            }
+
         }
     }
 }

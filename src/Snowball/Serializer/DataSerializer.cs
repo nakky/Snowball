@@ -21,7 +21,7 @@ namespace Snowball
 
         public delegate Converter ConverterConstractor();
 
-        public static void Serialize<T>(Stream stream, T data)
+        public static void Serialize<T>(BytePacker packer, T data)
         {
             if (!setup) Setup();
 
@@ -29,17 +29,17 @@ namespace Snowball
             {
                 converterMap.Add(typeof(T), GetConverter(typeof(T)));
             }
-            converterMap[typeof(T)].Serialize(stream, data);
+            converterMap[typeof(T)].Serialize(packer, data);
         }
 
-        public static T Deserialize<T>(Stream stream)
+        public static T Deserialize<T>(BytePacker packer)
         {
             if (!setup) Setup();
 
             if (!converterMap.ContainsKey(typeof(T))){
                 converterMap.Add(typeof(T), GetConverter(typeof(T)));
             }
-            return (T)converterMap[typeof(T)].Deserialize(stream);
+            return (T)converterMap[typeof(T)].Deserialize(packer);
         }
 
         public static Converter GetConverter(Type type)
@@ -70,10 +70,6 @@ namespace Snowball
             else if (typeof(System.Collections.IDictionary).IsAssignableFrom(type))
             {
                 return new IDictionaryConverter(type);
-            }
-            else if (type.IsSerializable)
-            {
-                return new SerializableConverter(type);
             }
 
             return new ClassConverter(type);

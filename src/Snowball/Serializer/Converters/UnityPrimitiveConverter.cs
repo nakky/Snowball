@@ -1,7 +1,6 @@
 ﻿#if UNITY_2017_1_OR_NEWER
 
 using System;
-using System.IO;
 
 using UnityEngine;
 
@@ -9,33 +8,29 @@ namespace Snowball
 {
     public class Vector2Converter : Converter
     {
-        byte[] dbuf = new byte[sizeof(float)];
-
         public static Converter constract() { return new Vector2Converter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
                 Vector2 vector = (Vector2)data;
 
-                stream.Write(BitConverter.GetBytes(vector.x), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.y), 0, sizeof(float));
+                packer.Write(vector.x);
+                packer.Write(vector.y);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
             {
                 return null;
             }
@@ -43,46 +38,45 @@ namespace Snowball
             {
                 Vector2 vector = new Vector2();
 
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(dbuf, 0);
+                vector.x = packer.ReadFloat();
+                vector.y = packer.ReadFloat();
 
                 return vector;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(float) * 2;
         }
     }
 
     public class Vector3Converter : Converter
     {
-        byte[] dbuf = new byte[sizeof(float)];
-
         public static Converter constract() { return new Vector3Converter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            if(data == null)
+            if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
                 Vector3 vector = (Vector3)data;
 
-                stream.Write(BitConverter.GetBytes(vector.x), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.y), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.z), 0, sizeof(float));
+                packer.Write(vector.x);
+                packer.Write(vector.y);
+                packer.Write(vector.z);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
             {
                 return null;
             }
@@ -90,49 +84,47 @@ namespace Snowball
             {
                 Vector3 vector = new Vector3();
 
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.z = BitConverter.ToSingle(dbuf, 0);
+                vector.x = packer.ReadFloat();
+                vector.y = packer.ReadFloat();
+                vector.z = packer.ReadFloat();
 
                 return vector;
-            } 
+            }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(float) * 3;
         }
     }
 
     public class Vector4Converter : Converter
     {
-        byte[] dbuf = new byte[sizeof(float)];
-
         public static Converter constract() { return new Vector4Converter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
                 Vector4 vector = (Vector4)data;
 
-                stream.Write(BitConverter.GetBytes(vector.x), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.y), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.z), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(vector.w), 0, sizeof(float));
+                packer.Write(vector.x);
+                packer.Write(vector.y);
+                packer.Write(vector.z);
+                packer.Write(vector.w);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
             {
                 return null;
             }
@@ -140,51 +132,49 @@ namespace Snowball
             {
                 Vector4 vector = new Vector4();
 
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.x = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.y = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.z = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                vector.w = BitConverter.ToSingle(dbuf, 0);
+                vector.x = packer.ReadFloat();
+                vector.y = packer.ReadFloat();
+                vector.z = packer.ReadFloat();
+                vector.w = packer.ReadFloat();
 
                 return vector;
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(float) * 4;
         }
     }
 
     public class QuaternionConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(float)];
-
         public static Converter constract() { return new QuaternionConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
                 Quaternion quaternion = (Quaternion)data;
 
-                stream.Write(BitConverter.GetBytes(quaternion.x), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(quaternion.y), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(quaternion.z), 0, sizeof(float));
-                stream.Write(BitConverter.GetBytes(quaternion.w), 0, sizeof(float));
+                packer.Write(quaternion.x);
+                packer.Write(quaternion.y);
+                packer.Write(quaternion.z);
+                packer.Write(quaternion.w);
             }
+
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
             {
                 return null;
             }
@@ -192,17 +182,18 @@ namespace Snowball
             {
                 Quaternion quaternion = new Quaternion();
 
-                stream.Read(dbuf, 0, sizeof(float));
-                quaternion.x = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                quaternion.y = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                quaternion.z = BitConverter.ToSingle(dbuf, 0);
-                stream.Read(dbuf, 0, sizeof(float));
-                quaternion.w = BitConverter.ToSingle(dbuf, 0);
+                quaternion.x = packer.ReadFloat();
+                quaternion.y = packer.ReadFloat();
+                quaternion.z = packer.ReadFloat();
+                quaternion.w = packer.ReadFloat();
 
                 return quaternion;
-            }  
+            }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(float) * 4;
         }
     }
 

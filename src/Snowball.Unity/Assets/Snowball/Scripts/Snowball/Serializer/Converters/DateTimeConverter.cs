@@ -7,77 +7,93 @@ namespace Snowball
 {
     public class DateTimeConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(long)];
-
         public static Converter constract() { return new DateTimeConverter(); }
 
-
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
-                stream.Write(BitConverter.GetBytes(((DateTime)data).ToBinary()), 0, sizeof(long));
+                packer.Write(((DateTime)data).ToBinary());
             }  
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+
+            if (isNull == 0)
             {
                 return null;
             }
             else
             {
-                stream.Read(dbuf, 0, sizeof(long));
-                return DateTime.FromBinary(BitConverter.ToInt64(dbuf, 0));
+                return DateTime.FromBinary(packer.ReadLong());
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(byte);
+            }
+            else
+            {
+                return sizeof(byte) + sizeof(long) ;
+            }
+
         }
     }
 
     public class TimeSpanConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(long)];
-
         public static Converter constract() { return new TimeSpanConverter(); }
 
-
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = { 0 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)0);
             }
             else
             {
-                byte[] lbuf = { 1 };
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write((byte)1);
 
-                stream.Write(BitConverter.GetBytes(((TimeSpan)data).Ticks), 0, sizeof(long));
+                packer.Write(((TimeSpan)data).Ticks);
             } 
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            if (dbuf[0] == 0)
+            byte isNull = packer.ReadByte();
+
+            if (isNull == 0)
             {
                 return null;
             }
             else
             {
-                stream.Read(dbuf, 0, sizeof(long));
-                return TimeSpan.FromTicks(BitConverter.ToInt64(dbuf, 0));
+                return TimeSpan.FromTicks(packer.ReadLong());
             }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(byte);
+            }
+            else
+            {
+                return sizeof(byte) + sizeof(long);
+            }
+
         }
     }
 

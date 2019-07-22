@@ -5,261 +5,278 @@ namespace Snowball
 {
     public class BoolConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(bool)];
-
         public static Converter constract() { return new BoolConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((bool)data), 0, sizeof(bool));
+            packer.Write((bool)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(bool));
-            return BitConverter.ToBoolean(dbuf, 0);
+            return packer.ReadBool();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return 1;
         }
 
     }
 
     public class CharConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(char)];
-
         public static Converter constract() { return new CharConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((char)data), 0, sizeof(char));
+            packer.Write((char)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(char));
-            return BitConverter.ToChar(dbuf, 0);
+            return packer.ReadChar();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(char);
         }
     }
 
     public class SByteConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(sbyte)];
-
         public static Converter constract() { return new SByteConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((sbyte)data), 0, sizeof(sbyte));
+            packer.Write((sbyte)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(sbyte));
-            return (sbyte)dbuf[0];
+            return packer.ReadSByte();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(sbyte);
         }
     }
 
     public class ByteConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(byte)];
-
         public static Converter constract() { return new ByteConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((byte)data), 0, sizeof(byte));
+            packer.Write((byte)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(byte));
-            return dbuf[0];
+            return packer.ReadByte();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte);
         }
     }
 
     public class ShortConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(short)];
-
         public static Converter constract() { return new ShortConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((short)data), 0, sizeof(short));
+            packer.Write((short)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(short));
-            return BitConverter.ToInt16(dbuf, 0);
+            return packer.ReadShort();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(short);
         }
     }
 
     public class UShortConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(ushort)];
-
         public static Converter constract() { return new UShortConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((ushort)data), 0, sizeof(ushort));
+            packer.Write((ushort)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(ushort));
-            return BitConverter.ToUInt16(dbuf, 0);
+            return packer.ReadUShort();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(ushort);
         }
     }
 
     public class IntConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         public static Converter constract() { return new IntConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((int)data), 0, sizeof(int));
+            packer.Write((int)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(int));
-            return BitConverter.ToInt32(dbuf, 0);
+            return packer.ReadInt();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(int);
         }
     }
 
     public class UIntConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(uint)];
-
         public static Converter constract() { return new UIntConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((uint)data), 0, sizeof(uint));
+            packer.Write((uint)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(uint));
-            return BitConverter.ToUInt32(dbuf, 0);
+            return packer.ReadUInt();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(uint);
         }
     }
 
     public class LongConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(long)];
-
         public static Converter constract() { return new LongConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((long)data), 0, sizeof(long));
+            packer.Write((long)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(long));
-            return BitConverter.ToInt64(dbuf, 0);
+            return packer.ReadLong();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(long);
         }
     }
 
     public class ULongConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(ulong)];
-
         public static Converter constract() { return new ULongConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((ulong)data), 0, sizeof(ulong));
+            packer.Write((ulong)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(ulong));
-            return BitConverter.ToUInt64(dbuf, 0);
+            return packer.ReadULong();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(ulong);
         }
     }
 
     public class FloatConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(float)];
-
         public static Converter constract() { return new FloatConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((float)data), 0, sizeof(float));
+            packer.Write((float)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(float));
-            return BitConverter.ToSingle(dbuf, 0);
+            return packer.ReadFloat();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(float);
         }
     }
 
     public class DoubleConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(double)];
-
         public static Converter constract() { return new DoubleConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
-            stream.Write(BitConverter.GetBytes((double)data), 0, sizeof(double));
+            packer.Write((double)data);
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(double));
-            return BitConverter.ToDouble(dbuf, 0);
+            return packer.ReadDouble();
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(double);
         }
     }
 
     public class StringASCIIConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         public static Converter constract() { return new StringASCIIConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if(strData == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.ASCII.GetBytes(strData);
-
-                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
-                stream.Write(lbuf, 0, lbuf.Length);
-
-                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+                packer.Write(strbuf.Length);
+                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
             object data;
 
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if(length < 0)
             {
                 return null;
             }
             else if(length > 0){
-                byte[] strData = new byte[length];
-                stream.Read(strData, 0, length);
+                byte[] strData;
+                packer.ReadByteArray(out strData, 0, length);
 
                 string text = System.Text.Encoding.ASCII.GetString(strData);
 
@@ -270,41 +287,38 @@ namespace Snowball
            return data;
         }
 
+        public override int GetDataSize(object data)
+        {
+            return sizeof(int) + System.Text.Encoding.ASCII.GetByteCount((string)data);
+        }
+
     }
 
     public class StringUnicodeConverter : Converter
     {
-
-        byte[] dbuf = new byte[sizeof(int)];
-
         public static Converter constract() { return new StringUnicodeConverter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if (strData == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.Unicode.GetBytes(strData);
-
-                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
-                stream.Write(lbuf, 0, lbuf.Length);
-
-                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+                packer.Write(strbuf.Length);
+                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
             object data;
 
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if (length < 0)
             {
@@ -312,8 +326,8 @@ namespace Snowball
             }
             else if (length > 0)
             {
-                byte[] strData = new byte[length];
-                stream.Read(strData, 0, length);
+                byte[] strData;
+                packer.ReadByteArray(out strData, 0, length);
 
                 string text = System.Text.Encoding.Unicode.GetString(strData);
 
@@ -326,41 +340,37 @@ namespace Snowball
             return data;
         }
 
+        public override int GetDataSize(object data)
+        {
+            return sizeof(int) + System.Text.Encoding.Unicode.GetByteCount((string)data);
+        }
     }
 
     public class StringUtf8Converter : Converter
     {
-
-        byte[] dbuf = new byte[sizeof(int)];
-
         public static Converter constract() { return new StringUtf8Converter(); }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if (strData == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.UTF8.GetBytes(strData);
-
-                byte[] lbuf = BitConverter.GetBytes(strbuf.Length);
-                stream.Write(lbuf, 0, lbuf.Length);
-
-                if (strbuf.Length > 0) stream.Write(strbuf, 0, strbuf.Length);
+                packer.Write(strbuf.Length);
+                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
             object data;
 
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if (length < 0)
             {
@@ -368,8 +378,8 @@ namespace Snowball
             }
             else if (length > 0)
             {
-                byte[] strData = new byte[length];
-                stream.Read(strData, 0, length);
+                byte[] strData;
+                packer.ReadByteArray(out strData, 0, length);
 
                 string text = System.Text.Encoding.UTF8.GetString(strData);
 
@@ -380,6 +390,11 @@ namespace Snowball
                 data = "";
             }
             return data;
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(int) + System.Text.Encoding.UTF8.GetByteCount((string)data);
         }
 
     }

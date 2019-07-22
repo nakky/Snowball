@@ -7,8 +7,6 @@ namespace Snowball
 {
     public class IListConverter : Converter
     {
-        byte[] dbuf = new byte[sizeof(int)];
-
         Converter converter;
         Type type;
         Type elementType;
@@ -21,30 +19,28 @@ namespace Snowball
             converter = DataSerializer.GetConverter(elementType);
         }
 
-        public override void Serialize(Stream stream, object data)
+        public override void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                byte[] lbuf = BitConverter.GetBytes(-1);
-                stream.Write(lbuf, 0, lbuf.Length);
+                packer.Write(-1);
             }
             else
             {
                 System.Collections.IList list = (System.Collections.IList)data;
-                byte[] lbuf = BitConverter.GetBytes(list.Count);
-                stream.Write(lbuf, 0, lbuf.Length);
+
+                packer.Write(list.Count);
 
                 for (int i = 0; i < list.Count; i++)
                 {
-                    converter.Serialize(stream, list[i]);
+                    converter.Serialize(packer, list[i]);
                 }
             }   
         }
 
-        public override object Deserialize(Stream stream)
+        public override object Deserialize(BytePacker packer)
         {
-            stream.Read(dbuf, 0, sizeof(int));
-            int length = BitConverter.ToInt32(dbuf, 0);
+            int length = packer.ReadInt();
 
             if (length < 0)
             {
@@ -56,11 +52,32 @@ namespace Snowball
 
                 for (int i = 0; i < length; i++)
                 {
-                    list.Add(converter.Deserialize(stream));
+                    list.Add(converter.Deserialize(packer));
                 }
 
                 return list;
             }  
+        }
+
+        public override int GetDataSize(object data)
+        {
+            if (data == null)
+            {
+                return sizeof(int);
+            }
+            else
+            {
+                int size = sizeof(int);
+
+                System.Collections.IList list = (System.Collections.IList)data;
+                for (int i = 0; i < list.Count ; i++)
+                {
+                    size += converter.GetDataSize(list[i]);
+                }
+
+                return size;
+            }
+
         }
     }
 

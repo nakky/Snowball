@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define DISABLE_CHANNEL_VARINT
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -200,27 +202,22 @@ namespace Snowball
         {
             int head = 0;
 
-           
-
             while (head < size)
             {
-                short datasize = BitConverter.ToInt16(data, head + 0);
-
+                BytePacker packer = new BytePacker(data);
+                short datasize = packer.ReadShort();
 #if DISABLE_CHANNEL_VARINT
-                MemoryStream stream = new MemoryStream(data, head + 4, (int)datasize);
-                short channelId = BitConverter.ToInt16(data, head + 2);
+                short channelId = packer.ReadShort();
 #else
-                MemoryStream stream = new MemoryStream(data);
-                stream.Position = 2;
                 int s = 0;
-                short channelId = VarintBitConverter.ToInt16(stream, out s);
+                short channelId = VarintBitConverter.ToInt16(packer, out s);
 #endif
 
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
                     if (acceptBeacon && !isConnecting && !IsConnected)
                     {
-                        string beaconData = (string)DataSerializer.Deserialize<string>(stream);
+                        string beaconData = (string)DataSerializer.Deserialize<string>(packer);
 
                         if(BeaconAccept(beaconData)) Connect(endPointIp);
                     }
@@ -234,7 +231,7 @@ namespace Snowball
 
                     IDataChannel channel = dataChannelMap[channelId];
 
-                    object container = channel.FromStream(ref stream);
+                    object container = channel.FromStream(ref packer);
 
                     channel.Received(serverNode, container);
                    
@@ -257,13 +254,13 @@ namespace Snowball
             }
             else
             {
-                MemoryStream stream = new MemoryStream(data, 0, size);
+                BytePacker packer = new BytePacker(data);
 
                 if (endPointIp != serverNode.IP) return;
 
                 IDataChannel channel = dataChannelMap[channelId];
 
-                object container = channel.FromStream(ref stream);
+                object container = channel.FromStream(ref packer);
 
                 channel.Received(serverNode, container);
             }
@@ -277,34 +274,29 @@ namespace Snowball
 
             IDataChannel channel = dataChannelMap[channelId];
 
-            MemoryStream stream = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(stream);
+            int bufSize = channel.GetDataSize(data);
+            byte[] buf = new byte[bufSize + 6];
 
-            writer.Write((short)0);
+            BytePacker packer = new BytePacker(buf);
+            packer.Write((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
-            writer.Write(channelId);
+            packer.Write(channelId);
 #else
             int s = 0;
-            VarintBitConverter.SerializeShort(channelId, stream, out s);
+            VarintBitConverter.SerializeShort(channelId, packer, out s);
 #endif
-            int pos = (int)stream.Position;
+            channel.ToStream(data, ref packer);
 
-            channel.ToStream(data, ref stream);
-
-            int maxpos = (int)stream.Position;
-
-            stream.Position = 0;
-
-            writer.Write((short)(maxpos - pos));
+            int maxpos = (int)packer.Position;
 
             if (channel.Qos == QosType.Reliable)
             {
-                connection.Send(maxpos, stream.GetBuffer());
+                connection.Send(maxpos, buf);
             }
             else if (channel.Qos == QosType.Unreliable)
             {
-                udpSender.Send(serverNode.IP, maxpos, stream.GetBuffer());
+                udpSender.Send(serverNode.IP, maxpos, buf);
             }
 
             return true;

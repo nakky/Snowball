@@ -161,172 +161,173 @@ namespace Snowball.Tests
 
             Random random = new Random();
 
-            MemoryStream stream;
+            byte[] buffer = new byte[256];
+            BytePacker packer;
 
             //Bool
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             bool boolSrc = true;
             bool boolDst = false;
-            DataSerializer.Serialize(stream, boolSrc);
-            stream.Position = 0;
-            boolDst = DataSerializer.Deserialize<bool>(stream);
+            DataSerializer.Serialize(packer, boolSrc);
+            packer.Position = 0;
+            boolDst = DataSerializer.Deserialize<bool>(packer);
 
             if (boolSrc != boolDst) throw new InvalidProgramException("bool");
 
             //char
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             char charSrc = (char)random.Next(char.MinValue, char.MaxValue);
             char charDst = '0';
-            DataSerializer.Serialize(stream, charSrc);
-            stream.Position = 0;
-            charDst = DataSerializer.Deserialize<char>(stream);
+            DataSerializer.Serialize(packer, charSrc);
+            packer.Position = 0;
+            charDst = DataSerializer.Deserialize<char>(packer);
 
             if (charSrc != charDst) throw new InvalidProgramException("char");
 
             //sbyte
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             sbyte sbyteSrc = (sbyte)random.Next(sbyte.MinValue, sbyte.MaxValue);
             sbyte sbyteDst = 0;
-            DataSerializer.Serialize(stream, sbyteSrc);
-            stream.Position = 0;
-            sbyteDst = DataSerializer.Deserialize<sbyte>(stream);
+            DataSerializer.Serialize(packer, sbyteSrc);
+            packer.Position = 0;
+            sbyteDst = DataSerializer.Deserialize<sbyte>(packer);
 
             if (sbyteSrc != sbyteDst) throw new InvalidProgramException("sbyte");
 
             //byte
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             byte byteSrc = (byte)random.Next(byte.MinValue, byte.MaxValue);
             byte byteDst = 0;
-            DataSerializer.Serialize(stream, byteSrc);
-            stream.Position = 0;
-            byteDst = DataSerializer.Deserialize<byte>(stream);
+            DataSerializer.Serialize(packer, byteSrc);
+            packer.Position = 0;
+            byteDst = DataSerializer.Deserialize<byte>(packer);
 
             if (byteSrc != byteDst) throw new InvalidProgramException("byte");
 
             //short
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             short shortSrc = (short)random.Next(short.MinValue, short.MaxValue);
             short shortDst = 0;
-            DataSerializer.Serialize(stream, shortSrc);
-            stream.Position = 0;
-            shortDst = DataSerializer.Deserialize<short>(stream);
+            DataSerializer.Serialize(packer, shortSrc);
+            packer.Position = 0;
+            shortDst = DataSerializer.Deserialize<short>(packer);
 
             if (shortSrc != shortDst) throw new InvalidProgramException("short");
 
             //ushort
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             ushort ushortSrc = (ushort)random.Next(ushort.MinValue, ushort.MaxValue);
             ushort ushortDst = 0;
-            DataSerializer.Serialize(stream, ushortSrc);
-            stream.Position = 0;
-            ushortDst = DataSerializer.Deserialize<ushort>(stream);
+            DataSerializer.Serialize(packer, ushortSrc);
+            packer.Position = 0;
+            ushortDst = DataSerializer.Deserialize<ushort>(packer);
 
             if (ushortSrc != ushortDst) throw new InvalidProgramException("ushort");
 
             //int
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             int intSrc = random.Next();
             int intDst = 0;
-            DataSerializer.Serialize(stream, intSrc);
-            stream.Position = 0;
-            intDst = DataSerializer.Deserialize<int>(stream);
+            DataSerializer.Serialize(packer, intSrc);
+            packer.Position = 0;
+            intDst = DataSerializer.Deserialize<int>(packer);
 
             if (intSrc != intDst) throw new InvalidProgramException("int");
 
             //uint
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             uint uintSrc = (uint)random.Next(0, int.MaxValue) * 2;
             uint uintDst = 0;
-            DataSerializer.Serialize(stream, uintSrc);
-            stream.Position = 0;
-            uintDst = DataSerializer.Deserialize<uint>(stream);
+            DataSerializer.Serialize(packer, uintSrc);
+            packer.Position = 0;
+            uintDst = DataSerializer.Deserialize<uint>(packer);
 
             if (uintSrc != uintDst) throw new InvalidProgramException("uint");
 
             //long
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             long longSrc = (long)random.Next();
             long longDst = 0;
-            DataSerializer.Serialize(stream, longSrc);
-            stream.Position = 0;
-            longDst = DataSerializer.Deserialize<long>(stream);
+            DataSerializer.Serialize(packer, longSrc);
+            packer.Position = 0;
+            longDst = DataSerializer.Deserialize<long>(packer);
 
             if (longSrc != longDst) throw new InvalidProgramException("long");
 
             //ulong
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             ulong ulongSrc = (ulong)random.Next(0, int.MaxValue) * 2;
             ulong ulongDst = 0;
-            DataSerializer.Serialize(stream, ulongSrc);
-            stream.Position = 0;
-            ulongDst = DataSerializer.Deserialize<ulong>(stream);
+            DataSerializer.Serialize(packer, ulongSrc);
+            packer.Position = 0;
+            ulongDst = DataSerializer.Deserialize<ulong>(packer);
 
             if (ulongSrc != ulongDst) throw new InvalidProgramException("ulong");
 
             //float
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             float floatSrc = (float)random.NextDouble();
             float floatDst = 0;
-            DataSerializer.Serialize(stream, floatSrc);
-            stream.Position = 0;
-            floatDst = DataSerializer.Deserialize<float>(stream);
+            DataSerializer.Serialize(packer, floatSrc);
+            packer.Position = 0;
+            floatDst = DataSerializer.Deserialize<float>(packer);
 
             if (floatSrc != floatDst) throw new InvalidProgramException("float");
 
             //double
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             double doubleSrc = random.NextDouble();
             double doubleDst = 0;
-            DataSerializer.Serialize(stream, doubleSrc);
-            stream.Position = 0;
-            doubleDst = DataSerializer.Deserialize<double>(stream);
+            DataSerializer.Serialize(packer, doubleSrc);
+            packer.Position = 0;
+            doubleDst = DataSerializer.Deserialize<double>(packer);
 
             if (doubleSrc != doubleDst) throw new InvalidProgramException("double");
 
 
             //string
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             string stringSrc = "こんにちはasdf";
             //string stringSrc = "sehiillhg";
             string stringDst = "";
-            DataSerializer.Serialize(stream, stringSrc);
-            stream.Position = 0;
-            stringDst = DataSerializer.Deserialize<string>(stream);
+            DataSerializer.Serialize(packer, stringSrc);
+            packer.Position = 0;
+            stringDst = DataSerializer.Deserialize<string>(packer);
 
             if (stringSrc != stringDst) throw new InvalidProgramException("string");
 
             //enum
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             TestEnum enumSrc = TestEnum.B;
             TestEnum enumDst = TestEnum.A;
-            DataSerializer.Serialize(stream, enumSrc);
-            stream.Position = 0;
-            enumDst = DataSerializer.Deserialize<TestEnum>(stream);
+            DataSerializer.Serialize(packer, enumSrc);
+            packer.Position = 0;
+            enumDst = DataSerializer.Deserialize<TestEnum>(packer);
 
             if (enumSrc != enumDst) throw new InvalidProgramException("enum");
 
             //DateTime
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             DateTime dateTimeSrc = DateTime.Now;
             DateTime dateTimeDst;
-            DataSerializer.Serialize(stream, dateTimeSrc);
-            stream.Position = 0;
-            dateTimeDst = DataSerializer.Deserialize<DateTime>(stream);
+            DataSerializer.Serialize(packer, dateTimeSrc);
+            packer.Position = 0;
+            dateTimeDst = DataSerializer.Deserialize<DateTime>(packer);
 
             if (dateTimeSrc != dateTimeDst) throw new InvalidProgramException("DateTime");
 
             //TimeSpan
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             TimeSpan timeSpanSrc = new TimeSpan(98271983172893);
             TimeSpan timeSpanDst;
-            DataSerializer.Serialize(stream, timeSpanSrc);
-            stream.Position = 0;
-            timeSpanDst = DataSerializer.Deserialize<TimeSpan>(stream);
+            DataSerializer.Serialize(packer, timeSpanSrc);
+            packer.Position = 0;
+            timeSpanDst = DataSerializer.Deserialize<TimeSpan>(packer);
 
             if (timeSpanSrc != timeSpanDst) throw new InvalidProgramException("TimeSpan");
 
             //class
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             TestConvertClass classSrc = new TestConvertClass();
             classSrc.IntData = random.Next();
             classSrc.StringData = "asfeaefaw";
@@ -336,20 +337,20 @@ namespace Snowball.Tests
             classSrc.classData.StringData = "igi3u8z2";
 
             TestConvertClass classDst;
-            DataSerializer.Serialize(stream, classSrc);
-            stream.Position = 0;
-            classDst = DataSerializer.Deserialize<TestConvertClass>(stream);
+            DataSerializer.Serialize(packer, classSrc);
+            packer.Position = 0;
+            classDst = DataSerializer.Deserialize<TestConvertClass>(packer);
 
             if (!classSrc.Equals(classDst)) throw new InvalidProgramException("TestConvertClass");
 
 
             //array primitive
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             byte[] bArraySrc = {1,2,3,4,5 };
             byte[] bArrayDst = null;
-            DataSerializer.Serialize(stream, bArraySrc);
-            stream.Position = 0;
-            bArrayDst = DataSerializer.Deserialize<byte[]>(stream);
+            DataSerializer.Serialize(packer, bArraySrc);
+            packer.Position = 0;
+            bArrayDst = DataSerializer.Deserialize<byte[]>(packer);
 
             if(bArraySrc.Length != bArrayDst.Length) throw new InvalidProgramException("byte[]");
             for (int i = 0; i < bArraySrc.Length; i++)
@@ -359,13 +360,13 @@ namespace Snowball.Tests
             }
 
             //array class
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             TestConvertClass[] cArraySrc = { new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass() };
             cArraySrc[1].IntData = 90;
             TestConvertClass[] cArrayDst = null;
-            DataSerializer.Serialize(stream, cArraySrc);
-            stream.Position = 0;
-            cArrayDst = DataSerializer.Deserialize<TestConvertClass[]>(stream);
+            DataSerializer.Serialize(packer, cArraySrc);
+            packer.Position = 0;
+            cArrayDst = DataSerializer.Deserialize<TestConvertClass[]>(packer);
 
             if (cArraySrc.Length != cArrayDst.Length) throw new InvalidProgramException("TestConvertClass[]");
             for (int i = 0; i < bArraySrc.Length; i++)
@@ -375,13 +376,13 @@ namespace Snowball.Tests
             }
 
             //list class
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             List<TestConvertClass> cListSrc = new List<TestConvertClass>{ new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass(), new TestConvertClass() };
             cListSrc[1].IntData = 90;
             List<TestConvertClass> cListDst = null;
-            DataSerializer.Serialize(stream, cArraySrc);
-            stream.Position = 0;
-            cListDst = DataSerializer.Deserialize<List<TestConvertClass>>(stream);
+            DataSerializer.Serialize(packer, cArraySrc);
+            packer.Position = 0;
+            cListDst = DataSerializer.Deserialize<List<TestConvertClass>>(packer);
 
             if (cListSrc.Count != cListDst.Count) throw new InvalidProgramException("List<TestConvertClass>");
             for (int i = 0; i < bArraySrc.Length; i++)
@@ -391,7 +392,7 @@ namespace Snowball.Tests
             }
 
             //Dictionary class
-            stream = new MemoryStream();
+            packer = new BytePacker(buffer);
             Dictionary<string, TestConvertClass> cDictSrc = new Dictionary<string, TestConvertClass>();
 
             TestConvertClass tcc = new TestConvertClass();
@@ -403,9 +404,9 @@ namespace Snowball.Tests
 
             Dictionary<string, TestConvertClass> cDictDst = null;
 
-            DataSerializer.Serialize(stream, cDictSrc);
-            stream.Position = 0;
-            cDictDst = DataSerializer.Deserialize<Dictionary<string, TestConvertClass>>(stream);
+            DataSerializer.Serialize(packer, cDictSrc);
+            packer.Position = 0;
+            cDictDst = DataSerializer.Deserialize<Dictionary<string, TestConvertClass>>(packer);
 
             if (cDictSrc.Count != cDictDst.Count) throw new InvalidProgramException("Dictionary<string, TestConvertClass>");
             foreach(var pair in cDictSrc)
@@ -415,25 +416,7 @@ namespace Snowball.Tests
             }
 
 
-            //serializable class
-            stream = new MemoryStream();
-            TestSerializableClass serialiableSrc = new TestSerializableClass();
-            serialiableSrc.intData = random.Next();
-            serialiableSrc.stringData = "asfeaefaw";
-
-            TestSerializableClass serialiableDst;
-            DataSerializer.Serialize(stream, serialiableSrc);
-            stream.Position = 0;
-            serialiableDst = DataSerializer.Deserialize<TestSerializableClass>(stream);
-
-            if (!serialiableSrc.Equals(serialiableDst)) throw new InvalidProgramException("TestSerializableClass");
-
-
-
-
         }
-
-
 
 
     }

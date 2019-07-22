@@ -15,8 +15,10 @@ namespace Snowball
 
         void Received(ComNode node, object data);
         
-        object FromStream(ref MemoryStream stream);
-        void ToStream(object data, ref MemoryStream stream);
+        object FromStream(ref BytePacker packer);
+        void ToStream(object data, ref BytePacker packer);
+
+        int GetDataSize(object data);
     }
 
     public class DataChannel<T> : IDataChannel
@@ -43,34 +45,41 @@ namespace Snowball
             lz4converter = DataSerializer.GetConverter(typeof(byte[]));
         }
 
-        public object FromStream(ref MemoryStream stream)
+        public object FromStream(ref BytePacker packer)
         {
             if (Compression == Compression.LZ4)
             {
-                byte[] encoded = (byte[])lz4converter.Deserialize(stream);
-                MemoryStream lz4stream = new MemoryStream(encoded);
-                return converter.Deserialize(lz4stream);
+                byte[] encoded = (byte[])lz4converter.Deserialize(packer);
+                BytePacker lz4packer = new BytePacker(encoded);
+                return converter.Deserialize(lz4packer);
             }
             else
             {
-                return converter.Deserialize(stream);
+                return converter.Deserialize(packer);
             }
         }
 
-        public void ToStream(object data, ref MemoryStream stream)
+        public void ToStream(object data, ref BytePacker packer)
         {
             if (Compression == Compression.LZ4)
             {
-                MemoryStream lz4stream = new MemoryStream();
-                lz4converter.Serialize(lz4stream, data);
-                byte[] encoded = LZ4Pickler.Pickle(lz4stream.GetBuffer());
-                converter.Serialize(stream, encoded);
+                int size = lz4converter.GetDataSize(data);
+                byte[] buf = new byte[size];
+                BytePacker lz4packer = new BytePacker(buf);
+                lz4converter.Serialize(lz4packer, data);
+                byte[] encoded = LZ4Pickler.Pickle(buf);
+                converter.Serialize(packer, encoded);
             }
             else
             {
-                converter.Serialize(stream, data);
+                converter.Serialize(packer, data);
             }
 
+        }
+
+        public int GetDataSize(object data)
+        {
+            return converter.GetDataSize(data);
         }
 
         public void Received(ComNode node, object data)
