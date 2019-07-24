@@ -155,7 +155,6 @@ These types are supported by default.
 Primitive : [bool, char, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, string]  
 Container : [Array, Enum, IList, IDictionary]  
 Othres : [DateTime, TimeSpan]  
-and Serializable attributed classes.
 
 #### Unity Extension
 
@@ -187,7 +186,7 @@ TestClass testClass = new TestClass();
 
 client.Send(1, testClass);
 ```
-Instances with [Serializable] Attribute can be transfered, but [Transferable] Attributed classes are more efficient. 
+
 
 ### Broadcast
 In Snowball, each terminals are expressed as ComNode. So in Server, ComNode is specified in Sending APIs.  
