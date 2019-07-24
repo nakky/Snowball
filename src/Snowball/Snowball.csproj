@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ReleaseVersion>0.7.0</ReleaseVersion>
-    <PackageVersion>0.7.0</PackageVersion>
+    <ReleaseVersion>0.8.0</ReleaseVersion>
+    <PackageVersion>0.8.0</PackageVersion>
     <Authors>nakky</Authors>
     <Description>Simple Communication Engine for .NET Core.</Description>
     <PackageId>Snowball</PackageId>
