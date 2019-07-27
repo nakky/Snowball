@@ -46,10 +46,16 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(short value)
         {
-            unchecked
+            BitShort bits = new BitShort(value);
+            if (BitConverter.IsLittleEndian)
             {
-                Buffer[Position] = (byte)(value >> 8);
-                Buffer[Position + 1] = (byte)value;
+                Buffer[Position] = bits.ByteOffset1;
+                Buffer[Position + 1] = bits.ByteOffset0;
+            }
+            else
+            {
+                Buffer[Position] = bits.ByteOffset0;
+                Buffer[Position + 1] = bits.ByteOffset1;
             }
             Position += sizeof(short);
         }
@@ -63,12 +69,20 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int value)
         {
-            unchecked
+            BitInt bits = new BitInt(value);
+            if (BitConverter.IsLittleEndian)
             {
-                Buffer[Position] = (byte)(value >> 24);
-                Buffer[Position + 1] = (byte)(value >> 16);
-                Buffer[Position + 2] = (byte)(value >> 8);
-                Buffer[Position + 3] = (byte)value;
+                Buffer[Position] = bits.ByteOffset3;
+                Buffer[Position + 1] = bits.ByteOffset2;
+                Buffer[Position + 2] = bits.ByteOffset1;
+                Buffer[Position + 3] = bits.ByteOffset0;
+            }
+            else
+            {
+                Buffer[Position] = bits.ByteOffset0;
+                Buffer[Position + 1] = bits.ByteOffset1;
+                Buffer[Position + 2] = bits.ByteOffset2;
+                Buffer[Position + 3] = bits.ByteOffset3;
             }
 
             Position += sizeof(int);
@@ -83,17 +97,30 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(long value)
         {
-            unchecked
+            BitLong bits = new BitLong(value);
+            if (BitConverter.IsLittleEndian)
             {
-                Buffer[Position] = (byte)(value >> 56);
-                Buffer[Position + 1] = (byte)(value >> 48);
-                Buffer[Position + 2] = (byte)(value >> 40);
-                Buffer[Position + 3] = (byte)(value >> 32);
-                Buffer[Position + 4] = (byte)(value >> 24);
-                Buffer[Position + 5] = (byte)(value >> 16);
-                Buffer[Position + 6] = (byte)(value >> 8);
-                Buffer[Position + 7] = (byte)value;
+                Buffer[Position] = bits.ByteOffset7;
+                Buffer[Position + 1] = bits.ByteOffset6;
+                Buffer[Position + 2] = bits.ByteOffset5;
+                Buffer[Position + 3] = bits.ByteOffset4;
+                Buffer[Position + 4] = bits.ByteOffset3;
+                Buffer[Position + 5] = bits.ByteOffset2;
+                Buffer[Position + 6] = bits.ByteOffset1;
+                Buffer[Position + 7] = bits.ByteOffset0;
             }
+            else
+            {
+                Buffer[Position] = bits.ByteOffset0;
+                Buffer[Position + 1] = bits.ByteOffset1;
+                Buffer[Position + 2] = bits.ByteOffset2;
+                Buffer[Position + 3] = bits.ByteOffset3;
+                Buffer[Position + 4] = bits.ByteOffset4;
+                Buffer[Position + 5] = bits.ByteOffset5;
+                Buffer[Position + 6] = bits.ByteOffset6;
+                Buffer[Position + 7] = bits.ByteOffset7;
+            }
+
             Position += sizeof(long);
         }
 
@@ -199,15 +226,20 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public short ReadShort()
         {
-            int ret;
-
-            unchecked
+            BitShort bits = new BitShort();
+            if (BitConverter.IsLittleEndian)
             {
-                ret = Buffer[Position] << 8;
-                ret += Buffer[Position + 1];
+                bits.ByteOffset1 = Buffer[Position];
+                bits.ByteOffset0 = Buffer[Position + 1];
             }
+            else
+            {
+                bits.ByteOffset0 = Buffer[Position];
+                bits.ByteOffset1 = Buffer[Position + 1];
+            }
+
             Position += sizeof(short);
-            return (short)ret;
+            return bits.Value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,16 +251,24 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt()
         {
-            int ret;
-            unchecked
+            BitInt bits = new BitInt();
+            if (BitConverter.IsLittleEndian)
             {
-                ret = Buffer[Position] << 24;
-                ret += Buffer[Position + 1] << 16;
-                ret += Buffer[Position + 2] << 8;
-                ret += Buffer[Position + 3];
+                bits.ByteOffset3 = Buffer[Position];
+                bits.ByteOffset2 = Buffer[Position + 1];
+                bits.ByteOffset1 = Buffer[Position + 2];
+                bits.ByteOffset0 = Buffer[Position + 3];
             }
+            else
+            {
+                bits.ByteOffset0 = Buffer[Position];
+                bits.ByteOffset1 = Buffer[Position + 1];
+                bits.ByteOffset2 = Buffer[Position + 2];
+                bits.ByteOffset3 = Buffer[Position + 3];
+            }
+
             Position += sizeof(int);
-            return ret;
+            return bits.Value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -240,21 +280,32 @@ namespace Snowball
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long ReadLong()
         {
-            long ret;
-            unchecked
+            BitLong bits = new BitLong();
+            if (BitConverter.IsLittleEndian)
             {
-                ret = (long)Buffer[Position] << 56;
-                ret += (long)Buffer[Position + 1] << 48;
-                ret += (long)Buffer[Position + 2] << 40;
-                ret += (long)Buffer[Position + 3] << 32;
-                ret += (long)Buffer[Position + 4] << 24;
-                ret += (long)Buffer[Position + 5] << 16;
-                ret += (long)Buffer[Position + 6] << 8;
-                ret += (long)Buffer[Position + 7];
-
+                bits.ByteOffset7 = Buffer[Position];
+                bits.ByteOffset6 = Buffer[Position + 1];
+                bits.ByteOffset5 = Buffer[Position + 2];
+                bits.ByteOffset4 = Buffer[Position + 3];
+                bits.ByteOffset3 = Buffer[Position + 4];
+                bits.ByteOffset2 = Buffer[Position + 5];
+                bits.ByteOffset1 = Buffer[Position + 6];
+                bits.ByteOffset0 = Buffer[Position + 7];
             }
+            else
+            {
+                bits.ByteOffset0 = Buffer[Position];
+                bits.ByteOffset1 = Buffer[Position + 1];
+                bits.ByteOffset2 = Buffer[Position + 2];
+                bits.ByteOffset3 = Buffer[Position + 3];
+                bits.ByteOffset4 = Buffer[Position + 4];
+                bits.ByteOffset5 = Buffer[Position + 5];
+                bits.ByteOffset6 = Buffer[Position + 6];
+                bits.ByteOffset7 = Buffer[Position + 7];
+            }
+
             Position += sizeof(long);
-            return ret;
+            return bits.Value; ;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -267,7 +318,6 @@ namespace Snowball
         public float ReadFloat()
         {
             BitFloat bits = new BitFloat();
-
             if (BitConverter.IsLittleEndian)
             {
                 bits.ByteOffset3 = Buffer[Position];
@@ -291,7 +341,6 @@ namespace Snowball
         public double ReadDouble()
         {
             BitDouble bits = new BitDouble();
-
             if (BitConverter.IsLittleEndian)
             {
                 bits.ByteOffset7 = Buffer[Position];

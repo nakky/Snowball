@@ -4,10 +4,30 @@ using System.Runtime.InteropServices;
 namespace Snowball
 {
     [StructLayout(LayoutKind.Explicit)]
-    internal struct BitFloat
+    internal struct BitShort
     {
         [FieldOffset(0)]
-        public float Value;
+        public short Value;
+
+        [FieldOffset(0)]
+        public byte ByteOffset0;
+
+        [FieldOffset(1)]
+        public byte ByteOffset1;
+
+        public BitShort(short value)
+        {
+            this = default(BitShort);
+            this.Value = value;
+        }
+
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct BitInt
+    {
+        [FieldOffset(0)]
+        public int Value;
 
         [FieldOffset(0)]
         public byte ByteOffset0;
@@ -21,19 +41,19 @@ namespace Snowball
         [FieldOffset(3)]
         public byte ByteOffset3;
 
-        public BitFloat(float value)
+        public BitInt(int value)
         {
-            this = default(BitFloat);
+            this = default(BitInt);
             this.Value = value;
         }
 
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    internal struct BitDouble
+    internal struct BitLong
     {
         [FieldOffset(0)]
-        public double Value;
+        public long Value;
 
         [FieldOffset(0)]
         public byte ByteOffset0;
@@ -59,12 +79,11 @@ namespace Snowball
         [FieldOffset(7)]
         public byte ByteOffset7;
 
-        public BitDouble(double value)
+        public BitLong(long value)
         {
-            this = default(BitDouble);
+            this = default(BitLong);
             this.Value = value;
         }
 
     }
-
 }
