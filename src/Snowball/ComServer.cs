@@ -122,10 +122,14 @@ namespace Snowball
             HealthCheck();
         }
 
-        int CreateBeaconData(BytePacker packer)
+        int CreateBeaconData(out BytePacker packer)
         {
             string data = BeaconDataCreate();
             int dataSize = beaconConverter.GetDataSize(data);
+
+            byte[] beaconBuf = new byte[dataSize + 4];
+            packer = new BytePacker(beaconBuf);
+
             packer.Write((short)dataSize);
 
 #if DISABLE_CHANNEL_VARINT
@@ -140,24 +144,22 @@ namespace Snowball
 
         }
 
-        byte[] beaconBuf = new byte[512];
-
         public void SendConnectBeacon(string ip)
         {
-            BytePacker packer = new BytePacker(beaconBuf);
-            int length = CreateBeaconData(packer);
+            BytePacker packer;
+            int length = CreateBeaconData(out packer);
 
-            udpSender.Send(ip, length, beaconBuf);
+            udpSender.Send(ip, length, packer.Buffer);
         }
 
         void OnBeaconTimer(object sender, ElapsedEventArgs args)
         {
-            BytePacker packer = new BytePacker(beaconBuf);
-            int length = CreateBeaconData(packer);
+            BytePacker packer;
+            int length = CreateBeaconData(out packer);
 
             foreach (var ip in beaaconList)
             {
-                udpSender.Send(ip, length, beaconBuf);
+                udpSender.Send(ip, length, packer.Buffer);
             }
         }
 
