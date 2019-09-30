@@ -19,6 +19,35 @@ namespace Snowball
         public string IP { get; private set; }
         public int Port { get; private set; }
 
+        int sendTimeOut = 5000;
+        public int SendTimeOut {
+            get
+            {
+                return sendTimeOut;
+            }
+            set
+            {
+                sendTimeOut = value;
+                if (nStream != null) nStream.WriteTimeout = sendTimeOut;
+            }
+        }
+
+        int receiveTimeOut = 5000;
+        public int ReceiveTimeOut
+        {
+            get
+            {
+                return receiveTimeOut;
+            }
+            set
+            {
+                receiveTimeOut = value;
+                if (nStream != null) nStream.ReadTimeout = receiveTimeOut;
+            }
+        }
+
+        public int Port { get; private set; }
+
         public const int DefaultBufferSize = 8192;
 
         byte[] receiveBuffer;
@@ -58,6 +87,8 @@ namespace Snowball
 
             UpdateClient(client);
             nStream = client.GetStream();
+            nStream.WriteTimeout = sendTimeOut;
+            nStream.ReadTimeout = receiveTimeOut;
 
             if (UseSyncContextPost) SyncContext = SynchronizationContext.Current;
             else SyncContext = null;
@@ -110,21 +141,21 @@ namespace Snowball
             {
                 try
                 {
-                    resSize = await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
+                    resSize = await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
 
                     if (resSize != 0)
                     {
                         receivePacker.Position = 0;
                         resSize = receivePacker.ReadShort();
 #if DISABLE_CHANNEL_VARINT
-                        await nStream.ReadAsync(receiveBuffer, 0, 2).ConfigureAwait(false);
+                        await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
                         receivePacker.Position = 0;
                         channelId = receivePacker.ReadShort();
-                        await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
+                        await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
 #else
                         int s = 0;
                         channelId = VarintBitConverter.ToInt16(nStream, out s);
-                        await nStream.ReadAsync(receiveBuffer, 0, resSize).ConfigureAwait(false);
+                        await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
 #endif
 
 
