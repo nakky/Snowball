@@ -23,6 +23,7 @@ namespace Snowball.Tests
             this.logger = logger;
             this.server = server;
 
+            Global.UseSyncContextPost = false;
         }
 
         public void Dispose()
@@ -60,6 +61,8 @@ namespace Snowball.Tests
 
             server.Server.BeaconStart();
             //server.Server.SendConnectBeacon("127.0.0.1");
+
+            //client.Connect("127.0.0.1");
 
             sw.Start();
             while (true)

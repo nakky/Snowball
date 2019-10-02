@@ -103,4 +103,11 @@ public class SampleSceneMain : MonoBehaviour
             client.Send(1, "Hello Unity!");
         }
     }
+
+    public void Disconnect()
+    {
+        client.Disconnect();
+    }
 }
+
+

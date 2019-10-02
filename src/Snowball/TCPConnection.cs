@@ -46,8 +46,6 @@ namespace Snowball
             }
         }
 
-        public int Port { get; private set; }
-
         public const int DefaultBufferSize = 8192;
 
         byte[] receiveBuffer;
@@ -61,8 +59,6 @@ namespace Snowball
         public delegate void DiconnectedHandler(TCPConnection connection);
         public DiconnectedHandler OnDisconnected;
 
-        public SynchronizationContext SyncContext { get; private set; }
-        public static bool UseSyncContextPost = true;
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
@@ -90,8 +86,6 @@ namespace Snowball
             nStream.WriteTimeout = sendTimeOut;
             nStream.ReadTimeout = receiveTimeOut;
 
-            if (UseSyncContextPost) SyncContext = SynchronizationContext.Current;
-            else SyncContext = null;
         }
 
         ~TCPConnection()
@@ -101,19 +95,24 @@ namespace Snowball
 
         public void Disconnect()
         {
-            lock(this){
-                if (nStream != null)
+            lock(this)
+            {
+                try{
+                    if (!cancelToken.IsCancellationRequested)
+                    {
+                        cancelToken.Cancel();
+                        OnReceive = null;
+
+                        nStream.Close();
+                        client.Close();
+
+                        if (OnDisconnected != null) OnDisconnected(this);
+                    }
+                }catch//(Exception e)
                 {
-                    cancelToken.Cancel();
-                    OnReceive = null;
-
-                    nStream = null;
-
-                    client.Close();
-                    client = null;
-
-                    if (OnDisconnected != null) OnDisconnected(this);
+                    //Util.Log("Disconnect" + e.Message);
                 }
+                
             }
 
         }
@@ -131,6 +130,7 @@ namespace Snowball
 
         public async Task Start()
         {
+            cancelToken.Token.Register(() => client.Close());
             int resSize = 0;
             short channelId = 0;
 
@@ -188,9 +188,9 @@ namespace Snowball
 
                 if (cancelToken.IsCancellationRequested) break;
 
-                if (SyncContext != null)
+                if (Global.SyncContext != null)
                 {
-                    SyncContext.Post((state) => {
+                    Global.SyncContext.Post((state) => {
                         if (cancelToken.IsCancellationRequested) return;
                         CallbackParam param = (CallbackParam)state;
                         if (OnReceive != null) OnReceive(param.Ip, param.channelId, param.buffer, param.size);
@@ -205,9 +205,9 @@ namespace Snowball
 
             } while (client.Connected);
 
-            if (SyncContext != null)
+            if (Global.SyncContext != null)
             {
-                SyncContext.Post((state) => {
+                Global.SyncContext.Post((state) => {
                     Disconnect();
                 }, null);
             }

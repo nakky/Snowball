@@ -6,6 +6,7 @@ using System.IO;
 
 using System.Net;
 using System.Timers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Snowball
@@ -63,7 +64,10 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (endPointIp, deserializer) =>
+			if (Global.UseSyncContextPost && Global.SyncContext == null)
+				Global.SyncContext = SynchronizationContext.Current;
+
+			AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (endPointIp, deserializer) =>
             {
             }));
 
@@ -71,7 +75,7 @@ namespace Snowball
             {
                 healthLostCount = 0;
             }));
-        }
+		}
 
         public void Dispose()
         {
@@ -159,9 +163,11 @@ namespace Snowball
             return false;
         }
 
-        void OnConnectedInternal(TCPConnection connection)
+        void OnConnectedInternal(string ip, TCPConnection connection)
         {
-            this.connection = connection;
+			if (connection == null) return;
+
+			this.connection = connection;
             serverNode = new ComNode(connection.IP);
 
             connection.OnDisconnected = OnDisconnectedInternal;
@@ -227,14 +233,15 @@ namespace Snowball
                 }
                 else
                 {
-                    if (endPointIp != serverNode.IP) continue;
+                    if (serverNode == null) break;
+                    if (endPointIp == serverNode.IP)
+                    {
+                        IDataChannel channel = dataChannelMap[channelId];
 
-                    IDataChannel channel = dataChannelMap[channelId];
+                        object container = channel.FromStream(ref packer);
 
-                    object container = channel.FromStream(ref packer);
-
-                    channel.Received(serverNode, container);
-                   
+                        channel.Received(serverNode, container);
+                    }
                 }
 
                 head += datasize + 4;

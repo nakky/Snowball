@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
+using System.Threading;
+
 namespace Snowball
 {
 
@@ -23,5 +25,11 @@ namespace Snowball
         Health = -3,
         //User can use 0 - 32767
     }
+
+    public static class Global
+	{
+		public static SynchronizationContext SyncContext { get; set; }
+		public static bool UseSyncContextPost = true;
+	}
 
 }

@@ -18,8 +18,7 @@ namespace Snowball.Tests
 
         public ServerFixture()
         {
-            TCPConnection.UseSyncContextPost = false;
-            UDPReceiver.UseSyncContextPost = false;
+            Global.UseSyncContextPost = false;
 
             Random rand = new Random();
             SendPort = rand.Next(10000, 20000);

@@ -6,6 +6,7 @@ using System.IO;
 
 using System.Net;
 using System.Timers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 
@@ -51,7 +52,7 @@ namespace Snowball
 
         protected int beaconIntervalMs = 1000;
         public int BeaconIntervalMs { get { return beaconIntervalMs; } set { if (!IsOpened) beaconIntervalMs = value; } }
-        Timer beaconTimer;
+        System.Timers.Timer beaconTimer;
 
         Converter beaconConverter;
 
@@ -64,7 +65,10 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
+			if (Global.UseSyncContextPost && Global.SyncContext == null)
+				Global.SyncContext = SynchronizationContext.Current;
+
+			AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
                 node.UserName = data;
 
@@ -108,7 +112,7 @@ namespace Snowball
             tcpListener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.OnConnected += OnConnectedInternal;
 
-            beaconTimer = new Timer(BeaconIntervalMs);
+            beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
 
             udpReceiver.OnReceive += OnUDPReceived;
 
@@ -245,15 +249,19 @@ namespace Snowball
 
         void OnConnectedInternal(TCPConnection connection)
         {
-            ComNode node = new ComNode(connection.IP);
+			if (connection == null) return;
 
-            nodeMap.Add(node.IP, node);
-            connectionMap.Add(node, connection); 
+			lock (this)
+			{
+				ComNode node = new ComNode(connection.IP);
 
-            connection.OnDisconnected = OnDisconnectedInternal;
-            connection.OnReceive = OnTCPReceived;
+				nodeMap.Add(node.IP, node);
+				connectionMap.Add(node, connection);
 
-            Util.Log("Server:Connected");
+				connection.OnDisconnected = OnDisconnectedInternal;
+				connection.OnReceive = OnTCPReceived;
+				Util.Log("Server:Connected");
+			}
         }
 
         public bool Disconnect(ComNode node)
@@ -269,16 +277,19 @@ namespace Snowball
 
         void OnDisconnectedInternal(TCPConnection connection)
         {
-            if (nodeMap.ContainsKey(connection.IP))
-            {
-                ComNode node = nodeMap[connection.IP];
-                connectionMap.Remove(node);
-                nodeMap.Remove(connection.IP);
+			lock (this)
+			{
+				if (nodeMap.ContainsKey(connection.IP))
+				{
+					ComNode node = nodeMap[connection.IP];
+					connectionMap.Remove(node);
+					nodeMap.Remove(connection.IP);
 
-                if (OnDisconnected != null) OnDisconnected(node);
+					if (OnDisconnected != null) OnDisconnected(node);
 
-                Util.Log("Server:Disconnected");
-            }
+					Util.Log("Server:Disconnected");
+				}
+			}
         }
 
         void OnUDPReceived(string endPointIp, byte[] data, int size)
@@ -304,15 +315,16 @@ namespace Snowball
                 }
                 else
                 {
-                    if (!nodeMap.ContainsKey(endPointIp)) continue;
+                    if (nodeMap.ContainsKey(endPointIp))
+                    {
+                        ComNode node = nodeMap[endPointIp];
 
-                    ComNode node = nodeMap[endPointIp];
+                        IDataChannel channel = dataChannelMap[channelId];
 
-                    IDataChannel channel = dataChannelMap[channelId];
+                        object container = channel.FromStream(ref packer);
 
-                    object container = channel.FromStream(ref packer);
-
-                    channel.Received(node, container);
+                        channel.Received(node, container);
+                    }
                 }
 
                 head += datasize + 4;

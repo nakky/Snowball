@@ -58,8 +58,9 @@ namespace Snowball
                 }
                 catch //(Exception e)
                 {
-                    //Util.Log(e.Message);
-                }
+					if (OnConnected != null) OnConnected(null);
+					//Util.Log(e.Message);
+				}
             }
 
         }

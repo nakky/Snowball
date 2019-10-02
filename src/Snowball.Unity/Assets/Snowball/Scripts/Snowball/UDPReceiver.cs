@@ -22,9 +22,6 @@ namespace Snowball
 
         public bool IsActive { get; private set; }
 
-        public SynchronizationContext SyncContext { get; private set; }
-        public static bool UseSyncContextPost = true;
-
         public class CallbackParam
         {
             public CallbackParam(string ip, byte[] buffer, int size)
@@ -42,9 +39,6 @@ namespace Snowball
             client = new UdpClient(portNum);
             client.Client.SendBufferSize = bufferSize;
             client.Client.ReceiveBufferSize = bufferSize;
-
-            if (UseSyncContextPost) SyncContext = SynchronizationContext.Current;
-            else SyncContext = null;
         }
 
         ~UDPReceiver()
@@ -60,7 +54,6 @@ namespace Snowball
                 cancelToken.Cancel();
                 OnReceive = null;
                 client.Close();
-                SyncContext = null;
             }
         }
 
@@ -94,9 +87,9 @@ namespace Snowball
                     if (!IsActive) break;
                     if (cancelToken.IsCancellationRequested) break;
 
-                    if (SyncContext != null)
+                    if (Global.SyncContext != null)
                     {
-                        SyncContext.Post((state) =>
+                        Global.SyncContext.Post((state) =>
                         {
                             if (cancelToken.IsCancellationRequested) return;
                             CallbackParam param = (CallbackParam)state;
