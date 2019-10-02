@@ -165,19 +165,19 @@ namespace Snowball
 
         void OnConnectedInternal(string ip, TCPConnection connection)
         {
-			if (connection == null) return;
+            if (connection != null)
+            {
+                this.connection = connection;
+                serverNode = new ComNode(connection.IP);
 
-			this.connection = connection;
-            serverNode = new ComNode(connection.IP);
+                connection.OnDisconnected = OnDisconnectedInternal;
+                connection.OnReceive = OnTCPReceived;
 
-            connection.OnDisconnected = OnDisconnectedInternal;
-            connection.OnReceive = OnTCPReceived;
-
-            Send((short)PreservedChannelId.Login, UserName);
+                Send((short)PreservedChannelId.Login, UserName);
+                if (OnConnected != null) OnConnected(serverNode);
+            }
 
             isConnecting = false;
-
-            if (OnConnected != null) OnConnected(serverNode);
 
             Util.Log("Client:Connected");
         }
