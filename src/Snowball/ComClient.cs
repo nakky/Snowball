@@ -175,11 +175,11 @@ namespace Snowball
 
                 Send((short)PreservedChannelId.Login, UserName);
                 if (OnConnected != null) OnConnected(serverNode);
+
+                Util.Log("Client:Connected");
             }
 
             isConnecting = false;
-
-            Util.Log("Client:Connected");
         }
 
         public bool Disconnect()
