@@ -44,7 +44,6 @@ namespace Snowball
         public void SetBeaconAcceptFunction(BeaconAcceptFunc func) { BeaconAccept = func; }
 
         ComNode serverNode;
-        TCPConnection connection;
 
         UDPSender udpSender;
         UDPReceiver udpReceiver;
@@ -167,8 +166,7 @@ namespace Snowball
         {
             if (connection != null)
             {
-                this.connection = connection;
-                serverNode = new ComNode(connection.IP);
+                serverNode = new ComNode(connection);
 
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnReceive = OnTCPReceived;
@@ -184,10 +182,9 @@ namespace Snowball
 
         public bool Disconnect()
         {
-            if (connection != null)
+            if (serverNode != null)
             {
-                connection.Disconnect();
-                connection = null;
+                serverNode.Connection.Disconnect();
                 return true;
             }
             else return false;
@@ -199,7 +196,6 @@ namespace Snowball
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
             serverNode = null;
-            connection = null;
 
             Util.Log("Client:Disconnected");
         }
@@ -307,7 +303,7 @@ namespace Snowball
 
             if (channel.Qos == QosType.Reliable)
             {
-                await connection.Send(maxpos, buf);
+                await serverNode.Connection.Send(maxpos, buf);
             }
             else if (channel.Qos == QosType.Unreliable)
             {

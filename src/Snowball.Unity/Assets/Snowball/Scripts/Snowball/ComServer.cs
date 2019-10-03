@@ -35,7 +35,6 @@ namespace Snowball
         protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
         protected Dictionary<string, ComNode> nodeMap = new Dictionary<string, ComNode>();
-        protected Dictionary<ComNode, TCPConnection> connectionMap = new Dictionary<ComNode, TCPConnection>();
 
         public delegate string BeaconDataGenerateFunc();
         BeaconDataGenerateFunc BeaconDataCreate = () => {
@@ -173,10 +172,10 @@ namespace Snowball
 
             beaconTimer.Stop();
 
-            var cMap = new Dictionary<ComNode, TCPConnection>(connectionMap);
-            foreach (var connection in cMap)
+            var nMap = new Dictionary<string, ComNode>(nodeMap);
+            foreach (var node in nMap)
             {
-                connection.Value.Disconnect();
+                node.Value.Connection.Disconnect();
             }
 
             tcpListener.Stop();
@@ -253,10 +252,9 @@ namespace Snowball
 
 			lock (this)
 			{
-				ComNode node = new ComNode(connection.IP);
+				ComNode node = new ComNode(connection);
 
 				nodeMap.Add(node.IP, node);
-				connectionMap.Add(node, connection);
 
 				connection.OnDisconnected = OnDisconnectedInternal;
 				connection.OnReceive = OnTCPReceived;
@@ -266,10 +264,9 @@ namespace Snowball
 
         public bool Disconnect(ComNode node)
         {
-            if (connectionMap.ContainsKey(node))
+            if (nodeMap.ContainsKey(node.IP))
             {
-                TCPConnection connection = connectionMap[node];
-                connection.Disconnect();
+                node.Connection.Disconnect();
                 return true;
             }
             else return false;
@@ -282,7 +279,6 @@ namespace Snowball
 				if (nodeMap.ContainsKey(connection.IP))
 				{
 					ComNode node = nodeMap[connection.IP];
-					connectionMap.Remove(node);
 					nodeMap.Remove(connection.IP);
 
 					if (OnDisconnected != null) OnDisconnected(node);
@@ -373,7 +369,7 @@ namespace Snowball
 
         public async Task<bool> Send<T>(ComNode node, short channelId, T data)
         {
-            if (!connectionMap.ContainsKey(node)) return false;
+            if (!nodeMap.ContainsKey(node.IP)) return false;
 
             if (!dataChannelMap.ContainsKey(channelId)) return false;
 
@@ -403,8 +399,7 @@ namespace Snowball
 
             if (channel.Qos == QosType.Reliable)
             {
-                TCPConnection connection = connectionMap[node];
-                await connection.Send(maxpos, buf);
+                await node.Connection.Send(maxpos, buf);
             }
             else if(channel.Qos == QosType.Unreliable)
             {

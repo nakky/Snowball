@@ -6,12 +6,13 @@ namespace Snowball
 
     public class ComNode
     {
-        public ComNode(string ip)
+        public ComNode(TCPConnection connection)
         {
-            this.IP = ip;
+            this.Connection = connection;
         }
 
-        public string IP { get; private set; }
+        public TCPConnection Connection { get; private set; }
+        public string IP { get { return Connection.IP; } }
         public string UserName { get; set; }
         public int HealthLostCount { get; set; }
     }
