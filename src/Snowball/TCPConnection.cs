@@ -106,7 +106,17 @@ namespace Snowball
                         nStream.Close();
                         client.Close();
 
-                        if (OnDisconnected != null) OnDisconnected(this);
+                        if (Global.SyncContext != null)
+                        {
+                            Global.SyncContext.Post((state) => {
+                                if (OnDisconnected != null) OnDisconnected(this);
+                            }, null);
+                        }
+                        else
+                        {
+                            if (OnDisconnected != null) OnDisconnected(this);
+                        }
+                        
                     }
                 }catch//(Exception e)
                 {
@@ -205,18 +215,7 @@ namespace Snowball
 
             } while (client.Connected);
 
-            if (Global.SyncContext != null)
-            {
-                Global.SyncContext.Post((state) => {
-                    Disconnect();
-                }, null);
-            }
-            else
-            {
-                Disconnect();
-            }
-            
-
+            Disconnect();            
         }
 
 

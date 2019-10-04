@@ -70,10 +70,7 @@ namespace Snowball
             {
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) =>
-            {
-                healthLostCount = 0;
-            }));
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) =>{}));
 		}
 
         public void Dispose()
@@ -232,8 +229,9 @@ namespace Snowball
                     if (serverNode == null) break;
                     if (endPointIp == serverNode.IP)
                     {
-                        IDataChannel channel = dataChannelMap[channelId];
+                        healthLostCount = 0;
 
+                        IDataChannel channel = dataChannelMap[channelId];
                         object container = channel.FromStream(ref packer);
 
                         channel.Received(serverNode, container);
@@ -259,13 +257,16 @@ namespace Snowball
             {
                 BytePacker packer = new BytePacker(data);
 
-                if (endPointIp != serverNode.IP) return;
+                if (serverNode == null);
+                if (endPointIp == serverNode.IP)
+                {
+                    healthLostCount = 0;
 
-                IDataChannel channel = dataChannelMap[channelId];
+                    IDataChannel channel = dataChannelMap[channelId];
+                    object container = channel.FromStream(ref packer);
 
-                object container = channel.FromStream(ref packer);
-
-                channel.Received(serverNode, container);
+                    channel.Received(serverNode, container);
+                }
             }
         }
 

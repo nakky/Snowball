@@ -76,10 +76,7 @@ namespace Snowball
                 Util.Log("SetUsername:" + node.UserName);
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
-            {
-                node.HealthLostCount = 0;
-            }));
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) => {}));
 
             beaconConverter = DataSerializer.GetConverter(typeof(string));
         }
@@ -315,6 +312,8 @@ namespace Snowball
                     {
                         ComNode node = nodeMap[endPointIp];
 
+                        node.HealthLostCount = 0;
+
                         IDataChannel channel = dataChannelMap[channelId];
 
                         object container = channel.FromStream(ref packer);
@@ -339,14 +338,18 @@ namespace Snowball
             {
                 BytePacker packer = new BytePacker(data);
 
-                if (!nodeMap.ContainsKey(endPointIp)) return;
-                ComNode node = nodeMap[endPointIp];
+                if (nodeMap.ContainsKey(endPointIp))
+                {
+                    ComNode node = nodeMap[endPointIp];
 
-                IDataChannel channel = dataChannelMap[channelId];
+                    node.HealthLostCount = 0;
 
-                object container = channel.FromStream(ref packer);
+                    IDataChannel channel = dataChannelMap[channelId];
 
-                channel.Received(node, container);
+                    object container = channel.FromStream(ref packer);
+
+                    channel.Received(node, container);
+                }
             }
         }
 
