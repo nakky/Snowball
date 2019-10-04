@@ -1,0 +1,35 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+
+using System.Threading;
+
+namespace Snowball
+{
+
+    public enum QosType
+    {
+        Unreliable,
+        Reliable,
+    }
+
+    public enum Compression
+    {
+        None,
+        LZ4,
+    }
+
+    public enum PreservedChannelId
+    {
+        Beacon = -1,
+        Login = -2,
+        Health = -3,
+        //User can use 0 - 32767
+    }
+
+    public static class Global
+	{
+		public static SynchronizationContext SyncContext { get; set; }
+		public static bool UseSyncContextPost = true;
+	}
+
+}
