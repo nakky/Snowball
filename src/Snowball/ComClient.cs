@@ -79,7 +79,8 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            if(Global.SyncContext == null) Global.SyncContext = SynchronizationContext.Current;
+            if(Global.UseSyncContextPost && Global.SyncContext == null)
+                Global.SyncContext = SynchronizationContext.Current;
 
             udpSender = new UDPSender(sendPortNumber, bufferSize);
             udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);

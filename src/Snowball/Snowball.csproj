@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageVersion>0.8.3</PackageVersion>
+    <PackageVersion>0.8.4</PackageVersion>
     <Authors>nakky</Authors>
     <Description>Simple Communication Engine for .NET Core.</Description>
     <PackageId>Snowball</PackageId>
     <PackageTags>Network, TCP, UDP</PackageTags>
     <PackageProjectUrl>https://github.com/nakky/Snowball</PackageProjectUrl>
-    <ReleaseVersion>0.8.3</ReleaseVersion>
+    <ReleaseVersion>0.8.4</ReleaseVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
