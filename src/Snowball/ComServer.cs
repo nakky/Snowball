@@ -64,9 +64,6 @@ namespace Snowball
         {
             IsOpened = false;
 
-			if (Global.UseSyncContextPost && Global.SyncContext == null)
-				Global.SyncContext = SynchronizationContext.Current;
-
 			AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
                 node.UserName = data;
@@ -99,6 +96,8 @@ namespace Snowball
         public void Open()
         {
             if (IsOpened) return;
+
+            if (Global.SyncContext == null) Global.SyncContext = SynchronizationContext.Current;
 
             udpSender = new UDPSender(sendPortNumber, bufferSize);
             udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
