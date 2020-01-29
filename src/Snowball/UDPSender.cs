@@ -14,6 +14,8 @@ namespace Snowball
 
         private UdpClient client;
 
+        SemaphoreSlim locker = new SemaphoreSlim(1,1);
+
         public UDPSender(int portNum, int bufferSize = DefaultBufferSize)
         {
             this.portNum = portNum;
@@ -37,7 +39,15 @@ namespace Snowball
 
         public async Task Send(string ip, int size, byte[] data)
         {
-            await client.SendAsync(data, size, ip, this.portNum);
+            try
+            {
+                await locker.WaitAsync();
+                await client.SendAsync(data, size, ip, this.portNum);
+            }
+            finally
+            {
+                locker.Release();
+            }
         }
 
     }
