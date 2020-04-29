@@ -272,48 +272,60 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
-        public async Task<bool> Send<T>(short channelId, T data)
+        public void BuildBuffer<T>(IDataChannel channel, T data, ref byte[] buffer, ref int bufferSize, ref bool isRent)
         {
-            if (!IsConnected) return false;
-
-            if (!dataChannelMap.ContainsKey(channelId)) return false;
-
-            IDataChannel channel = dataChannelMap[channelId];
-
-            bool isRent = true;
+            isRent = true;
             int bufSize = channel.GetDataSize(data);
-            byte[] buf = arrayPool.Rent(bufSize + 6);
-            if (buf == null)
+            buffer = arrayPool.Rent(bufSize + 6);
+            if (buffer == null)
             {
                 isRent = false;
-                buf = new byte[bufSize + 6];
+                buffer = new byte[bufSize + 6];
             }
 
-            BytePacker packer = new BytePacker(buf);
+            BytePacker packer = new BytePacker(buffer);
             packer.Write((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
             packer.Write(channelId);
 #else
             int s = 0;
-            VarintBitConverter.SerializeShort(channelId, packer, out s);
+            VarintBitConverter.SerializeShort(channel.ChannelID, packer, out s);
 #endif
             channel.ToStream(data, ref packer);
 
-            int maxpos = (int)packer.Position;
+            bufferSize = (int)packer.Position;
+        }
 
-            if (channel.Qos == QosType.Reliable)
-            {
-                await serverNode.Connection.Send(maxpos, buf);
-            }
-            else if (channel.Qos == QosType.Unreliable)
-            {
-                await udpSender.Send(serverNode.IP, maxpos, buf);
-            }
 
-            if (isRent) arrayPool.Return(buf);
+        public async Task<bool> Send<T>(short channelId, T data)
+        {
+            return await Task.Run(async () => {
+                if (!IsConnected) return false;
+                if (!dataChannelMap.ContainsKey(channelId)) return false;
 
-            return true;
+                IDataChannel channel = dataChannelMap[channelId];
+
+                bool isRent = false;
+                byte[] buffer = null;
+                int bufferSize = 0;
+
+                BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
+
+                if (channel.Qos == QosType.Reliable)
+                {
+                    await serverNode.Connection.Send(bufferSize, buffer);
+                }
+                else if (channel.Qos == QosType.Unreliable)
+                {
+                    await udpSender.Send(serverNode.IP, bufferSize, buffer);
+                }
+
+                if (isRent) arrayPool.Return(buffer);
+
+                return true;
+            });
+
         }
     }
 

@@ -62,6 +62,8 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
+        SemaphoreSlim locker = new SemaphoreSlim(1,1);
+
         public class CallbackParam
         {
             public CallbackParam(string ip, short channelId, byte[] buffer, int size, bool isRent)
@@ -222,7 +224,17 @@ namespace Snowball
         public async Task Send(int size, byte[] data)
         {
             if (client == null || !client.Connected) return;
-            await nStream.WriteAsync(data, 0, size);
+
+            try
+            {
+                await locker.WaitAsync();
+                await nStream.WriteAsync(data, 0, size);
+            }
+            finally
+            {
+                locker.Release();
+            }
+
         }
 
     }
