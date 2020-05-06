@@ -105,5 +105,19 @@ namespace Snowball
             }
 
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            int size = sizeof(byte);
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                size += converters[i].GetDataSize(packer);
+            }
+
+            return size;
+        }
     }
 }

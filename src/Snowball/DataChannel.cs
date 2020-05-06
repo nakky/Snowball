@@ -72,6 +72,8 @@ namespace Snowball
             }
             else
             {
+                int start = packer.Position;
+
                 converter.Serialize(packer, data);
             }
 
@@ -85,6 +87,60 @@ namespace Snowball
         public void Received(ComNode node, object data)
         {
             if (OnReceived != null) OnReceived(node, (T)data);
+        }
+
+    }
+
+    public class RawDataChannel<T> : IDataChannel
+    {
+        public short ChannelID { get; private set; }
+        public QosType Qos { get; private set; }
+        public Compression Compression { get; private set; }
+
+        public delegate void ReceivedHandler(ComNode node, byte[] data);
+
+        public ReceivedHandler OnReceived { get; private set; }
+
+        Converter converter;
+        Converter lz4converter;
+
+        public RawDataChannel(short channelID, QosType qos, Compression compression, ReceivedHandler onReceived)
+        {
+            ChannelID = channelID;
+            Qos = qos;
+            Compression = Compression;
+            OnReceived += onReceived;
+
+            converter = DataSerializer.GetConverter(typeof(T));
+            lz4converter = DataSerializer.GetConverter(typeof(byte[]));
+        }
+
+        public object FromStream(ref BytePacker packer)
+        {
+            int head = packer.Position;
+            int length = converter.GetDataSize(packer);
+            byte[] data = new byte[length];
+
+            Array.Copy(packer.Buffer, head, data, 0, length);
+
+            return data;
+        }
+
+        public void ToStream(object data, ref BytePacker packer)
+        {
+            byte[] arr = (byte[])data;
+            packer.Write(arr, 0, arr.Length);
+        }
+
+        public int GetDataSize(object data)
+        {
+            BytePacker packer = new BytePacker((byte[])data);
+            return converter.GetDataSize(packer);
+        }
+
+        public void Received(ComNode node, object data)
+        {
+            if (OnReceived != null) OnReceived(node, (byte[])data);
         }
 
     }

@@ -6,7 +6,9 @@ namespace Snowball.Tests
 {
     public enum ChannelId
     {
-        ByteRel = 0,
+        BoolRel = 0,
+        BoolUnRel,
+        ByteRel,
         ByteUnRel,
         ShortRel,
         ShortUnRel,
@@ -20,6 +22,14 @@ namespace Snowball.Tests
         StringUnRel,
         ClassRel,
         ClassUnRel,
+        BoolRaw,
+        ByteRaw,
+        ShortRaw,
+        IntRaw,
+        FloatRaw,
+        DoubleRaw,
+        StringRaw,
+        ClassRaw,
     };
 
 

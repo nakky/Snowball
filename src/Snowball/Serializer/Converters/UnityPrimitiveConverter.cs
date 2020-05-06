@@ -49,6 +49,15 @@ namespace Snowball
         {
             return sizeof(byte) + sizeof(float) * 2;
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(float) * 2;
+            return sizeof(byte) + sizeof(float) * 2;
+        }
     }
 
     public class Vector3Converter : Converter
@@ -94,6 +103,15 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(byte) + sizeof(float) * 3;
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(float) * 3;
             return sizeof(byte) + sizeof(float) * 3;
         }
     }
@@ -145,6 +163,15 @@ namespace Snowball
         {
             return sizeof(byte) + sizeof(float) * 4;
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(float) * 4;
+            return sizeof(byte) + sizeof(float) * 4;
+        }
     }
 
     public class QuaternionConverter : Converter
@@ -193,6 +220,15 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(byte) + sizeof(float) * 4;
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(float) * 4;
             return sizeof(byte) + sizeof(float) * 4;
         }
     }

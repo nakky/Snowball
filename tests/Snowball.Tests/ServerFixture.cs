@@ -57,7 +57,17 @@ namespace Snowball.Tests
 
         void AddEchoChannel()
         {
+            //Bool
+            Server.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRel, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.BoolRel, data);
+            }));
 
+
+            Server.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.BoolUnRel, data);
+            }));
 
             //Byte
             Server.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
@@ -135,6 +145,47 @@ namespace Snowball.Tests
             Server.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
             {
                 Server.Send(node, (short)ChannelId.ClassUnRel, data);
+            }));
+
+            //Raw
+
+            Server.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.BoolRaw, data);
+            }));
+            Server.AddChannel(new RawDataChannel<byte>((short)ChannelId.ByteRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.ByteRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<short>((short)ChannelId.ShortRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.ShortRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<int>((short)ChannelId.IntRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.IntRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<float>((short)ChannelId.FloatRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.FloatRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<double>((short)ChannelId.DoubleRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.DoubleRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<string>((short)ChannelId.StringRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.StringRaw, data);
+            }));
+
+            Server.AddChannel(new RawDataChannel<TestClass>((short)ChannelId.ClassRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                Server.Send(node, (short)ChannelId.ClassRaw, data);
             }));
 
 

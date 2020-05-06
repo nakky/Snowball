@@ -145,6 +145,7 @@ namespace Snowball.Tests
             server.Server.BeaconStop();
 
             //AddChannel
+            bool boolCheck = false;
             bool byteCheck = false;
             bool shortCheck = false;
             bool intCheck = false;
@@ -153,6 +154,7 @@ namespace Snowball.Tests
             bool stringCheck = false;
             bool classCheck = false;
 
+            bool boolData = true;
             byte byteData = 246;
             short shortData = 361;
             int intData = 543;
@@ -164,7 +166,12 @@ namespace Snowball.Tests
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
 
-            
+
+            //Bool
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRel, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == boolData) boolCheck = true;
+            }));
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
@@ -217,6 +224,7 @@ namespace Snowball.Tests
 
 
             //Send
+            client.Send((short)ChannelId.BoolRel, boolData);
             client.Send((short)ChannelId.ByteRel, byteData);
             client.Send((short)ChannelId.ShortRel, shortData);
             client.Send((short)ChannelId.IntRel, intData);
@@ -232,7 +240,8 @@ namespace Snowball.Tests
 
             while (true)
             {
-                if (byteCheck
+                if (boolCheck
+                    && byteCheck
                     && shortCheck
                     && intCheck
                     && floatCheck
@@ -270,6 +279,7 @@ namespace Snowball.Tests
             server.Server.BeaconStop();
 
             //AddChannel
+            bool boolCheck = false;
             bool byteCheck = false;
             bool shortCheck = false;
             bool intCheck = false;
@@ -278,6 +288,7 @@ namespace Snowball.Tests
             bool stringCheck = false;
             bool classCheck = false;
 
+            bool boolData = true;
             byte byteData = 246;
             short shortData = 361;
             int intData = 543;
@@ -288,6 +299,12 @@ namespace Snowball.Tests
             testData.intData = 6;
             testData.floatData = 6.6f;
             testData.stringData = "Are you human?";
+
+            //Bool
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
+            {
+                if (data == boolData) boolCheck = true;
+            }));
 
             //Byte
             client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
@@ -339,6 +356,7 @@ namespace Snowball.Tests
             }));
 
             //Send
+            client.Send((short)ChannelId.BoolUnRel, boolData);
             client.Send((short)ChannelId.ByteUnRel, byteData);
             client.Send((short)ChannelId.ShortUnRel, shortData);
             client.Send((short)ChannelId.IntUnRel, intData);
@@ -354,7 +372,142 @@ namespace Snowball.Tests
 
             while (true)
             {
-                if (byteCheck
+                if (boolCheck
+                    && byteCheck
+                    && shortCheck
+                    && intCheck
+                    && floatCheck
+                    && doubleCheck
+                    && stringCheck
+                    && classCheck
+                    )
+                {
+                    break;
+                }
+                else if (sw.Elapsed.Seconds >= 5)
+                {
+                    client.Close();
+                    throw new TimeoutException();
+                }
+
+                Task.Delay(100);
+            }
+            sw.Stop();
+
+            Disconnect(ref client);
+        }
+
+        [Fact]
+        //[Fact(Skip = "Skipped")]
+        public void SendReceiveRaw()
+        {
+            Util.Log("SendReceiveRaw");
+
+            ComClient client = new ComClient();
+            client.ListenPortNumber = this.server.SendPort;
+            client.SendPortNumber = this.server.ListenPort;
+
+            Connect(ref client);
+            server.Server.BeaconStop();
+
+            //AddChannel
+            bool boolCheck = false;
+            bool byteCheck = false;
+            bool shortCheck = false;
+            bool intCheck = false;
+            bool floatCheck = false;
+            bool doubleCheck = false;
+            bool stringCheck = false;
+            bool classCheck = false;
+
+            bool boolData = true;
+            byte byteData = 246;
+            short shortData = 361;
+            int intData = 543;
+            float floatData = 5.6f;
+            double doubleData = 32.5;
+            string stringData = "You are not human!";
+            TestClass testData = new TestClass();
+            testData.intData = 6;
+            testData.floatData = 6.6f;
+            testData.stringData = "Are you human?";
+
+
+            //Bool
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == boolData) boolCheck = true;
+            }));
+
+            //Byte
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == byteData) byteCheck = true;
+            }));
+
+            //Short
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == shortData) shortCheck = true;
+            }));
+
+            //Int
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == intData) intCheck = true;
+            }));
+
+            //Float
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == floatData) floatCheck = true;
+            }));
+
+            //Double
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == doubleData) doubleCheck = true;
+            }));
+
+            //String
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (data == stringData) stringCheck = true;
+            }));
+
+            //Class
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRaw, QosType.Reliable, comp, (node, data) =>
+            {
+                if (
+                    data.intData == testData.intData
+                    && data.floatData == testData.floatData
+                    && data.stringData == testData.stringData
+                )
+                {
+                    classCheck = true;
+                }
+            }));
+
+
+            //Send
+            client.Send((short)ChannelId.BoolRaw, boolData);
+            client.Send((short)ChannelId.ByteRaw, byteData);
+            client.Send((short)ChannelId.ShortRaw, shortData);
+            client.Send((short)ChannelId.IntRaw, intData);
+            client.Send((short)ChannelId.FloatRaw, floatData);
+            client.Send((short)ChannelId.DoubleRaw, doubleData);
+            client.Send((short)ChannelId.StringRaw, stringData);
+            client.Send((short)ChannelId.ClassRaw, testData);
+
+            Stopwatch sw = new Stopwatch();
+
+            sw.Reset();
+            sw.Start();
+
+            while (true)
+            {
+                if (boolCheck
+                    && byteCheck
                     && shortCheck
                     && intCheck
                     && floatCheck

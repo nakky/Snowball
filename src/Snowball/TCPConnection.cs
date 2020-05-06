@@ -211,7 +211,7 @@ namespace Snowball
                 }
                 else
                 {
-                    if (OnReceive != null) OnReceive(IP, channelId, receiveBuffer, resSize);
+                    if (OnReceive != null) OnReceive(IP, channelId, buffer, resSize);
                 }
                 
 

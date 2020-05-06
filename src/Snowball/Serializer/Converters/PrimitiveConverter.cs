@@ -22,6 +22,12 @@ namespace Snowball
             return 1;
         }
 
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += 1;
+            return 1;
+        }
+
     }
 
     public class CharConverter : Converter
@@ -40,6 +46,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(char);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(char);
             return sizeof(char);
         }
     }
@@ -62,6 +74,12 @@ namespace Snowball
         {
             return sizeof(sbyte);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(sbyte);
+            return sizeof(sbyte);
+        }
     }
 
     public class ByteConverter : Converter
@@ -80,6 +98,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(byte);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(byte);
             return sizeof(byte);
         }
     }
@@ -102,6 +126,12 @@ namespace Snowball
         {
             return sizeof(short);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(short);
+            return sizeof(short);
+        }
     }
 
     public class UShortConverter : Converter
@@ -120,6 +150,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(ushort);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(ushort);
             return sizeof(ushort);
         }
     }
@@ -142,6 +178,12 @@ namespace Snowball
         {
             return sizeof(int);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(int);
+            return sizeof(int);
+        }
     }
 
     public class UIntConverter : Converter
@@ -160,6 +202,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(uint);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(uint);
             return sizeof(uint);
         }
     }
@@ -182,6 +230,12 @@ namespace Snowball
         {
             return sizeof(long);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(long);
+            return sizeof(long);
+        }
     }
 
     public class ULongConverter : Converter
@@ -200,6 +254,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(ulong);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(ulong);
             return sizeof(ulong);
         }
     }
@@ -222,6 +282,12 @@ namespace Snowball
         {
             return sizeof(float);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(float);
+            return sizeof(float);
+        }
     }
 
     public class DoubleConverter : Converter
@@ -240,6 +306,12 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            return sizeof(double);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            packer.Position += sizeof(double);
             return sizeof(double);
         }
     }
@@ -290,6 +362,15 @@ namespace Snowball
         public override int GetDataSize(object data)
         {
             return sizeof(int) + System.Text.Encoding.ASCII.GetByteCount((string)data);
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            packer.Position += length;
+            return sizeof(int) + length;
         }
 
     }
@@ -344,6 +425,15 @@ namespace Snowball
         {
             return sizeof(int) + System.Text.Encoding.Unicode.GetByteCount((string)data);
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            packer.Position += length;
+            return sizeof(int) + length;
+        }
     }
 
     public class StringUtf8Converter : Converter
@@ -397,5 +487,13 @@ namespace Snowball
             return sizeof(int) + System.Text.Encoding.UTF8.GetByteCount((string)data);
         }
 
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            packer.Position += length;
+            return sizeof(int) + length;
+        }
     }
 }
