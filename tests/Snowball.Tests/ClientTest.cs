@@ -252,7 +252,7 @@ namespace Snowball.Tests
                 {
                     break;
                 }
-                else if (sw.Elapsed.Seconds >= 5)
+                else if (sw.Elapsed.Seconds >= 55)
                 {
                     client.Close();
                     throw new TimeoutException();
@@ -466,6 +466,7 @@ namespace Snowball.Tests
             //Double
             client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRaw, QosType.Reliable, comp, (node, data) =>
             {
+                Util.Log("double:" + data);
                 if (data == doubleData) doubleCheck = true;
             }));
 
@@ -478,6 +479,7 @@ namespace Snowball.Tests
             //Class
             client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRaw, QosType.Reliable, comp, (node, data) =>
             {
+                Util.Log("class:" + data);
                 if (
                     data.intData == testData.intData
                     && data.floatData == testData.floatData
@@ -518,7 +520,7 @@ namespace Snowball.Tests
                 {
                     break;
                 }
-                else if (sw.Elapsed.Seconds >= 5)
+                else if (sw.Elapsed.Seconds >= 2225)
                 {
                     client.Close();
                     throw new TimeoutException();

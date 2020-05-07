@@ -38,7 +38,7 @@ namespace Snowball
         {
             ChannelID = channelID;
             Qos = qos;
-            Compression = Compression;
+            Compression = compression;
             OnReceived += onReceived;
 
             converter = DataSerializer.GetConverter(typeof(T));
@@ -50,7 +50,8 @@ namespace Snowball
             if (Compression == Compression.LZ4)
             {
                 byte[] encoded = (byte[])lz4converter.Deserialize(packer);
-                BytePacker lz4packer = new BytePacker(encoded);
+                byte[] data = LZ4Pickler.Unpickle(encoded);
+                BytePacker lz4packer = new BytePacker(data);
                 return converter.Deserialize(lz4packer);
             }
             else
@@ -63,12 +64,12 @@ namespace Snowball
         {
             if (Compression == Compression.LZ4)
             {
-                int size = lz4converter.GetDataSize(data);
+                int size = converter.GetDataSize(data);
                 byte[] buf = new byte[size];
                 BytePacker lz4packer = new BytePacker(buf);
-                lz4converter.Serialize(lz4packer, data);
+                converter.Serialize(lz4packer, data);
                 byte[] encoded = LZ4Pickler.Pickle(buf);
-                converter.Serialize(packer, encoded);
+                lz4converter.Serialize(packer, encoded);
             }
             else
             {
@@ -108,7 +109,7 @@ namespace Snowball
         {
             ChannelID = channelID;
             Qos = qos;
-            Compression = Compression;
+            Compression = compression;
             OnReceived += onReceived;
 
             converter = DataSerializer.GetConverter(typeof(T));
@@ -117,26 +118,51 @@ namespace Snowball
 
         public object FromStream(ref BytePacker packer)
         {
-            int head = packer.Position;
-            int length = converter.GetDataSize(packer);
-            byte[] data = new byte[length];
+            if (Compression == Compression.LZ4)
+            {
+                byte[] encoded = (byte[])lz4converter.Deserialize(packer);
+                return encoded;
+            }
+            else
+            {
+                int head = packer.Position;
+                int length = converter.GetDataSize(packer);
+                byte[] data = new byte[length];
 
-            Array.Copy(packer.Buffer, head, data, 0, length);
+                Array.Copy(packer.Buffer, head, data, 0, length);
 
-            return data;
+                return data;
+            }
+
         }
 
         public void ToStream(object data, ref BytePacker packer)
         {
-            byte[] arr = (byte[])data;
-            packer.Write(arr, 0, arr.Length);
+            if (Compression == Compression.LZ4)
+            {
+                lz4converter.Serialize(packer, data);
+            }
+            else
+            {
+                byte[] arr = (byte[])data;
+                packer.Write(arr, 0, arr.Length);
+            }
         }
+
 
         public int GetDataSize(object data)
         {
-            BytePacker packer = new BytePacker((byte[])data);
-            return converter.GetDataSize(packer);
+            if (Compression == Compression.LZ4)
+            {
+                return lz4converter.GetDataSize(data);
+            }
+            else
+            {
+                BytePacker packer = new BytePacker((byte[])data);
+                return converter.GetDataSize(packer);
+            }
         }
+
 
         public void Received(ComNode node, object data)
         {

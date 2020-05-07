@@ -393,11 +393,14 @@ namespace Snowball
         {
             isRent = true;
             int bufSize = channel.GetDataSize(data);
-            buffer = arrayPool.Rent(bufSize + 6);
+            int lz4ext = 0;
+            if (channel.Compression == Compression.LZ4) lz4ext = 4;
+
+            buffer = arrayPool.Rent(bufSize + 6 + lz4ext);
             if (buffer == null)
             {
                 isRent = false;
-                buffer = new byte[bufSize + 6];
+                buffer = new byte[bufSize + 6 + lz4ext];
             }
 
             BytePacker packer = new BytePacker(buffer);
@@ -409,9 +412,14 @@ namespace Snowball
             int s = 0;
             VarintBitConverter.SerializeShort(channel.ChannelID, packer, out s);
 #endif
+            int start = packer.Position;
+
             channel.ToStream(data, ref packer);
 
             bufferSize = (int)packer.Position;
+
+            packer.Position = 0;
+            packer.Write((short)(bufferSize - start));
         }
 
 
