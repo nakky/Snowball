@@ -8,5 +8,6 @@ namespace Snowball
         public abstract void Serialize(BytePacker packer, object data);
         public abstract object Deserialize(BytePacker packer);
         public abstract int GetDataSize(object data);
+        public abstract int GetDataSize(BytePacker packer);
     }
 }

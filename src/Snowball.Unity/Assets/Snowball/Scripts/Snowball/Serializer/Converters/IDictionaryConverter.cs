@@ -91,6 +91,24 @@ namespace Snowball
             }
 
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            int size = sizeof(int);
+
+            System.Collections.IDictionary dictionary = (System.Collections.IDictionary)Activator.CreateInstance(type);
+
+            for (int i = 0; i < length; i++)
+            {
+                size += keyConverter.GetDataSize(packer);
+                size += valueConverter.GetDataSize(packer);
+            }
+
+            return size;
+        }
     }
 
 }

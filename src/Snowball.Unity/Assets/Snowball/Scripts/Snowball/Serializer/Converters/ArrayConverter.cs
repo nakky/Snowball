@@ -75,6 +75,20 @@ namespace Snowball
             }
             
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            int size = sizeof(int);
+            for (int i = 0; i < length; i++)
+            {
+                size += converter.GetDataSize(packer);
+            }
+
+            return sizeof(int) + length * size;
+        }
     }
 
 
@@ -128,6 +142,16 @@ namespace Snowball
                 return sizeof(int) + array.Length;
             }
 
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            int length = packer.ReadInt();
+            if (length < 0) return sizeof(int);
+
+            packer.Position += length;
+
+            return sizeof(int) + length;
         }
     }
 }

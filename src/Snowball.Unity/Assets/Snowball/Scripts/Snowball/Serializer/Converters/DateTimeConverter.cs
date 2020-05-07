@@ -49,6 +49,15 @@ namespace Snowball
             }
 
         }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return 0;
+
+            packer.Position += sizeof(long);
+            return sizeof(byte) + sizeof(long);
+        }
     }
 
     public class TimeSpanConverter : Converter
@@ -94,6 +103,15 @@ namespace Snowball
                 return sizeof(byte) + sizeof(long);
             }
 
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return 0;
+
+            packer.Position += sizeof(long);
+            return sizeof(byte) + sizeof(long);
         }
     }
 
