@@ -354,7 +354,7 @@ namespace Snowball
         }
 
 
-        public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data)
+        public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data, ComNode exception = null)
         {
             return await Task.Run(async () => {
                 if (!dataChannelMap.ContainsKey(channelId)) return false;
@@ -369,6 +369,7 @@ namespace Snowball
 
                 foreach (var node in group.NodeList)
                 {
+                    if (node == exception) continue;
                     if (!nodeMap.ContainsKey(node.IP)) continue;
 
                     if (channel.Qos == QosType.Reliable)
