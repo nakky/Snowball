@@ -20,7 +20,8 @@ namespace Snowball
         public int Port { get; private set; }
 
         int sendTimeOut = 5000;
-        public int SendTimeOut {
+        public int SendTimeOut
+        {
             get
             {
                 return sendTimeOut;
@@ -62,7 +63,7 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
-        SemaphoreSlim locker = new SemaphoreSlim(1,1);
+        SemaphoreSlim locker = new SemaphoreSlim(1, 1);
 
         public class CallbackParam
         {
@@ -97,9 +98,10 @@ namespace Snowball
 
         public void Disconnect()
         {
-            lock(this)
+            lock (this)
             {
-                try{
+                try
+                {
                     if (!cancelToken.IsCancellationRequested)
                     {
                         cancelToken.Cancel();
@@ -110,7 +112,8 @@ namespace Snowball
 
                         if (Global.SyncContext != null)
                         {
-                            Global.SyncContext.Post((state) => {
+                            Global.SyncContext.Post((state) =>
+                            {
                                 if (OnDisconnected != null) OnDisconnected(this);
                             }, null);
                         }
@@ -118,13 +121,14 @@ namespace Snowball
                         {
                             if (OnDisconnected != null) OnDisconnected(this);
                         }
-                        
+
                     }
-                }catch//(Exception e)
+                }
+                catch//(Exception e)
                 {
                     //Util.Log("Disconnect" + e.Message);
                 }
-                
+
             }
 
         }
@@ -136,7 +140,7 @@ namespace Snowball
             this.Port = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
         }
 
-        public bool IsConnected{ get{return client.Connected;} }
+        public bool IsConnected { get { return client.Connected; } }
 
         CancellationTokenSource cancelToken = new CancellationTokenSource();
 
@@ -166,13 +170,13 @@ namespace Snowball
                         await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
 #else
                         int s = 0;
-                        channelId = VarintBitConverter.ToInt16(nStream, out s);
+                        channelId = VarintBitConverter.ToShort(nStream, out s);
                         await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
 #endif
 
 
                         buffer = arrayPool.Rent(resSize);
-                        if(buffer != null)
+                        if (buffer != null)
                         {
                             isRent = true;
                         }
@@ -202,7 +206,8 @@ namespace Snowball
 
                 if (Global.SyncContext != null)
                 {
-                    Global.SyncContext.Post((state) => {
+                    Global.SyncContext.Post((state) =>
+                    {
                         if (cancelToken.IsCancellationRequested) return;
                         CallbackParam param = (CallbackParam)state;
                         if (OnReceive != null) OnReceive(param.Ip, param.channelId, param.buffer, param.size);
@@ -213,11 +218,11 @@ namespace Snowball
                 {
                     if (OnReceive != null) OnReceive(IP, channelId, buffer, resSize);
                 }
-                
+
 
             } while (client.Connected);
 
-            Disconnect();            
+            Disconnect();
         }
 
 

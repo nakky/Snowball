@@ -34,10 +34,11 @@ namespace Snowball
 
                     var dattrs = Attribute.GetCustomAttributes(p, typeof(DataAttribute));
 
-                    foreach(var datt in dattrs)
+                    foreach(DataAttribute datt in dattrs)
                     {
                         parameters.Add(p);
-                        converters.Add(DataSerializer.GetConverter(p.PropertyType));
+                        if (datt.ConverterType == null) converters.Add(DataSerializer.GetConverter(p.PropertyType));
+                        else converters.Add((Converter)Activator.CreateInstance(datt.ConverterType));
                         break;
                     }
                 }

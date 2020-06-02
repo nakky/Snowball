@@ -18,6 +18,28 @@ namespace Snowball
 
         public static void SerializeUShort(ushort value, BytePacker packer, out int size)
         {
+            GetVarintBytes(value, packer, out size);
+        }
+
+        public static void SerializeInt(int value, BytePacker packer, out int size)
+        {
+            var zigzag = EncodeZigZag(value, 32);
+            GetVarintBytes((ulong)zigzag, packer, out size);
+        }
+
+        public static void SerializeUInt(uint value, BytePacker packer, out int size)
+        {
+            GetVarintBytes((ulong)value, packer, out size);
+        }
+
+        public static void SerializeLong(long value, BytePacker packer, out int size)
+        {
+            var zigzag = EncodeZigZag(value, 64);
+            GetVarintBytes((ulong)zigzag, packer, out size);
+        }
+
+        public static void SerializeULong(ulong value, BytePacker packer, out int size)
+        {
             GetVarintBytes((ulong)value, packer, out size);
         }
 
@@ -54,6 +76,28 @@ namespace Snowball
             GetVarintBytes((ulong)value, stream, out size);
         }
 
+        public static void SerializeInt(int value, Stream stream, out int size)
+        {
+            var zigzag = EncodeZigZag(value, 32);
+            GetVarintBytes((ulong)zigzag, stream, out size);
+        }
+
+        public static void SerializeUInt(uint value, Stream stream, out int size)
+        {
+            GetVarintBytes((ulong)value, stream, out size);
+        }
+
+        public static void SerializeLong(long value, Stream stream, out int size)
+        {
+            var zigzag = EncodeZigZag(value, 64);
+            GetVarintBytes((ulong)zigzag, stream, out size);
+        }
+
+        public static void SerializeULong(ulong value, Stream stream, out int size)
+        {
+            GetVarintBytes((ulong)value, stream, out size);
+        }
+
         public static void GetVarintBytes(ulong value, Stream stream, out int size)
         {
             size = 0;
@@ -84,15 +128,37 @@ namespace Snowball
         #endregion
 
         #region Deserialize
-        public static short ToInt16(BytePacker packer, out int size)
+        public static short ToShort(BytePacker packer, out int size)
         {
             var zigzag = ToTarget(packer, 16, out size);
             return (short)DecodeZigZag(zigzag);
         }
 
-        public static ushort ToUInt16(BytePacker packer, out int size)
+        public static ushort ToUShort(BytePacker packer, out int size)
         {
             return (ushort)ToTarget(packer, 16, out size);
+        }
+
+        public static int ToInt(BytePacker packer, out int size)
+        {
+            var zigzag = ToTarget(packer, 32, out size);
+            return (int)DecodeZigZag(zigzag);
+        }
+
+        public static uint ToUInt(BytePacker packer, out int size)
+        {
+            return (uint)ToTarget(packer, 32, out size);
+        }
+
+        public static long ToLong(BytePacker packer, out int size)
+        {
+            var zigzag = ToTarget(packer, 64, out size);
+            return DecodeZigZag(zigzag);
+        }
+
+        public static ulong ToULong(BytePacker packer, out int size)
+        {
+            return (ulong)ToTarget(packer, 64, out size);
         }
 
         private static ulong ToTarget(BytePacker packer, int sizeBites, out int size)
@@ -133,15 +199,37 @@ namespace Snowball
             throw new ArgumentException("Cannot decode varint.", "stream");
         }
 
-        public static short ToInt16(Stream stream, out int size)
+        public static short ToShort(Stream stream, out int size)
         {
             var zigzag = ToTarget(stream, 16, out size);
             return (short)DecodeZigZag(zigzag);
         }
 
-        public static ushort ToUInt16(Stream stream, out int size)
+        public static ushort ToUShort(Stream stream, out int size)
         {
             return (ushort)ToTarget(stream, 16, out size);
+        }
+
+        public static int ToInt(Stream stream, out int size)
+        {
+            var zigzag = ToTarget(stream, 32, out size);
+            return (int)DecodeZigZag(zigzag);
+        }
+
+        public static uint ToUInt(Stream stream, out int size)
+        {
+            return (uint)ToTarget(stream, 32, out size);
+        }
+
+        public static long ToLong(Stream stream, out int size)
+        {
+            var zigzag = ToTarget(stream, 64, out size);
+            return DecodeZigZag(zigzag);
+        }
+
+        public static ulong ToULong(Stream stream, out int size)
+        {
+            return (ulong)ToTarget(stream, 64, out size);
         }
 
         private static ulong ToTarget(Stream stream, int sizeBites, out int size)

@@ -57,18 +57,18 @@ namespace Snowball
 
         bool isConnecting = false;
 
-        public bool IsConnected { get{ lock (this) { return serverNode != null; } } }
+        public bool IsConnected { get { lock (this) { return serverNode != null; } } }
 
         public ComClient()
         {
             IsOpened = false;
 
-			AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (endPointIp, deserializer) =>
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (endPointIp, deserializer) =>
             {
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) =>{}));
-		}
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) => { }));
+        }
 
         public void Dispose()
         {
@@ -79,7 +79,7 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            if(Global.UseSyncContextPost && Global.SyncContext == null)
+            if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
             udpSender = new UDPSender(sendPortNumber, bufferSize);
@@ -121,7 +121,7 @@ namespace Snowball
             {
                 await Task.Delay(500);
 
-                if(IsConnected)
+                if (IsConnected)
                 {
                     byte dummy = 0;
 
@@ -189,7 +189,7 @@ namespace Snowball
 
         void OnDisconnectedInternal(TCPConnection connection)
         {
-       
+
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
             serverNode = null;
@@ -209,7 +209,7 @@ namespace Snowball
                 short channelId = packer.ReadShort();
 #else
                 int s = 0;
-                short channelId = VarintBitConverter.ToInt16(packer, out s);
+                short channelId = VarintBitConverter.ToShort(packer, out s);
 #endif
 
                 if (channelId == (short)PreservedChannelId.Beacon)
@@ -218,7 +218,7 @@ namespace Snowball
                     {
                         string beaconData = (string)DataSerializer.Deserialize<string>(packer);
 
-                        if(BeaconAccept(beaconData)) Connect(endPointIp);
+                        if (BeaconAccept(beaconData)) Connect(endPointIp);
                     }
                 }
                 else if (!dataChannelMap.ContainsKey(channelId))
@@ -242,7 +242,7 @@ namespace Snowball
 
             }
 
-          
+
         }
 
         void OnTCPReceived(string endPointIp, short channelId, byte[] data, int size)
@@ -257,7 +257,7 @@ namespace Snowball
             {
                 BytePacker packer = new BytePacker(data);
 
-                if (serverNode == null);
+                if (serverNode == null) ;
                 if (endPointIp == serverNode.IP)
                 {
                     healthLostCount = 0;
@@ -308,7 +308,8 @@ namespace Snowball
 
         public async Task<bool> Send<T>(short channelId, T data)
         {
-            return await Task.Run(async () => {
+            return await Task.Run(async () =>
+            {
                 if (!IsConnected) return false;
                 if (!dataChannelMap.ContainsKey(channelId)) return false;
 

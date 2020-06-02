@@ -36,7 +36,7 @@ namespace Snowball.Tests
     [Transferable]
     public class TestClass
     {
-        [Data(0)]
+        [Data(0, typeof(VarIntConverter))]
         public int intData { get; set; }
         [Data(1)]
         public float floatData { get; set; }

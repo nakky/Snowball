@@ -297,7 +297,7 @@ namespace Snowball
                 short channelId = packer.ReadShort();
 #else
                 int s = 0;
-                short channelId = VarintBitConverter.ToInt16(packer, out s);
+                short channelId = VarintBitConverter.ToShort(packer, out s);
 #endif
 
                 if (channelId == (short)PreservedChannelId.Beacon)
