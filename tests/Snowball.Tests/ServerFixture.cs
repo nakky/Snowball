@@ -18,6 +18,8 @@ namespace Snowball.Tests
 
         public ServerFixture()
         {
+            Util.Log("ServerFixture");
+
             Global.UseSyncContextPost = false;
 
             Random rand = new Random();

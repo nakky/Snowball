@@ -163,7 +163,7 @@ namespace Snowball
         {
             if (connection != null)
             {
-                serverNode = new ComNode(connection);
+                serverNode = new ComTCPNode(connection);
 
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnReceive = OnTCPReceived;
@@ -181,7 +181,7 @@ namespace Snowball
         {
             if (serverNode != null)
             {
-                serverNode.Connection.Disconnect();
+                ((ComTCPNode)serverNode).Connection.Disconnect();
                 return true;
             }
             else return false;
@@ -221,17 +221,37 @@ namespace Snowball
                         if (BeaconAccept(beaconData)) Connect(endPointIp);
                     }
                 }
-                else if (!dataChannelMap.ContainsKey(channelId))
-                {
-                }
-                else
+                else if (channelId == (short)PreservedChannelId.Health)
                 {
                     if (serverNode == null) break;
                     if (endPointIp == serverNode.IP)
                     {
                         healthLostCount = 0;
+                    }
+                }
+                else if (!dataChannelMap.ContainsKey(channelId))
+                {
+                }
+                else
+                {
+                    IDataChannel channel = dataChannelMap[channelId];
 
-                        IDataChannel channel = dataChannelMap[channelId];
+                    if(channel.CheckMode == CheckMode.Sequre)
+                    {
+                        if (serverNode == null) break;
+                        if (endPointIp == serverNode.IP)
+                        {
+                            healthLostCount = 0;
+
+                            object container = channel.FromStream(ref packer);
+
+                            channel.Received(serverNode, container);
+                        }
+                    }
+                    else
+                    {
+                        healthLostCount = 0;
+
                         object container = channel.FromStream(ref packer);
 
                         channel.Received(serverNode, container);
@@ -250,19 +270,38 @@ namespace Snowball
             if (channelId == (short)PreservedChannelId.Beacon)
             {
             }
+            else if (channelId == (short)PreservedChannelId.Health)
+            {
+                if (serverNode == null) ;
+                if (endPointIp == serverNode.IP)
+                {
+                    healthLostCount = 0;
+                }
+            }
             else if (!dataChannelMap.ContainsKey(channelId))
             {
             }
             else
             {
                 BytePacker packer = new BytePacker(data);
+                IDataChannel channel = dataChannelMap[channelId];
 
-                if (serverNode == null) ;
-                if (endPointIp == serverNode.IP)
+                if (channel.CheckMode == CheckMode.Sequre)
+                {
+                    if (serverNode == null) ;
+                    if (endPointIp == serverNode.IP)
+                    {
+                        healthLostCount = 0;
+
+                        object container = channel.FromStream(ref packer);
+
+                        channel.Received(serverNode, container);
+                    }
+                }
+                else
                 {
                     healthLostCount = 0;
 
-                    IDataChannel channel = dataChannelMap[channelId];
                     object container = channel.FromStream(ref packer);
 
                     channel.Received(serverNode, container);
@@ -323,7 +362,7 @@ namespace Snowball
 
                 if (channel.Qos == QosType.Reliable)
                 {
-                    await serverNode.Connection.Send(bufferSize, buffer);
+                    await ((ComTCPNode)serverNode).Connection.Send(bufferSize, buffer);
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
