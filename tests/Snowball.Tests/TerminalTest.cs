@@ -83,7 +83,6 @@ namespace Snowball.Tests
             //Bool
             terminal.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
             {
-                Util.Log("Bool:" + data);
                 if (data == boolData) boolCheck = true;
             }, checkMode));
 
