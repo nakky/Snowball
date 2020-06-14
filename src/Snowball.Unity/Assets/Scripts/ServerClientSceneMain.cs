@@ -24,7 +24,7 @@ public class ObjState
     public Quaternion Rotation { get; private set; }
 }
 
-public class SampleSceneMain : MonoBehaviour
+public class ServerClientSceneMain : MonoBehaviour
 {
     [SerializeField]
     Server server;
@@ -54,14 +54,14 @@ public class SampleSceneMain : MonoBehaviour
         server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
             serverObject.transform.localPosition = data.Position;
             serverObject.transform.localRotation = data.Rotation;
-        }));
+        }, CheckMode.Speedy));
 
         server.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {
             Debug.Log("rec:" + data);
         }));
 
         client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
-        }));
+        }, CheckMode.Speedy));
 
         client.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {
         }));

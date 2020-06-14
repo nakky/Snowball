@@ -172,7 +172,7 @@ namespace Snowball
             var nMap = new Dictionary<string, ComNode>(nodeMap);
             foreach (var node in nMap)
             {
-                node.Value.Connection.Disconnect();
+                ((ComTCPNode)node.Value).Connection.Disconnect();
             }
 
             tcpListener.Stop();
@@ -249,7 +249,7 @@ namespace Snowball
 
 			lock (this)
 			{
-				ComNode node = new ComNode(connection);
+                ComTCPNode node = new ComTCPNode(connection);
 
 				nodeMap.Add(node.IP, node);
 
@@ -263,7 +263,7 @@ namespace Snowball
         {
             if (nodeMap.ContainsKey(node.IP))
             {
-                node.Connection.Disconnect();
+                ((ComTCPNode)node).Connection.Disconnect();
                 return true;
             }
             else return false;
@@ -303,23 +303,41 @@ namespace Snowball
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
                 }
+                else if (channelId == (short)PreservedChannelId.Health)
+                {
+                    if (nodeMap.ContainsKey(endPointIp))
+                    {
+                        ComNode node = nodeMap[endPointIp];
+                        node.HealthLostCount = 0;
+                    }
+                }
                 else if (!dataChannelMap.ContainsKey(channelId))
                 {
                 }
                 else
                 {
-                    if (nodeMap.ContainsKey(endPointIp))
+                    IDataChannel channel = dataChannelMap[channelId];
+
+                    if (channel.CheckMode == CheckMode.Sequre)
                     {
-                        ComNode node = nodeMap[endPointIp];
+                        if (nodeMap.ContainsKey(endPointIp))
+                        {
+                            ComNode node = nodeMap[endPointIp];
 
-                        node.HealthLostCount = 0;
+                            node.HealthLostCount = 0;
 
-                        IDataChannel channel = dataChannelMap[channelId];
+                            object container = channel.FromStream(ref packer);
 
+                            channel.Received(node, container);
+                        }
+                    }
+                    else
+                    {
                         object container = channel.FromStream(ref packer);
 
-                        channel.Received(node, container);
+                        channel.Received(null, container);
                     }
+
                 }
 
                 head += datasize + 4;
@@ -330,6 +348,14 @@ namespace Snowball
         {
             if (channelId == (short)PreservedChannelId.Beacon)
             {
+            }
+            else if (channelId == (short)PreservedChannelId.Health)
+            {
+                if (nodeMap.ContainsKey(endPointIp))
+                {
+                    ComNode node = nodeMap[endPointIp];
+                    node.HealthLostCount = 0;
+                }
             }
             else if (!dataChannelMap.ContainsKey(channelId))
             {
@@ -374,7 +400,7 @@ namespace Snowball
 
                     if (channel.Qos == QosType.Reliable)
                     {
-                        await node.Connection.Send(bufferSize, buffer);
+                        await ((ComTCPNode)node).Connection.Send(bufferSize, buffer);
                     }
                     else if (channel.Qos == QosType.Unreliable)
                     {
@@ -440,7 +466,7 @@ namespace Snowball
 
                 if (channel.Qos == QosType.Reliable)
                 {
-                    await node.Connection.Send(bufferSize, buffer);
+                    await ((ComTCPNode)node).Connection.Send(bufferSize, buffer);
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {

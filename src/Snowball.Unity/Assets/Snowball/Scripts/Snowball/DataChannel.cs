@@ -14,7 +14,9 @@ namespace Snowball
         Compression Compression { get; }
 
         void Received(ComNode node, object data);
-        
+
+        CheckMode CheckMode { get; }
+
         object FromStream(ref BytePacker packer);
         void ToStream(object data, ref BytePacker packer);
 
@@ -31,15 +33,22 @@ namespace Snowball
 
         public ReceivedHandler OnReceived { get; private set; }
 
+        public CheckMode CheckMode { get; private set; }
+
         Converter converter;
         Converter lz4converter;
 
-        public DataChannel(short channelID, QosType qos, Compression compression, ReceivedHandler onReceived)
+        public DataChannel(
+            short channelID, QosType qos, Compression compression, ReceivedHandler onReceived, CheckMode checkMode = CheckMode.Sequre
+            )
         {
             ChannelID = channelID;
             Qos = qos;
             Compression = compression;
+
             OnReceived += onReceived;
+
+            CheckMode = checkMode;
 
             converter = DataSerializer.GetConverter(typeof(T));
             lz4converter = DataSerializer.GetConverter(typeof(byte[]));
@@ -102,15 +111,22 @@ namespace Snowball
 
         public ReceivedHandler OnReceived { get; private set; }
 
+        public CheckMode CheckMode { get; private set; }
+
         Converter converter;
         Converter lz4converter;
 
-        public RawDataChannel(short channelID, QosType qos, Compression compression, ReceivedHandler onReceived)
+        public RawDataChannel(
+            short channelID, QosType qos, Compression compression, ReceivedHandler onReceived, CheckMode checkMode = CheckMode.Sequre
+            )
         {
             ChannelID = channelID;
             Qos = qos;
             Compression = compression;
+
             OnReceived += onReceived;
+
+            CheckMode = checkMode;
 
             converter = DataSerializer.GetConverter(typeof(T));
             lz4converter = DataSerializer.GetConverter(typeof(byte[]));

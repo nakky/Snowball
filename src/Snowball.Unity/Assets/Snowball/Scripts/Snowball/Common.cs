@@ -18,6 +18,12 @@ namespace Snowball
         LZ4,
     }
 
+    public enum CheckMode
+    {
+        Sequre,
+        Speedy
+    };
+
     public enum PreservedChannelId
     {
         Beacon = -1,

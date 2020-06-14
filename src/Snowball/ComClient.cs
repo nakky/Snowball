@@ -304,7 +304,7 @@ namespace Snowball
 
                     object container = channel.FromStream(ref packer);
 
-                    channel.Received(serverNode, container);
+                    channel.Received(null, container);
                 }
             }
         }

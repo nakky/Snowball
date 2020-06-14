@@ -333,13 +333,9 @@ namespace Snowball
                     }
                     else
                     {
-                        ComNode node = nodeMap[endPointIp];
-
-                        node.HealthLostCount = 0;
-
                         object container = channel.FromStream(ref packer);
 
-                        channel.Received(node, container);
+                        channel.Received(null, container);
                     }
 
                 }
