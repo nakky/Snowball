@@ -8,6 +8,7 @@ using System.Net;
 using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace Snowball
 {
@@ -166,7 +167,7 @@ namespace Snowball
                 serverNode = new ComTCPNode(connection);
 
                 connection.OnDisconnected = OnDisconnectedInternal;
-                connection.OnReceive = OnTCPReceived;
+                connection.OnPoll = OnPoll;
 
                 Send((short)PreservedChannelId.Login, UserName);
                 if (OnConnected != null) OnConnected(serverNode);
@@ -307,6 +308,101 @@ namespace Snowball
                     channel.Received(null, container);
                 }
             }
+        }
+
+        public class CallbackParam
+        {
+            public CallbackParam(string ip, short channelId, byte[] buffer, int size, bool isRent)
+            {
+                this.Ip = ip; this.channelId = channelId; this.buffer = buffer; this.size = size; this.isRent = isRent;
+            }
+            public string Ip;
+            public short channelId;
+            public byte[] buffer;
+            public int size;
+            public bool isRent;
+        }
+
+
+        public async Task<bool> OnPoll(
+            TCPConnection connection,
+            NetworkStream nStream,
+            byte[] receiveBuffer,
+            BytePacker receivePacker,
+            CancellationTokenSource cancelToken
+            )
+        {
+            int resSize = 0;
+            short channelId = 0;
+
+            bool isRent = false;
+            byte[] buffer = null;
+
+            try
+            {
+                resSize = await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
+
+                if (resSize != 0)
+                {
+                    receivePacker.Position = 0;
+                    resSize = receivePacker.ReadShort();
+#if DISABLE_CHANNEL_VARINT
+                        await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
+                        receivePacker.Position = 0;
+                        channelId = receivePacker.ReadShort();
+                        await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
+#else
+                    int s = 0;
+                    channelId = VarintBitConverter.ToShort(nStream, out s);
+                    await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
+#endif
+
+
+                    buffer = arrayPool.Rent(resSize);
+                    if (buffer != null)
+                    {
+                        isRent = true;
+                    }
+                    else
+                    {
+                        buffer = new byte[resSize];
+                        isRent = false;
+                    }
+
+                    Array.Copy(receiveBuffer, buffer, resSize);
+
+                    //Util.Log("TCP:" + resSize);
+                }
+            }
+            catch//(Exception e)
+            {
+                //Util.Log("TCP:" + e.Message);
+                return false;
+            }
+
+            if (resSize == 0)
+            {
+                return false;
+            }
+
+            if (cancelToken.IsCancellationRequested) return false;
+
+            if (Global.SyncContext != null)
+            {
+                Global.SyncContext.Post((state) =>
+                {
+                    if (cancelToken.IsCancellationRequested) return;
+                    CallbackParam param = (CallbackParam)state;
+                    OnTCPReceived(param.Ip, param.channelId, param.buffer, param.size);
+                    if (isRent) arrayPool.Return(buffer);
+                }, new CallbackParam(connection.IP, channelId, buffer, resSize, isRent));
+            }
+            else
+            {
+                OnTCPReceived(connection.IP, channelId, buffer, resSize);
+            }
+
+            return true;
         }
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();

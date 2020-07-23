@@ -77,7 +77,7 @@ namespace Snowball.Tests
         }
     };
 
-    [Collection(nameof(ComServerFixture))]
+
     public class ConverterTest : IDisposable
     {
         public ConverterTest()

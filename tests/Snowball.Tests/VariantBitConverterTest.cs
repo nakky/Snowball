@@ -10,7 +10,6 @@ using Snowball;
 
 namespace Snowball.Tests
 {
-    [Collection(nameof(ComServerFixture))]
     public class VariantBitConverterTest : IDisposable
     {
         public VariantBitConverterTest()
