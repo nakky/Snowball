@@ -95,13 +95,17 @@ namespace Snowball
                 Global.SyncContext.Post((state) => {
                     CallbackParam param = (CallbackParam)state;
                     if (OnConnected != null) OnConnected(param.Ip, param.Connection);
+
+                    connection.Start();
+
                 }, new CallbackParam(ip, connection));
             }
             else
             {
                 if (OnConnected != null) OnConnected(ip, connection);
+                connection.Start();
             }
-            await connection.Start();
+            
 
         }
 
