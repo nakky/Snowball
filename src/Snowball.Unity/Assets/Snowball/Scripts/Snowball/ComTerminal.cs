@@ -44,12 +44,19 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
-            udpSender = new UDPSender(sendPortNumber, bufferSize);
-            udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
+            if(sendPortNumber != 0)
+            {
+                udpSender = new UDPSender(sendPortNumber, bufferSize);
+            }
 
-            udpReceiver.OnReceive += OnUDPReceived;
+            if(listenPortNumber != 0)
+            {
+                udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
+                udpReceiver.OnReceive += OnUDPReceived;
 
-            udpReceiver.Start();
+                udpReceiver.Start();
+            }
+            
 
             IsOpened = true;
         }
@@ -58,10 +65,15 @@ namespace Snowball
         {
             if (!IsOpened) return;
 
-            udpReceiver.Close();
-
-            udpReceiver = null;
-            udpSender = null;
+            if (listenPortNumber != 0)
+            {
+                udpReceiver.Close();
+                udpReceiver = null;
+            }
+            if (sendPortNumber != 0)
+            {
+                udpSender = null;
+            }
 
             IsOpened = false;
         }
@@ -176,6 +188,8 @@ namespace Snowball
 
         public async Task<bool> Send<T>(ComNode node, short channelId, T data)
         {
+            if (sendPortNumber == 0) return false;
+
             return await Task.Run(async () => {
                 if (!dataChannelMap.ContainsKey(channelId)) return false;
 
