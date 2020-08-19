@@ -8,7 +8,7 @@
     <RootNamespace>Snowball.ChatClient</RootNamespace>
     <AssemblyName>Snowball.ChatClient</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <ReleaseVersion>0.10.3</ReleaseVersion>
+    <ReleaseVersion>0.10.4</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

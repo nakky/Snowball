@@ -31,6 +31,9 @@ namespace Snowball
         int bufferSize = 8192;
         public int BufferSize { get { return bufferSize; } set { if (!IsOpened) bufferSize = value; } }
 
+        int connectTimeOutMilliSec = 1000;
+        public int ConnectTimeOutMilliSec { get { return connectTimeOutMilliSec; } set { connectTimeOutMilliSec = value; } }
+
         public delegate void ConnectedHandler(ComNode node);
         public ConnectedHandler OnConnected;
 
@@ -88,6 +91,7 @@ namespace Snowball
 
             tcpConnector = new TCPConnector(sendPortNumber);
             tcpConnector.ConnectionBufferSize = bufferSize;
+            tcpConnector.ConnectTimeOutMilliSec = connectTimeOutMilliSec;
             tcpConnector.OnConnected += OnConnectedInternal;
 
             udpReceiver.OnReceive += OnUDPReceived;

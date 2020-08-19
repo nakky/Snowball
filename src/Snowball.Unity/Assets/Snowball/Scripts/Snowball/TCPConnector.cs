@@ -18,8 +18,8 @@ namespace Snowball
         int connectionBufferSize = 8192;
         public int ConnectionBufferSize { get { return connectionBufferSize; } set { connectionBufferSize = value; } }
 
-        int connectTimeOutSec = 10;
-        public int ConnectTimeOutSec { get { return connectTimeOutSec; } set { connectTimeOutSec = value; } }
+        int connectTimeOutMilliSec = 1000;
+        public int ConnectTimeOutMilliSec { get { return connectTimeOutMilliSec; } set { connectTimeOutMilliSec = value; } }
 
         public class CallbackParam
         {
@@ -47,7 +47,7 @@ namespace Snowball
             try
             {
                 Task con_task = client.ConnectAsync(ip, portNum);
-                if (!con_task.Wait(connectTimeOutSec))
+                if (!con_task.Wait(connectTimeOutMilliSec))
                 {
                     client.Close();
                     throw new SocketException(10060); // 10060:WSAETIMEDOUT
