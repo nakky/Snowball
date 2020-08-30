@@ -24,6 +24,7 @@ namespace Snowball
             client.Client.ReceiveBufferSize = bufferSize;
         }
 
+
         ~UDPSender()
         {
             Close();

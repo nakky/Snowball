@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +26,7 @@ namespace Snowball
         UDPSender udpSender;
         UDPReceiver udpReceiver;
 
-        protected Dictionary<string, ComNode> nodeMap = new Dictionary<string, ComNode>();
+        protected Dictionary<string, ComNode> nodeUdpMap = new Dictionary<string, ComNode>();
 
         public ComTerminal()
         {
@@ -80,12 +81,14 @@ namespace Snowball
 
         public void AddAcceptList(string ip)
         {
-            nodeMap.Add(ip, new ComNode(ip));
+            IPAddress address = IPAddress.Parse(ip);
+            ComNode node = new ComNode(new IPEndPoint(address, sendPortNumber));
+            nodeUdpMap.Add(ip, node);
         }
 
         public void RemoveAcceptList(string ip)
         {
-            nodeMap.Remove(ip);
+            nodeUdpMap.Remove(ip);
         }
 
         public void AddChannel(IDataChannel channel)
@@ -102,7 +105,7 @@ namespace Snowball
             dataChannelMap.Remove(channel.ChannelID);
         }
 
-        void OnUDPReceived(string endPointIp, byte[] data, int size)
+        void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
         {
             int head = 0;
 
@@ -125,9 +128,9 @@ namespace Snowball
 
                     if (channel.CheckMode == CheckMode.Sequre)
                     {
-                        if (nodeMap.ContainsKey(endPointIp))
+                        if (nodeUdpMap.ContainsKey(endPoint.Address.ToString()))
                         {
-                            ComNode node = nodeMap[endPointIp];
+                            ComNode node = nodeUdpMap[endPoint.Address.ToString()];
 
                             object container = channel.FromStream(ref packer);
 
@@ -201,7 +204,7 @@ namespace Snowball
 
                 BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
 
-                await udpSender.Send(node.IP, bufferSize, buffer);
+                await udpSender.Send(node.Ip, bufferSize, buffer);
 
                 if (isRent) arrayPool.Return(buffer);
 

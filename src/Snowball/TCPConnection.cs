@@ -15,6 +15,10 @@ namespace Snowball
     {
         TcpClient client;
 
+        public IPEndPoint EndPoint { get; private set; }
+
+        public TcpClient Client { get { return client; } }
+
         public string IP { get; private set; }
         public int Port { get; private set; }
 
@@ -77,11 +81,12 @@ namespace Snowball
             receiveBuffer = new byte[receiveBufferSize];
             receivePacker = new BytePacker(receiveBuffer);
 
-
             UpdateClient(client);
             nStream = client.GetStream();
             nStream.WriteTimeout = sendTimeOut;
             nStream.ReadTimeout = receiveTimeOut;
+
+            EndPoint = (IPEndPoint)client.Client.RemoteEndPoint;
 
         }
 

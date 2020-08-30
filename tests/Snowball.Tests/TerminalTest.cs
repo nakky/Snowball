@@ -137,7 +137,8 @@ namespace Snowball.Tests
 
             terminal.Open();
 
-            ComNode lnode = new ComNode(IPAddress.Loopback.ToString());
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.SendPortNumber);
+            ComNode lnode = new ComNode(endPoint);
 
             //Send
             terminal.Send(lnode, (short)ChannelId.BoolUnRel, boolData);
@@ -168,7 +169,7 @@ namespace Snowball.Tests
                 {
                     break;
                 }
-                else if (sw.Elapsed.Seconds >= 5)
+                else if (sw.Elapsed.Seconds >= 50)
                 {
                     terminal.Close();
                     throw new TimeoutException();
@@ -225,7 +226,8 @@ namespace Snowball.Tests
 
             Util.Log("sendTestNum:" + sendTestNum);
 
-            ComNode lnode = new ComNode(IPAddress.Loopback.ToString());
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.SendPortNumber);
+            ComNode lnode = new ComNode(endPoint);
 
             //Send
             for (int i = 0; i < sendTestNum; i++)

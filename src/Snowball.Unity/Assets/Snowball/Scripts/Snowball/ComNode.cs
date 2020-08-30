@@ -6,20 +6,24 @@ namespace Snowball
 
     public class ComNode
     {
-        public ComNode(string ip)
+        public ComNode(IPEndPoint tcpEndPoint)
         {
-            this.IP = ip;
+            this.TcpEndPoint = tcpEndPoint;
+            if (tcpEndPoint.Address.IsIPv4MappedToIPv6) TcpEndPoint.Address = tcpEndPoint.Address.MapToIPv4();
+            Ip = TcpEndPoint.Address.ToString();
         }
 
-        public string IP { get; private set; }
+        public string Ip { get; private set; }
+        public IPEndPoint TcpEndPoint { get; private set; }
+        public IPEndPoint UdpEndPoint { get; internal set; }
         public string UserName { get; set; }
         public int HealthLostCount { get; set; }
     }
 
-    public class ComTCPNode : ComNode
+    public class ComSnowballNode : ComNode
     {
-        public ComTCPNode(TCPConnection connection)
-            : base(connection.IP)
+        public ComSnowballNode(TCPConnection connection)
+            : base((IPEndPoint)connection.Client.Client.RemoteEndPoint)
         {
             this.Connection = connection;
         }

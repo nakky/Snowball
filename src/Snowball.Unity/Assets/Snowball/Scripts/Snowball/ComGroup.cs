@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Snowball
 {
@@ -8,7 +9,7 @@ namespace Snowball
         public string Name { get; private set; }
 
         public List<ComNode> NodeList { get; private set; }
-        public Dictionary<string, ComNode> IpNodeMap { get; private set; }
+        public Dictionary<IPEndPoint, ComNode> EndPointNodeMap { get; private set; }
 
         public IEnumerator<ComNode> GetEnumerator() { return NodeList.GetEnumerator(); }
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return NodeList.GetEnumerator(); }
@@ -17,17 +18,17 @@ namespace Snowball
         {
             Name = name;
             NodeList = new List<ComNode>();
-            IpNodeMap = new Dictionary<string, ComNode>();
+            EndPointNodeMap = new Dictionary<IPEndPoint, ComNode>();
         }
 
         public void Add(ComNode node) {
             NodeList.Add(node);
-            IpNodeMap.Add(node.IP, node);
+            EndPointNodeMap.Add(node.TcpEndPoint, node);
         }
 
         public void Remove(ComNode node) {
             NodeList.Remove(node);
-            IpNodeMap.Remove(node.IP);
+            EndPointNodeMap.Remove(node.TcpEndPoint);
         }
 
         public bool Contains(ComNode node)
@@ -40,9 +41,9 @@ namespace Snowball
             return NodeList[index];
         }
 
-        public ComNode GetNodeByIp(string ip)
+        public ComNode GetNodeByEndPoint(IPEndPoint endPoint)
         {
-            if (IpNodeMap.ContainsKey(ip)) return IpNodeMap[ip];
+            if (EndPointNodeMap.ContainsKey(endPoint)) return EndPointNodeMap[endPoint];
             else return null;
         }
 

@@ -55,6 +55,7 @@ namespace Snowball
         TCPConnector tcpConnector;
 
         int healthLostCount = 0;
+        bool udpAck = false;
 
         int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
@@ -67,11 +68,23 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (endPointIp, deserializer) =>
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (endPointIp, data) => { }));
+            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
+            {
+            }));
+
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, (node, data) =>
+            {
+            }));
+
+            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotifyAck, QosType.Reliable, Compression.None, (node, data) =>
+            {
+                udpAck = true;
+                if (OnConnected != null) OnConnected(serverNode);
+            }));
         }
 
         public void Dispose()
@@ -126,6 +139,11 @@ namespace Snowball
             {
                 await Task.Delay(500);
 
+                if (!udpAck)
+                {
+                    Send((short)PreservedChannelId.UdpNotify, UserName);
+                }
+
                 if (IsConnected)
                 {
                     byte dummy = 0;
@@ -168,13 +186,13 @@ namespace Snowball
         {
             if (connection != null)
             {
-                serverNode = new ComTCPNode(connection);
+                udpAck = false;
+                serverNode = new ComSnowballNode(connection);
 
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnPoll = OnPoll;
 
                 Send((short)PreservedChannelId.Login, UserName);
-                if (OnConnected != null) OnConnected(serverNode);
 
                 Util.Log("Client:Connected");
             }
@@ -186,7 +204,7 @@ namespace Snowball
         {
             if (serverNode != null)
             {
-                ((ComTCPNode)serverNode).Connection.Disconnect();
+                ((ComSnowballNode)serverNode).Connection.Disconnect();
                 return true;
             }
             else return false;
@@ -202,7 +220,7 @@ namespace Snowball
             Util.Log("Client:Disconnected");
         }
 
-        void OnUDPReceived(string endPointIp, byte[] data, int size)
+        void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
         {
             int head = 0;
 
@@ -223,13 +241,18 @@ namespace Snowball
                     {
                         string beaconData = (string)DataSerializer.Deserialize<string>(packer);
 
-                        if (BeaconAccept(beaconData)) Connect(endPointIp);
+                        if (BeaconAccept(beaconData)) Connect(endPoint.Address.ToString());
                     }
                 }
                 else if (channelId == (short)PreservedChannelId.Health)
                 {
                     if (serverNode == null) break;
-                    if (endPointIp == serverNode.IP)
+
+                    if(serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
+                    {
+                        serverNode.UdpEndPoint = endPoint;
+                    }
+                    else if (endPoint.Equals(serverNode.UdpEndPoint))
                     {
                         healthLostCount = 0;
                     }
@@ -244,7 +267,7 @@ namespace Snowball
                     if(channel.CheckMode == CheckMode.Sequre)
                     {
                         if (serverNode == null) break;
-                        if (endPointIp == serverNode.IP)
+                        if (endPoint.Equals(serverNode.UdpEndPoint))
                         {
                             healthLostCount = 0;
 
@@ -270,7 +293,7 @@ namespace Snowball
 
         }
 
-        void OnTCPReceived(string endPointIp, short channelId, byte[] data, int size)
+        void OnTCPReceived(IPEndPoint endPoint, short channelId, byte[] data, int size)
         {
             if (channelId == (short)PreservedChannelId.Beacon)
             {
@@ -278,7 +301,7 @@ namespace Snowball
             else if (channelId == (short)PreservedChannelId.Health)
             {
                 if (serverNode == null) ;
-                if (endPointIp == serverNode.IP)
+                if (endPoint == serverNode.TcpEndPoint)
                 {
                     healthLostCount = 0;
                 }
@@ -294,7 +317,7 @@ namespace Snowball
                 if (channel.CheckMode == CheckMode.Sequre)
                 {
                     if (serverNode == null) ;
-                    if (endPointIp == serverNode.IP)
+                    if (endPoint.Equals(serverNode.TcpEndPoint))
                     {
                         healthLostCount = 0;
 
@@ -316,11 +339,11 @@ namespace Snowball
 
         public class CallbackParam
         {
-            public CallbackParam(string ip, short channelId, byte[] buffer, int size, bool isRent)
+            public CallbackParam(IPEndPoint endPoint, short channelId, byte[] buffer, int size, bool isRent)
             {
-                this.Ip = ip; this.channelId = channelId; this.buffer = buffer; this.size = size; this.isRent = isRent;
+                this.endPoint = endPoint; this.channelId = channelId; this.buffer = buffer; this.size = size; this.isRent = isRent;
             }
-            public string Ip;
+            public IPEndPoint endPoint;
             public short channelId;
             public byte[] buffer;
             public int size;
@@ -397,13 +420,13 @@ namespace Snowball
                 {
                     if (cancelToken.IsCancellationRequested) return;
                     CallbackParam param = (CallbackParam)state;
-                    OnTCPReceived(param.Ip, param.channelId, param.buffer, param.size);
+                    OnTCPReceived(param.endPoint, param.channelId, param.buffer, param.size);
                     if (isRent) arrayPool.Return(buffer);
-                }, new CallbackParam(connection.IP, channelId, buffer, resSize, isRent));
+                }, new CallbackParam((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize, isRent));
             }
             else
             {
-                OnTCPReceived(connection.IP, channelId, buffer, resSize);
+                OnTCPReceived((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize);
             }
 
             return true;
@@ -462,11 +485,11 @@ namespace Snowball
 
                 if (channel.Qos == QosType.Reliable)
                 {
-                    await ((ComTCPNode)serverNode).Connection.Send(bufferSize, buffer);
+                    await ((ComSnowballNode)serverNode).Connection.Send(bufferSize, buffer);
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    await udpSender.Send(serverNode.IP, bufferSize, buffer);
+                    await udpSender.Send(serverNode.Ip, bufferSize, buffer);
                 }
 
                 if (isRent) arrayPool.Return(buffer);

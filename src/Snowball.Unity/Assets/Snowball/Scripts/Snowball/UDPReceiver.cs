@@ -16,7 +16,7 @@ namespace Snowball
 
         int portNum;
 
-        public delegate void ReceiveHandler(string endPointIp, byte[] data, int size);
+        public delegate void ReceiveHandler(IPEndPoint endPoint, byte[] data, int size);
 
         public ReceiveHandler OnReceive;
 
@@ -24,11 +24,11 @@ namespace Snowball
 
         public class CallbackParam
         {
-            public CallbackParam(string ip, byte[] buffer, int size)
+            public CallbackParam(IPEndPoint endPoint, byte[] buffer, int size)
             {
-                this.Ip = ip; this.buffer = buffer; this.size = size;
+                this.endPoint = endPoint; this.buffer = buffer; this.size = size;
             }
-            public string Ip;
+            public IPEndPoint endPoint;
             public byte[] buffer;
             public int size;
         }
@@ -93,12 +93,12 @@ namespace Snowball
                         {
                             if (cancelToken.IsCancellationRequested) return;
                             CallbackParam param = (CallbackParam)state;
-                            if (OnReceive != null) OnReceive(param.Ip, param.buffer, param.size);
-                        }, new CallbackParam(result.RemoteEndPoint.Address.ToString(), result.Buffer, result.Buffer.Length));
+                            if (OnReceive != null) OnReceive(param.endPoint, param.buffer, param.size);
+                        }, new CallbackParam(result.RemoteEndPoint, result.Buffer, result.Buffer.Length));
                     }
                     else
                     {
-                        if (OnReceive != null) OnReceive(result.RemoteEndPoint.Address.ToString(), result.Buffer, result.Buffer.Length);
+                        if (OnReceive != null) OnReceive(result.RemoteEndPoint, result.Buffer, result.Buffer.Length);
                     }
                 }
                 catch//(Exception e)

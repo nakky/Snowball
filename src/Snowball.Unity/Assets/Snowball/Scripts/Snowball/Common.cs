@@ -29,6 +29,8 @@ namespace Snowball
         Beacon = -1,
         Login = -2,
         Health = -3,
+        UdpNotify = -4,
+        UdpNotifyAck = -5,
         //User can use 0 - 32767
     }
 

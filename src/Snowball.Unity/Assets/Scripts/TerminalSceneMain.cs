@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Snowball;
+using System.Net;
 
 public class TerminalSceneMain : MonoBehaviour
 {
@@ -46,11 +47,13 @@ public class TerminalSceneMain : MonoBehaviour
         //server.AddAcceptList("127.0.0.1");
         server.Open();
 
+        IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, client.SendPort);
+        lnode = new ComNode(endPoint);
     }
 
 
     float time = 0.0f;
-    ComNode lnode = new ComNode("127.0.0.1");
+    ComNode lnode;
 
 
     // Update is called once per frame
