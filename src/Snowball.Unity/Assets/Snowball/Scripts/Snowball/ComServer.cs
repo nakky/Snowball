@@ -17,6 +17,9 @@ namespace Snowball
     {
         public bool IsOpened { get; protected set; }
 
+        int beaconPortNumber = 59900;
+        public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
+
         int listenPortNumber = 59901;
         public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened)listenPortNumber = value; } }
 
@@ -45,6 +48,7 @@ namespace Snowball
 
         public void SetBeaconDataCreateFunction(BeaconDataGenerateFunc func) { BeaconDataCreate = func; }
 
+        UDPSender udpBeaconSender;
         UDPSender udpSender;
         UDPReceiver udpReceiver;
 
@@ -73,6 +77,7 @@ namespace Snowball
                 if (userNodeMap.ContainsKey(node.UserName)) { userNodeMap.Remove(node.UserName); }
 
                 userNodeMap.Add(node.UserName, node);
+                Send(node, (short)PreservedChannelId.Login, "");
                 Util.Log("SetUsername:" + node.UserName);
 
             }));
@@ -114,6 +119,7 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
+            udpBeaconSender = new UDPSender(beaconPortNumber);
             udpSender = new UDPSender(sendPortNumber, bufferSize);
             udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
 
@@ -123,7 +129,7 @@ namespace Snowball
             tcpListener.OnConnected += OnConnectedInternal;
 
             beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
-
+            
             udpReceiver.OnReceive += OnUDPReceived;
 
             beaconTimer.Elapsed += OnBeaconTimer;
@@ -163,7 +169,7 @@ namespace Snowball
             BytePacker packer;
             int length = CreateBeaconData(out packer);
 
-            udpSender.Send(ip, length, packer.Buffer);
+            udpBeaconSender.Send(ip, length, packer.Buffer);
         }
 
         void OnBeaconTimer(object sender, ElapsedEventArgs args)
@@ -173,7 +179,7 @@ namespace Snowball
 
             foreach (var ip in beaaconList)
             {
-                udpSender.Send(ip, length, packer.Buffer);
+                udpBeaconSender.Send(ip, length, packer.Buffer);
             }
         }
 
@@ -191,12 +197,15 @@ namespace Snowball
 
             tcpListener.Stop();
             udpReceiver.Close();
+            udpSender.Close();
+            udpBeaconSender.Close();
 
             beaconTimer = null;
 
             tcpListener = null;
             udpReceiver = null;
             udpSender = null;
+            udpBeaconSender = null;
 
             IsOpened = false;
         }
@@ -250,6 +259,7 @@ namespace Snowball
 
                 foreach (var node in invalidNodeArray)
                 {
+                    //Util.Log("Server:Disconnect##########");
                     Disconnect(node);
                 }
             }
@@ -286,7 +296,14 @@ namespace Snowball
         {
             if (nodeTcpMap.ContainsKey(node.TcpEndPoint))
             {
-                ((ComSnowballNode)node).Connection.Disconnect();
+                ComSnowballNode snode = (ComSnowballNode)node;
+                snode.Connection.Disconnect();
+                if(snode.udpSender != null)
+                {
+                    snode.udpSender.Close();
+                    snode.udpSender = null;
+                }
+
                 return true;
             }
             else return false;
@@ -298,11 +315,18 @@ namespace Snowball
 			{
 				if (nodeTcpMap.ContainsKey((IPEndPoint)connection.EndPoint))
 				{
-					ComNode node = nodeTcpMap[(IPEndPoint)connection.EndPoint];
+					ComSnowballNode node = (ComSnowballNode)nodeTcpMap[(IPEndPoint)connection.EndPoint];
 					nodeTcpMap.Remove((IPEndPoint)connection.EndPoint);
 
                     if(userNodeMap.ContainsKey(node.UserName)) userNodeMap.Remove(node.UserName);
                     if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
+                    node.UdpEndPoint = null;
+
+                    if (node.udpSender != null)
+                    {
+                        node.udpSender.Close();
+                        node.udpSender = null;
+                    }
 
                     if (OnDisconnected != null) OnDisconnected(node);
 
@@ -343,11 +367,13 @@ namespace Snowball
                     string userName = (string)channel.FromStream(ref packer);
                     if (userNodeMap.ContainsKey(userName))
                     {
-                        ComNode node = userNodeMap[userName];
+                        //Util.Log("UdpUserName:" + userName);
+                        ComSnowballNode node = (ComSnowballNode)userNodeMap[userName];
                         if(node.UdpEndPoint == null)
                         {
                             if (OnConnected != null) OnConnected(node);
                             node.UdpEndPoint = endPoint;
+                            node.udpSender = new UDPSender(endPoint.Port, bufferSize);
                             nodeUdpMap.Add(endPoint, node);
                             Send(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
                         }
@@ -601,13 +627,22 @@ namespace Snowball
 
                 BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
 
+                ComSnowballNode snode = (ComSnowballNode)node;
                 if (channel.Qos == QosType.Reliable)
                 {
-                    await ((ComSnowballNode)node).Connection.Send(bufferSize, buffer);
+                    await snode.Connection.Send(bufferSize, buffer);
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    await udpSender.Send(node.Ip, bufferSize, buffer);
+                    if(snode.udpSender != null)
+                    {
+                        await snode.udpSender.Send(node.Ip, bufferSize, buffer);
+                    }
+                    else
+                    {
+                        await udpSender.Send(node.Ip, bufferSize, buffer);
+                    }
+                    
                 }
 
                 if (isRent) arrayPool.Return(buffer);

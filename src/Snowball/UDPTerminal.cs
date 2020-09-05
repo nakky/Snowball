@@ -1,20 +1,70 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-
 using System.Threading;
+using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace Snowball
 {
-    public class UDPReceiver
+    public class UDPTerminal
     {
         public const int DefaultBufferSize = 8192;
 
-        private UdpClient client;
+        UdpClient client;
 
-        int portNum;
+        SemaphoreSlim locker = new SemaphoreSlim(1, 1);
+
+        CancellationTokenSource cancelToken = new CancellationTokenSource();
+
+
+        public UDPTerminal(int bufferSize = DefaultBufferSize)
+        {
+            client = new UdpClient();
+            client.Client.SendBufferSize = bufferSize;
+            client.Client.ReceiveBufferSize = bufferSize;
+        }
+
+        public UDPTerminal(int port, int bufferSize = DefaultBufferSize)
+        {
+            client = new UdpClient(port);
+            client.Client.SendBufferSize = bufferSize;
+            client.Client.ReceiveBufferSize = bufferSize;
+        }
+
+        ~UDPTerminal()
+        {
+            Close();
+        }
+
+        public void Close()
+        {
+            if (client != null)
+            {
+                IsActive = false;
+                cancelToken.Cancel();
+                OnReceive = null;
+                client.Close();
+            }
+        }
+
+
+        public void Connect(string ip, int port)
+        {
+            client.Connect(ip, port);
+        }
+
+        public async Task Send(string ip, int port, int size, byte[] data)
+        {
+            try
+            {
+                await locker.WaitAsync();
+                await client.SendAsync(data, size, ip, port);
+            }
+            finally
+            {
+                locker.Release();
+            }
+        }
 
         public delegate void ReceiveHandler(IPEndPoint endPoint, byte[] data, int size);
 
@@ -33,39 +83,7 @@ namespace Snowball
             public int size;
         }
 
-        public UDPReceiver(int portNum, int bufferSize = DefaultBufferSize)
-        {
-            this.portNum = portNum;
-            client = new UdpClient(portNum);
-            client.Client.SendBufferSize = bufferSize;
-            client.Client.ReceiveBufferSize = bufferSize;
-        }
-
-        public UDPReceiver(UdpClient client, int bufferSize = DefaultBufferSize)
-        {
-            this.portNum = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
-            this.client = client;
-            this.client.Client.SendBufferSize = bufferSize;
-            this.client.Client.ReceiveBufferSize = bufferSize;
-        }
-
-        ~UDPReceiver()
-        {
-            Close();
-        }
-
-        public void Close()
-        {
-            if (client != null)
-            {
-                IsActive = false;
-                cancelToken.Cancel();
-                OnReceive = null;
-                client.Close();
-            }
-        }
-
-        public async void Start()
+        public async void ReceiveStart()
         {
             IsActive = true;
 
@@ -73,20 +91,14 @@ namespace Snowball
 
         }
 
-      
-        public void Stop()
+
+        public void ReceiveStop()
         {
             IsActive = false;
         }
 
-        int numRequest = 0;
-
-        CancellationTokenSource cancelToken = new CancellationTokenSource();
-
         public async Task ReceiveAsync()
         {
-            
-
             while (IsActive)
             {
                 try
@@ -118,6 +130,5 @@ namespace Snowball
             }
 
         }
-
     }
 }

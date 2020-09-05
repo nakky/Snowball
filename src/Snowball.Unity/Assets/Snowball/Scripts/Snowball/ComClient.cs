@@ -22,6 +22,9 @@ namespace Snowball
         string userName = "u001";
         public string UserName { get { return userName; } set { userName = value; } }
 
+        int beaconPortNumber = 59900;
+        public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
+
         int listenPortNumber = 59902;
         public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened) listenPortNumber = value; } }
 
@@ -49,20 +52,21 @@ namespace Snowball
 
         ComNode serverNode;
 
-        UDPSender udpSender;
-        UDPReceiver udpReceiver;
-
         TCPConnector tcpConnector;
 
+        UDPTerminal udpTerminal;
+        UDPReceiver udpBeaconReceiver;
+
+
         int healthLostCount = 0;
-        bool udpAck = false;
+        bool udpAck = true;
 
         int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
 
         bool isConnecting = false;
 
-        public bool IsConnected { get { lock (this) { return serverNode != null; } } }
+        public bool IsConnected { get { lock (this) { return (serverNode != null); } } }
 
         public ComClient()
         {
@@ -70,6 +74,7 @@ namespace Snowball
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
             {
+                udpAck = false;
             }));
 
             AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
@@ -99,17 +104,17 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
-            udpSender = new UDPSender(sendPortNumber, bufferSize);
-            udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
+            udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
+            udpTerminal.OnReceive += OnUDPReceived;
+
+            udpBeaconReceiver = new UDPReceiver(beaconPortNumber);
+            udpBeaconReceiver.OnReceive += OnUDPReceived;
+            udpBeaconReceiver.Start();
 
             tcpConnector = new TCPConnector(sendPortNumber);
             tcpConnector.ConnectionBufferSize = bufferSize;
             tcpConnector.ConnectTimeOutMilliSec = connectTimeOutMilliSec;
             tcpConnector.OnConnected += OnConnectedInternal;
-
-            udpReceiver.OnReceive += OnUDPReceived;
-
-            udpReceiver.Start();
 
             IsOpened = true;
 
@@ -122,11 +127,12 @@ namespace Snowball
 
             Disconnect();
 
-            udpReceiver.Close();
+            udpTerminal.Close();
+            udpBeaconReceiver.Close();
 
             tcpConnector = null;
-            udpReceiver = null;
-            udpSender = null;
+            udpTerminal = null;
+            udpBeaconReceiver = null;
 
             IsOpened = false;
         }
@@ -137,26 +143,34 @@ namespace Snowball
 
             while (IsOpened)
             {
-                await Task.Delay(500);
-
-                if (!udpAck)
+                try
                 {
-                    Send((short)PreservedChannelId.UdpNotify, UserName);
-                }
+                    await Task.Delay(500);
 
-                if (IsConnected)
-                {
-                    byte dummy = 0;
-
-                    Send((short)PreservedChannelId.Health, dummy);
-
-                    healthLostCount++;
-                    if (healthLostCount > MaxHealthLostCount)
+                    if (IsConnected)
                     {
-                        Disconnect();
-                        break;
+                        if (!udpAck)
+                        {
+                            Send((short)PreservedChannelId.UdpNotify, UserName);
+                        }
+
+                        byte dummy = 0;
+
+                        Send((short)PreservedChannelId.Health, dummy);
+
+                        healthLostCount++;
+                        if (healthLostCount > MaxHealthLostCount)
+                        {
+                            //Util.Log("Client:Disconnect##########");
+                            Disconnect();
+                        }
                     }
                 }
+                catch//(Exception e)
+                {
+                    //Util.Log("Health:" + e.Message);
+                }
+                
 
             }
         }
@@ -186,13 +200,16 @@ namespace Snowball
         {
             if (connection != null)
             {
-                udpAck = false;
                 serverNode = new ComSnowballNode(connection);
+
+                udpTerminal.ReceiveStart();
 
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnPoll = OnPoll;
 
                 Send((short)PreservedChannelId.Login, UserName);
+
+                healthLostCount = 0;
 
                 Util.Log("Client:Connected");
             }
@@ -212,10 +229,10 @@ namespace Snowball
 
         void OnDisconnectedInternal(TCPConnection connection)
         {
-
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
             serverNode = null;
+            if(udpTerminal != null) udpTerminal.ReceiveStop();
 
             Util.Log("Client:Disconnected");
         }
@@ -248,11 +265,12 @@ namespace Snowball
                 {
                     if (serverNode == null) break;
 
-                    if(serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
+                    if (serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
                     {
                         serverNode.UdpEndPoint = endPoint;
                     }
-                    else if (endPoint.Equals(serverNode.UdpEndPoint))
+
+                    if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
                     {
                         healthLostCount = 0;
                     }
@@ -267,7 +285,7 @@ namespace Snowball
                     if(channel.CheckMode == CheckMode.Sequre)
                     {
                         if (serverNode == null) break;
-                        if (endPoint.Equals(serverNode.UdpEndPoint))
+                        if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
                         {
                             healthLostCount = 0;
 
@@ -489,7 +507,7 @@ namespace Snowball
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    await udpSender.Send(serverNode.Ip, bufferSize, buffer);
+                    await udpTerminal.Send(serverNode.Ip, sendPortNumber, bufferSize, buffer);
                 }
 
                 if (isRent) arrayPool.Return(buffer);

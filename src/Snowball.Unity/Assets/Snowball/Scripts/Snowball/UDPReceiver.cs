@@ -41,6 +41,14 @@ namespace Snowball
             client.Client.ReceiveBufferSize = bufferSize;
         }
 
+        public UDPReceiver(UdpClient client, int bufferSize = DefaultBufferSize)
+        {
+            this.portNum = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
+            this.client = client;
+            this.client.Client.SendBufferSize = bufferSize;
+            this.client.Client.ReceiveBufferSize = bufferSize;
+        }
+
         ~UDPReceiver()
         {
             Close();

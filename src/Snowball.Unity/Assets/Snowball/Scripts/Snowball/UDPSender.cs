@@ -14,6 +14,8 @@ namespace Snowball
 
         private UdpClient client;
 
+        public UdpClient Client { get { return client; } }
+
         SemaphoreSlim locker = new SemaphoreSlim(1,1);
 
         public UDPSender(int portNum, int bufferSize = DefaultBufferSize)
@@ -22,8 +24,8 @@ namespace Snowball
             client = new UdpClient();
             client.Client.SendBufferSize = bufferSize;
             client.Client.ReceiveBufferSize = bufferSize;
-        }
 
+        }
 
         ~UDPSender()
         {
