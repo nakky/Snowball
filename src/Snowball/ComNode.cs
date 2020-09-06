@@ -29,8 +29,6 @@ namespace Snowball
         }
 
         public TCPConnection Connection { get; private set; }
-        public UDPSender udpSender { get; set; }
-
     }
 
 }

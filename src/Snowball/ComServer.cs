@@ -49,8 +49,7 @@ namespace Snowball
         public void SetBeaconDataCreateFunction(BeaconDataGenerateFunc func) { BeaconDataCreate = func; }
 
         UDPSender udpBeaconSender;
-        UDPSender udpSender;
-        UDPReceiver udpReceiver;
+        UDPTerminal udpTerminal;
 
         TCPListener tcpListener;
 
@@ -120,8 +119,8 @@ namespace Snowball
                 Global.SyncContext = SynchronizationContext.Current;
 
             udpBeaconSender = new UDPSender(beaconPortNumber);
-            udpSender = new UDPSender(sendPortNumber, bufferSize);
-            udpReceiver = new UDPReceiver(listenPortNumber, bufferSize);
+
+            udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
 
             tcpListener = new TCPListener(listenPortNumber);
             tcpListener.ConnectionBufferSize = bufferSize;
@@ -129,13 +128,14 @@ namespace Snowball
             tcpListener.OnConnected += OnConnectedInternal;
 
             beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
-            
-            udpReceiver.OnReceive += OnUDPReceived;
+
+            udpTerminal.OnReceive += OnUDPReceived;
 
             beaconTimer.Elapsed += OnBeaconTimer;
 
             tcpListener.Start();
-            udpReceiver.Start();
+
+            udpTerminal.ReceiveStart();
 
             IsOpened = true;
 
@@ -196,15 +196,13 @@ namespace Snowball
             }
 
             tcpListener.Stop();
-            udpReceiver.Close();
-            udpSender.Close();
+            udpTerminal.Close();
             udpBeaconSender.Close();
 
             beaconTimer = null;
 
             tcpListener = null;
-            udpReceiver = null;
-            udpSender = null;
+            udpTerminal = null;
             udpBeaconSender = null;
 
             IsOpened = false;
@@ -298,11 +296,6 @@ namespace Snowball
             {
                 ComSnowballNode snode = (ComSnowballNode)node;
                 snode.Connection.Disconnect();
-                if(snode.udpSender != null)
-                {
-                    snode.udpSender.Close();
-                    snode.udpSender = null;
-                }
 
                 return true;
             }
@@ -321,12 +314,6 @@ namespace Snowball
                     if(userNodeMap.ContainsKey(node.UserName)) userNodeMap.Remove(node.UserName);
                     if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
                     node.UdpEndPoint = null;
-
-                    if (node.udpSender != null)
-                    {
-                        node.udpSender.Close();
-                        node.udpSender = null;
-                    }
 
                     if (OnDisconnected != null) OnDisconnected(node);
 
@@ -373,7 +360,6 @@ namespace Snowball
                         {
                             if (OnConnected != null) OnConnected(node);
                             node.UdpEndPoint = endPoint;
-                            node.udpSender = new UDPSender(endPoint.Port, bufferSize);
                             nodeUdpMap.Add(endPoint, node);
                             Send(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
                         }
@@ -561,13 +547,18 @@ namespace Snowball
                     if (node == exception) continue;
                     if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) continue;
 
+                    ComSnowballNode snode = (ComSnowballNode)node;
                     if (channel.Qos == QosType.Reliable)
                     {
-                        await ((ComSnowballNode)node).Connection.Send(bufferSize, buffer);
+                        await snode.Connection.Send(bufferSize, buffer);
                     }
                     else if (channel.Qos == QosType.Unreliable)
                     {
-                        await udpSender.Send(node.Ip, bufferSize, buffer);
+                        if (snode.UdpEndPoint != null)
+                        {
+                            await udpTerminal.Send(snode.Ip, snode.UdpEndPoint.Port, bufferSize, buffer);
+                        }
+
                     }
                 }
 
@@ -634,13 +625,9 @@ namespace Snowball
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    if(snode.udpSender != null)
+                    if(snode.UdpEndPoint != null)
                     {
-                        await snode.udpSender.Send(node.Ip, bufferSize, buffer);
-                    }
-                    else
-                    {
-                        await udpSender.Send(node.Ip, bufferSize, buffer);
+                        await udpTerminal.Send(snode.Ip, snode.UdpEndPoint.Port, bufferSize, buffer);
                     }
                     
                 }

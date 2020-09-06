@@ -20,10 +20,18 @@ namespace Snowball
 
         public UDPSender(int portNum, int bufferSize = DefaultBufferSize)
         {
-            this.portNum = portNum;
-            client = new UdpClient();
-            client.Client.SendBufferSize = bufferSize;
-            client.Client.ReceiveBufferSize = bufferSize;
+            try
+            {
+                this.portNum = portNum;
+                client = new UdpClient();
+                client.Client.SendBufferSize = bufferSize;
+                client.Client.ReceiveBufferSize = bufferSize;
+            }
+            catch(Exception e)
+            {
+                Util.Log("UdpSender:" + e.Message);
+            }
+            
 
         }
 
