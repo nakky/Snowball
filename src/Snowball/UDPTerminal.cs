@@ -20,6 +20,7 @@ namespace Snowball
         public UDPTerminal(int bufferSize = DefaultBufferSize)
         {
             client = new UdpClient();
+            SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             client.Client.SendBufferSize = bufferSize;
             client.Client.ReceiveBufferSize = bufferSize;
         }
@@ -27,6 +28,7 @@ namespace Snowball
         public UDPTerminal(int port, int bufferSize = DefaultBufferSize)
         {
             client = new UdpClient(port);
+            SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             client.Client.SendBufferSize = bufferSize;
             client.Client.ReceiveBufferSize = bufferSize;
         }
@@ -47,6 +49,11 @@ namespace Snowball
             }
         }
 
+        public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+        {
+            Socket socket = client.Client;
+            socket.SetSocketOption(level, name, value);
+        }
 
         public void Connect(string ip, int port)
         {
@@ -55,6 +62,9 @@ namespace Snowball
 
         public async Task Send(string ip, int port, int size, byte[] data)
         {
+#if false
+            await client.SendAsync(data, size, ip, port);
+#else
             try
             {
                 await locker.WaitAsync();
@@ -64,6 +74,7 @@ namespace Snowball
             {
                 locker.Release();
             }
+#endif
         }
 
         public delegate void ReceiveHandler(IPEndPoint endPoint, byte[] data, int size);

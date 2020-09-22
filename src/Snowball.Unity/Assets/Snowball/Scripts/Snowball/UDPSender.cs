@@ -20,18 +20,10 @@ namespace Snowball
 
         public UDPSender(int portNum, int bufferSize = DefaultBufferSize)
         {
-            try
-            {
-                this.portNum = portNum;
-                client = new UdpClient();
-                client.Client.SendBufferSize = bufferSize;
-                client.Client.ReceiveBufferSize = bufferSize;
-            }
-            catch(Exception e)
-            {
-                Util.Log("UdpSender:" + e.Message);
-            }
-            
+            this.portNum = portNum;
+            client = new UdpClient();
+            client.Client.SendBufferSize = bufferSize;
+            client.Client.ReceiveBufferSize = bufferSize;
 
         }
 
@@ -48,8 +40,17 @@ namespace Snowball
             }
         }
 
+        public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+        {
+            Socket socket = client.Client;
+            socket.SetSocketOption(level, name, value);
+        }
+
         public async Task Send(string ip, int size, byte[] data)
         {
+#if false
+            await client.SendAsync(data, size, ip, this.portNum);
+#else
             try
             {
                 await locker.WaitAsync();
@@ -59,6 +60,7 @@ namespace Snowball
             {
                 locker.Release();
             }
+#endif
         }
 
     }

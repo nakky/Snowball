@@ -9,6 +9,7 @@ using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Linq;
 
 namespace Snowball
 {
@@ -17,13 +18,13 @@ namespace Snowball
     {
         public bool IsOpened { get; protected set; }
 
-        int beaconPortNumber = 59900;
+        int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
 
-        int listenPortNumber = 59901;
+        int listenPortNumber = 32001;
         public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened)listenPortNumber = value; } }
 
-        int sendPortNumber = 59902;
+        int sendPortNumber = 32002;
         public int SendPortNumber { get { return sendPortNumber; } set { if (!IsOpened) sendPortNumber = value; } }
 
         int bufferSize = 8192;
@@ -77,12 +78,22 @@ namespace Snowball
 
                 userNodeMap.Add(node.UserName, node);
                 Send(node, (short)PreservedChannelId.Login, "");
-                Util.Log("SetUsername:" + node.UserName);
+
+                //Util.Log("SetUsername:" + node.UserName);
 
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
             {
+                byte[] decrypted = DecrypteTmpKey(data);
+                if(node.TmpKey != null && node.TmpKey.SequenceEqual(decrypted))
+                {
+                    node.HealthLostCount = 0;
+                }
+                else
+                {
+                    node.TmpKey = null;
+                }
             }));
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, (node, data) =>
@@ -98,6 +109,7 @@ namespace Snowball
 
         public void Dispose()
         {
+            BeaconStop();
             Close();
         }
 
@@ -118,20 +130,15 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
-            udpBeaconSender = new UDPSender(beaconPortNumber);
-
             udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
+            udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             tcpListener = new TCPListener(listenPortNumber);
             tcpListener.ConnectionBufferSize = bufferSize;
             tcpListener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.OnConnected += OnConnectedInternal;
 
-            beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
-
             udpTerminal.OnReceive += OnUDPReceived;
-
-            beaconTimer.Elapsed += OnBeaconTimer;
 
             tcpListener.Start();
 
@@ -187,8 +194,6 @@ namespace Snowball
         {
             if (!IsOpened) return;
 
-            beaconTimer.Stop();
-
             var nMap = new Dictionary<IPEndPoint, ComNode>(nodeTcpMap);
             foreach (var node in nMap)
             {
@@ -197,25 +202,33 @@ namespace Snowball
 
             tcpListener.Stop();
             udpTerminal.Close();
-            udpBeaconSender.Close();
-
-            beaconTimer = null;
 
             tcpListener = null;
             udpTerminal = null;
-            udpBeaconSender = null;
 
             IsOpened = false;
         }
 
         public void BeaconStart()
         {
-            beaconTimer.Start();
+            if(udpBeaconSender == null)
+            {
+                udpBeaconSender = new UDPSender(beaconPortNumber);
+                beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
+                beaconTimer.Elapsed += OnBeaconTimer;
+                beaconTimer.Start();
+            }
         }
 
         public void BeaconStop()
         {
-            beaconTimer.Stop();
+            if(beaconTimer != null)
+            {
+                beaconTimer.Stop();
+                beaconTimer = null;
+                udpBeaconSender.Close();
+                udpBeaconSender = null;
+            }
         }
 
         public ComNode GetTcpNodeByEndPoint(IPEndPoint endPoint)
@@ -236,6 +249,19 @@ namespace Snowball
             return null;
         }
 
+        public virtual byte[] GenerateTmpKey()
+        {
+            Random rand = new Random();
+            byte[] key = new byte[4];
+            rand.NextBytes(key);
+            return key;
+        }
+
+        public virtual byte[] DecrypteTmpKey(byte[] encrypted)
+        {
+            return encrypted;
+        }
+
         public async Task HealthCheck()
         {
             while (IsOpened)
@@ -244,10 +270,11 @@ namespace Snowball
 
                 List<ComNode> invalidNodeArray = new List<ComNode>();
 
-                byte dummy = 0;
                 foreach(var keypair in nodeTcpMap)
                 {
-                    Send(keypair.Value, (short)PreservedChannelId.Health, dummy);
+                    byte[] key = GenerateTmpKey();
+                    keypair.Value.TmpKey = key;
+                    Send(keypair.Value, (short)PreservedChannelId.Health, key);
                     keypair.Value.HealthLostCount++;
                     if (keypair.Value.HealthLostCount > MaxHealthLostCount)
                     {
@@ -278,15 +305,20 @@ namespace Snowball
         {
 			if (connection == null) return;
 
-			lock (this)
+            connection.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+            lock (this)
 			{
                 ComSnowballNode node = new ComSnowballNode(connection);
 
 				nodeTcpMap.Add(node.TcpEndPoint, node);
 
-				connection.OnDisconnected = OnDisconnectedInternal;
+                node.HealthLostCount = 0;
+
+                connection.OnDisconnected = OnDisconnectedInternal;
 				connection.OnPoll = OnPoll;
-				Util.Log("Server:Connected");
+
+                //Util.Log("Server:Connected");
 			}
         }
 
@@ -317,7 +349,7 @@ namespace Snowball
 
                     if (OnDisconnected != null) OnDisconnected(node);
 
-					Util.Log("Server:Disconnected");
+					//Util.Log("Server:Disconnected");
 				}
 			}
         }
@@ -340,14 +372,6 @@ namespace Snowball
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
                 }
-                else if (channelId == (short)PreservedChannelId.Health)
-                {
-                    if (nodeUdpMap.ContainsKey(endPoint))
-                    {
-                        ComNode node = nodeUdpMap[endPoint];
-                        node.HealthLostCount = 0;
-                    }
-                }
                 else if (channelId == (short)PreservedChannelId.UdpNotify)
                 {
                     IDataChannel channel = dataChannelMap[channelId];
@@ -362,8 +386,11 @@ namespace Snowball
                             node.UdpEndPoint = endPoint;
                             nodeUdpMap.Add(endPoint, node);
                             Send(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+
+                            byte[] key = GenerateTmpKey();
+                            node.TmpKey = key;
+                            Send(node, (short)PreservedChannelId.Health, key);
                         }
-                        
                     }
                 }
                 else if (!dataChannelMap.ContainsKey(channelId))
@@ -378,8 +405,6 @@ namespace Snowball
                         if (nodeUdpMap.ContainsKey(endPoint))
                         {
                             ComNode node = nodeUdpMap[endPoint];
-
-                            node.HealthLostCount = 0;
 
                             object container = channel.FromStream(ref packer);
 
@@ -409,7 +434,6 @@ namespace Snowball
                 if (nodeTcpMap.ContainsKey(endPoint))
                 {
                     ComNode node = nodeTcpMap[endPoint];
-                    node.HealthLostCount = 0;
                 }
             }
             else if (!dataChannelMap.ContainsKey(channelId))
@@ -422,8 +446,6 @@ namespace Snowball
                 if (nodeTcpMap.ContainsKey(endPoint))
                 {
                     ComNode node = nodeTcpMap[endPoint];
-
-                    node.HealthLostCount = 0;
 
                     IDataChannel channel = dataChannelMap[channelId];
 
@@ -629,7 +651,6 @@ namespace Snowball
                     {
                         await udpTerminal.Send(snode.Ip, snode.UdpEndPoint.Port, bufferSize, buffer);
                     }
-                    
                 }
 
                 if (isRent) arrayPool.Return(buffer);

@@ -18,6 +18,8 @@ namespace Snowball
         public IPEndPoint UdpEndPoint { get; internal set; }
         public string UserName { get; set; }
         public int HealthLostCount { get; set; }
+
+        public byte[] TmpKey { get; set; }
     }
 
     public class ComSnowballNode : ComNode

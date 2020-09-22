@@ -40,8 +40,17 @@ namespace Snowball
             }
         }
 
+        public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+        {
+            Socket socket = client.Client;
+            socket.SetSocketOption(level, name, value);
+        }
+
         public async Task Send(string ip, int size, byte[] data)
         {
+#if false
+            await client.SendAsync(data, size, ip, this.portNum);
+#else
             try
             {
                 await locker.WaitAsync();
@@ -51,6 +60,7 @@ namespace Snowball
             {
                 locker.Release();
             }
+#endif
         }
 
     }

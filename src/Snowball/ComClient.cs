@@ -17,18 +17,42 @@ namespace Snowball
         public bool IsOpened { get; protected set; }
 
         public bool acceptBeacon = false;
-        public bool AcceptBeacon { get { return acceptBeacon; } set { acceptBeacon = value; } }
+        public bool AcceptBeacon {
+            get {
+                return acceptBeacon;
+            }
+            set {
+                if (value)
+                {
+                    if(udpBeaconReceiver == null)
+                    {
+                        udpBeaconReceiver = new UDPReceiver(beaconPortNumber);
+                        udpBeaconReceiver.OnReceive += OnUDPReceived;
+                        udpBeaconReceiver.Start();
+                    }
+                }
+                else
+                {
+                    if(udpBeaconReceiver != null)
+                    {
+                        udpBeaconReceiver.Close();
+                        udpBeaconReceiver = null;
+                    }
+                }
+                acceptBeacon = value;
+            }
+        }
 
         string userName = "u001";
         public string UserName { get { return userName; } set { userName = value; } }
 
-        int beaconPortNumber = 59900;
+        int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
 
-        int listenPortNumber = 59902;
+        int listenPortNumber = 32002;
         public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened) listenPortNumber = value; } }
 
-        int sendPortNumber = 59901;
+        int sendPortNumber = 32001;
         public int SendPortNumber { get { return sendPortNumber; } set { if (!IsOpened) sendPortNumber = value; } }
 
         int bufferSize = 8192;
@@ -39,6 +63,9 @@ namespace Snowball
 
         public delegate void ConnectedHandler(ComNode node);
         public ConnectedHandler OnConnected;
+
+        public delegate void ConnectedErrorHandler(string ip);
+        public ConnectedErrorHandler OnConnectError;
 
         public delegate void DisconnectedHandler(ComNode node);
         public DisconnectedHandler OnDisconnected;
@@ -77,8 +104,12 @@ namespace Snowball
                 udpAck = false;
             }));
 
-            AddChannel(new DataChannel<byte>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
             {
+                //Util.Log("Health");
+                healthLostCount = 0;
+                byte[] encrypted = EncrypteTmpKey(data);
+                Send((short)PreservedChannelId.Health, encrypted);
             }));
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, (node, data) =>
@@ -94,6 +125,7 @@ namespace Snowball
 
         public void Dispose()
         {
+            AcceptBeacon = false;
             Close();
         }
 
@@ -105,11 +137,8 @@ namespace Snowball
                 Global.SyncContext = SynchronizationContext.Current;
 
             udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
+            udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             udpTerminal.OnReceive += OnUDPReceived;
-
-            udpBeaconReceiver = new UDPReceiver(beaconPortNumber);
-            udpBeaconReceiver.OnReceive += OnUDPReceived;
-            udpBeaconReceiver.Start();
 
             tcpConnector = new TCPConnector(sendPortNumber);
             tcpConnector.ConnectionBufferSize = bufferSize;
@@ -119,6 +148,7 @@ namespace Snowball
             IsOpened = true;
 
             HealthCheck();
+            UdpCheck();
         }
 
         public virtual void Close()
@@ -128,14 +158,44 @@ namespace Snowball
             Disconnect();
 
             udpTerminal.Close();
-            udpBeaconReceiver.Close();
 
             tcpConnector = null;
             udpTerminal = null;
-            udpBeaconReceiver = null;
 
             IsOpened = false;
         }
+
+        public virtual byte[] EncrypteTmpKey(byte[] decrypted)
+        {
+            return decrypted;
+        }
+
+        public async Task UdpCheck()
+        {
+            healthLostCount = 0;
+
+            while (IsOpened)
+            {
+                try
+                {
+                    await Task.Delay(100);
+
+                    if (IsConnected)
+                    {
+                        if (!udpAck)
+                        {
+                            Send((short)PreservedChannelId.UdpNotify, UserName);
+                        }
+
+                    }
+                }
+                catch//(Exception e)
+                {
+                    //Util.Log("Health:" + e.Message);
+                }
+            }
+        }
+
 
         public async Task HealthCheck()
         {
@@ -149,15 +209,6 @@ namespace Snowball
 
                     if (IsConnected)
                     {
-                        if (!udpAck)
-                        {
-                            Send((short)PreservedChannelId.UdpNotify, UserName);
-                        }
-
-                        byte dummy = 0;
-
-                        Send((short)PreservedChannelId.Health, dummy);
-
                         healthLostCount++;
                         if (healthLostCount > MaxHealthLostCount)
                         {
@@ -187,7 +238,7 @@ namespace Snowball
 
         public bool Connect(string ip)
         {
-            if (!isConnecting && !IsConnected)
+            if (!isConnecting && !IsConnected && tcpConnector != null)
             {
                 isConnecting = true;
                 tcpConnector.Connect(ip);
@@ -200,6 +251,8 @@ namespace Snowball
         {
             if (connection != null)
             {
+                connection.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
                 serverNode = new ComSnowballNode(connection);
 
                 udpTerminal.ReceiveStart();
@@ -208,13 +261,19 @@ namespace Snowball
                 connection.OnPoll = OnPoll;
 
                 Send((short)PreservedChannelId.Login, UserName);
+                Send((short)PreservedChannelId.UdpNotify, UserName);
 
                 healthLostCount = 0;
 
-                Util.Log("Client:Connected");
-            }
+                //Util.Log("Client:Connected");
 
-            isConnecting = false;
+                isConnecting = false;
+            }
+            else
+            {
+                isConnecting = false;
+                OnConnectError(ip);
+            }
         }
 
         public bool Disconnect()
@@ -234,7 +293,7 @@ namespace Snowball
             serverNode = null;
             if(udpTerminal != null) udpTerminal.ReceiveStop();
 
-            Util.Log("Client:Disconnected");
+            //Util.Log("Client:Disconnected");
         }
 
         void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
@@ -251,7 +310,6 @@ namespace Snowball
                 int s = 0;
                 short channelId = VarintBitConverter.ToShort(packer, out s);
 #endif
-
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
                     if (acceptBeacon && !isConnecting && !IsConnected)
@@ -261,25 +319,21 @@ namespace Snowball
                         if (BeaconAccept(beaconData)) Connect(endPoint.Address.ToString());
                     }
                 }
-                else if (channelId == (short)PreservedChannelId.Health)
-                {
-                    if (serverNode == null) break;
-
-                    if (serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
-                    {
-                        serverNode.UdpEndPoint = endPoint;
-                    }
-
-                    if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
-                    {
-                        healthLostCount = 0;
-                    }
-                }
                 else if (!dataChannelMap.ContainsKey(channelId))
                 {
                 }
                 else
                 {
+                    if (channelId == (short)PreservedChannelId.Health)
+                    {
+                        if (serverNode == null) break;
+
+                        if (serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
+                        {
+                            serverNode.UdpEndPoint = endPoint;
+                        }
+                    }
+
                     IDataChannel channel = dataChannelMap[channelId];
 
                     if(channel.CheckMode == CheckMode.Sequre)
@@ -287,8 +341,6 @@ namespace Snowball
                         if (serverNode == null) break;
                         if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
                         {
-                            healthLostCount = 0;
-
                             object container = channel.FromStream(ref packer);
 
                             channel.Received(serverNode, container);
@@ -296,8 +348,6 @@ namespace Snowball
                     }
                     else
                     {
-                        healthLostCount = 0;
-
                         object container = channel.FromStream(ref packer);
 
                         channel.Received(serverNode, container);
@@ -316,14 +366,6 @@ namespace Snowball
             if (channelId == (short)PreservedChannelId.Beacon)
             {
             }
-            else if (channelId == (short)PreservedChannelId.Health)
-            {
-                if (serverNode == null) ;
-                if (endPoint == serverNode.TcpEndPoint)
-                {
-                    healthLostCount = 0;
-                }
-            }
             else if (!dataChannelMap.ContainsKey(channelId))
             {
             }
@@ -337,8 +379,6 @@ namespace Snowball
                     if (serverNode == null) ;
                     if (endPoint.Equals(serverNode.TcpEndPoint))
                     {
-                        healthLostCount = 0;
-
                         object container = channel.FromStream(ref packer);
 
                         channel.Received(serverNode, container);
@@ -346,8 +386,6 @@ namespace Snowball
                 }
                 else
                 {
-                    healthLostCount = 0;
-
                     object container = channel.FromStream(ref packer);
 
                     channel.Received(null, container);

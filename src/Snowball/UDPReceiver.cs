@@ -65,6 +65,12 @@ namespace Snowball
             }
         }
 
+        public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+        {
+            Socket socket = client.Client;
+            socket.SetSocketOption(level, name, value);
+        }
+
         public async void Start()
         {
             IsActive = true;

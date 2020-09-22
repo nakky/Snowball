@@ -139,6 +139,12 @@ namespace Snowball
             this.Port = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
         }
 
+        public void SetSocketOption(SocketOptionLevel level, SocketOptionName name, bool value)
+        {
+            Socket socket = client.Client;
+            socket.SetSocketOption(level, name, value);
+        }
+
         public bool IsConnected { get { return client.Connected; } }
 
         public async Task Start()
