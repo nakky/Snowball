@@ -1,4 +1,4 @@
-﻿//#define DISABLE_CHANNEL_VARINT
+﻿#define DISABLE_CHANNEL_VARINT
 
 using System;
 using System.Collections.Generic;
@@ -84,6 +84,8 @@ namespace Snowball
         UDPTerminal udpTerminal;
         UDPReceiver udpBeaconReceiver;
 
+        protected int healthIntervalMs = 500;
+        System.Timers.Timer healthTimer;
 
         int healthLostCount = 0;
         bool udpAck = true;
@@ -121,6 +123,9 @@ namespace Snowball
                 udpAck = true;
                 if (OnConnected != null) OnConnected(serverNode);
             }));
+
+            healthTimer = new System.Timers.Timer(healthIntervalMs);
+            healthTimer.Elapsed += OnHealthCheck;
         }
 
         public void Dispose()
@@ -147,13 +152,16 @@ namespace Snowball
 
             IsOpened = true;
 
-            HealthCheck();
+            healthTimer.Start();
+
             UdpCheck();
         }
 
         public virtual void Close()
         {
             if (!IsOpened) return;
+
+            healthTimer.Stop();
 
             Disconnect();
 
@@ -196,12 +204,16 @@ namespace Snowball
             }
         }
 
+        public void OnHealthCheck(object sender, ElapsedEventArgs args)
+        {
+            HealthCheck();
+        }
 
         public async Task HealthCheck()
         {
             healthLostCount = 0;
 
-            while (IsOpened)
+            if (IsOpened)
             {
                 try
                 {
@@ -406,6 +418,24 @@ namespace Snowball
             public bool isRent;
         }
 
+        async Task<int> ReadAsync(NetworkStream nStream, byte[] receiveBuffer, int size, CancellationTokenSource cancelToken)
+        {
+            int tmpSize = 0;
+            int receivedSize = 0;
+            while (true)
+            {
+                tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token);
+                if (tmpSize == 0)
+                {
+                    return 0;
+                }
+                receivedSize += tmpSize;
+                if (receivedSize == size)
+                {
+                    return receivedSize;
+                }
+            }
+        }
 
         public async Task<bool> OnPoll(
             TCPConnection connection,
@@ -416,6 +446,7 @@ namespace Snowball
             )
         {
             int resSize = 0;
+            int tmpSize = 0;
             short channelId = 0;
 
             bool isRent = false;
@@ -423,23 +454,24 @@ namespace Snowball
 
             try
             {
-                resSize = await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
+                resSize = await ReadAsync(nStream, receiveBuffer, 2, cancelToken).ConfigureAwait(false);
 
                 if (resSize != 0)
                 {
                     receivePacker.Position = 0;
                     resSize = receivePacker.ReadShort();
 #if DISABLE_CHANNEL_VARINT
-                        await nStream.ReadAsync(receiveBuffer, 0, 2, cancelToken.Token).ConfigureAwait(false);
-                        receivePacker.Position = 0;
-                        channelId = receivePacker.ReadShort();
-                        await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
+                    tmpSize = await ReadAsync(nStream, receiveBuffer, 2, cancelToken).ConfigureAwait(false);
+                    if (tmpSize == 0) throw new EndOfStreamException();
+
+                    receivePacker.Position = 0;
+                    channelId = receivePacker.ReadShort();
 #else
                     int s = 0;
                     channelId = VarintBitConverter.ToShort(nStream, out s);
-                    await nStream.ReadAsync(receiveBuffer, 0, resSize, cancelToken.Token).ConfigureAwait(false);
 #endif
-
+                    tmpSize = await ReadAsync(nStream, receiveBuffer, resSize, cancelToken).ConfigureAwait(false);
+                    if (tmpSize == 0) throw new EndOfStreamException();
 
                     buffer = arrayPool.Rent(resSize);
                     if (buffer != null)
@@ -459,7 +491,7 @@ namespace Snowball
             }
             catch//(Exception e)
             {
-                //Util.Log("TCP:" + e.Message);
+                //Util.Log("TCP:" + e.Message + ":" +  e.StackTrace);
                 return false;
             }
 
@@ -508,7 +540,7 @@ namespace Snowball
             packer.Write((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
-            packer.Write(channelId);
+        packer.Write(channel.ChannelID);
 #else
             int s = 0;
             VarintBitConverter.SerializeShort(channel.ChannelID, packer, out s);

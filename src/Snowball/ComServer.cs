@@ -486,7 +486,7 @@ namespace Snowball
             int receivedSize = 0;
             while (true)
             {
-                tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token).ConfigureAwait(false);
+                tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token);
                 if (tmpSize == 0)
                 {
                     return 0;
@@ -657,33 +657,37 @@ namespace Snowball
 
         public async Task<bool> Send<T>(ComNode node, short channelId, T data)
         {
-            if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) return false;
-            if (!dataChannelMap.ContainsKey(channelId)) return false;
-
-            IDataChannel channel = dataChannelMap[channelId];
-
-            bool isRent = false;
-            byte[] buffer = null;
-            int bufferSize = 0;
-
-            BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
-
-            ComSnowballNode snode = (ComSnowballNode)node;
-            if (channel.Qos == QosType.Reliable)
+            return await Task.Run(async () =>
             {
-                await snode.Connection.Send(bufferSize, buffer);
-            }
-            else if (channel.Qos == QosType.Unreliable)
-            {
-                if (snode.UdpEndPoint != null)
+                if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) return false;
+                if (!dataChannelMap.ContainsKey(channelId)) return false;
+
+                IDataChannel channel = dataChannelMap[channelId];
+
+                bool isRent = false;
+                byte[] buffer = null;
+                int bufferSize = 0;
+
+                BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
+
+                ComSnowballNode snode = (ComSnowballNode)node;
+                if (channel.Qos == QosType.Reliable)
                 {
-                    await udpTerminal.Send(snode.Ip, snode.UdpEndPoint.Port, bufferSize, buffer);
+                    await snode.Connection.Send(bufferSize, buffer);
                 }
-            }
+                else if (channel.Qos == QosType.Unreliable)
+                {
+                    if (snode.UdpEndPoint != null)
+                    {
+                        await udpTerminal.Send(snode.Ip, snode.UdpEndPoint.Port, bufferSize, buffer);
+                    }
+                }
 
-            if (isRent) arrayPool.Return(buffer);
+                if (isRent) arrayPool.Return(buffer);
 
-            return true;
+                return true;
+            });
+                
         }
 
     }
