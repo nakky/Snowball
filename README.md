@@ -25,8 +25,6 @@ You can download Unity Package of Snowball from [github](https://github.com/nakk
 
 In Snowball, relatively new features of C# are userd (ex. async/await), so you must set "Scripting Runtime Version" to ". NET 4.x".
 
-LZ4 Compression uses unsafe functions, so you must allow unsafe code in Player Settings.
-
 ## Quick Start
 Declear "using" directive if you need.
 
@@ -68,25 +66,33 @@ client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None,
 client.AcceptBeacon = true;
 //Start Client
 client.Open();
+//You can connect to the server by using Connect function.
+//client.Connect("127.0.0.1");
 ```
 Beacon is useful to connect/reconnet to a server. But Beacon involves Security Risk, so if you use Beacon via internet, the service must be carefully designed.
 
 Sending examples are as follows. 
 
+Server:
 ```csharp
-ComNode node = server.GetNodeByIp(ip);
+IPEndPoint clientEndPoint = new IPEndPoint(address, port);
+ComNode node = server.GetTcpNodeByEndPoint(clientEndPoint);
 server.Send(node, 0, "Hello Client!");
 ```
+You can also get ComNode in OnConnected Handler.
+
+Client:
 ```csharp
 client.Send(0, "Hello Server!");
 ```
 
 And ComClient and ComServer should be closed on termination. (ex. Dispose())
  
+ Server:
 ```csharp
 server.Close();
 ```
-
+Client:
 ```csharp
 client.Close();
 ```
@@ -116,14 +122,14 @@ Snowball use UDP, though if you want to test on localhost, you can not use same 
 (Default port numbers are contrasting.)
 
 ```csharp
-server.SendPortNumber = 50001;
-server.ListenPortNumber = 50002;
+server.SendPortNumber = 32001;
+server.ListenPortNumber = 32002;
 server.Open();
 ```
 
 ```csharp
-client.SendPortNumber = 50002;
-client.ListenPortNumber = 50001;
+client.SendPortNumber = 32002;
+client.ListenPortNumber = 32001;
 client.Open();
 ```
 
@@ -194,7 +200,8 @@ We also implement BroadCasting API and Group of ComNode as ComGroup, and ComGrou
 
 ```csharp
 //Send to a client
-ComNode node = server.GetNodeByIp(ip);
+IPEndPoint clientEndPoint = new IPEndPoint(address, port);
+ComNode node = server.GetTcpNodeByEndPoint(clientEndPoint);
 server.Send(node, 0, "Hello Client!");
 
 //Send to group members
@@ -208,7 +215,8 @@ server.Broadcast(group, 0, "Hello Everyone!");
 <img src="https://user-images.githubusercontent.com/5203051/59557933-1c9ecb00-9021-11e9-923d-531089a22b3c.png" height="400">
 
 ComServer can send beacon signals at regular intervals, and when a client catches a beacon, it connects to server without setting IP Address manually.  
-If you want to implement communication between terminals in a LAN, Broadcast beacon is very useful.
+If you want to implement communication between terminals in a LAN, Broadcast beacon is very useful.   
+On the other hand, it cannot often be used via the Internet because Bearon packet cannot pass through the firewall.
 
 ```csharp
 //Beacon Settings(Broadcast)
