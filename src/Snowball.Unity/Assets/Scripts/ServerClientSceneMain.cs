@@ -38,6 +38,9 @@ public class ServerClientSceneMain : MonoBehaviour
     [SerializeField]
     GameObject clientObject;
 
+    [SerializeField]
+    int numSend = 70;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -91,7 +94,7 @@ public class ServerClientSceneMain : MonoBehaviour
         {
             ObjState state = new ObjState(clientObject.transform.localPosition, clientObject.transform.localRotation);
 
-            for(int i = 0; i < 70; i++)
+            for(int i = 0; i < numSend; i++)
             {
                 client.Send(0, state);
             }
