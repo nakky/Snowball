@@ -66,7 +66,7 @@ client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None,
 client.AcceptBeacon = true;
 //Start Client
 client.Open();
-//You can connect to the server by using Connect function.
+//You can also connect to the server by using Connect function.
 //client.Connect("127.0.0.1");
 ```
 Beacon is useful to connect/reconnet to a server. But Beacon involves Security Risk, so if you use Beacon via internet, the service must be carefully designed.
