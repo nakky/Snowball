@@ -98,7 +98,7 @@ namespace Snowball
         {
             IsActive = true;
 
-            await ReceiveAsync();
+            await ReceiveAsync().ConfigureAwait(false);
 
         }
 

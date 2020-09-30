@@ -155,7 +155,7 @@ namespace Snowball
             {
                 if(OnPoll != null)
                 {
-                    var ret = await OnPoll(this, nStream, receiveBuffer, receivePacker, cancelToken);
+                    var ret = await OnPoll(this, nStream, receiveBuffer, receivePacker, cancelToken).ConfigureAwait(false);
                     if (!ret) break;
                 }
                 

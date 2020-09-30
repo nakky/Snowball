@@ -424,7 +424,7 @@ namespace Snowball
             int receivedSize = 0;
             while (true)
             {
-                tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token);
+                tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token).ConfigureAwait(false);
                 if (tmpSize == 0)
                 {
                     return 0;
@@ -573,17 +573,17 @@ namespace Snowball
 
                 if (channel.Qos == QosType.Reliable)
                 {
-                    await ((ComSnowballNode)serverNode).Connection.Send(bufferSize, buffer);
+                    await ((ComSnowballNode)serverNode).Connection.Send(bufferSize, buffer).ConfigureAwait(false);
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    await udpTerminal.Send(serverNode.Ip, sendPortNumber, bufferSize, buffer);
+                    await udpTerminal.Send(serverNode.Ip, sendPortNumber, bufferSize, buffer).ConfigureAwait(false);
                 }
 
                 if (isRent) arrayPool.Return(buffer);
 
                 return true;
-            });
+            }).ConfigureAwait(false);
 
         }
     }
