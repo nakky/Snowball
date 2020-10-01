@@ -90,7 +90,7 @@ namespace Snowball
 
         }
 
-        ~TCPConnection()
+        public void Dispose()
         {
             Disconnect();
         }
@@ -99,6 +99,7 @@ namespace Snowball
         {
             lock (this)
             {
+                if (!IsConnected) return;
                 try
                 {
                     if (!cancelToken.IsCancellationRequested)
@@ -127,7 +128,6 @@ namespace Snowball
                 {
                     //Util.Log("Disconnect" + e.Message);
                 }
-
             }
 
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Snowball
 {
-    public class UDPReceiver
+    public class UDPReceiver : IDisposable
     {
         public const int DefaultBufferSize = 8192;
 
@@ -49,7 +49,7 @@ namespace Snowball
             this.client.Client.ReceiveBufferSize = bufferSize;
         }
 
-        ~UDPReceiver()
+        public void Dispose()
         {
             Close();
         }
@@ -62,6 +62,7 @@ namespace Snowball
                 cancelToken.Cancel();
                 OnReceive = null;
                 client.Close();
+                client = null;
             }
         }
 
@@ -91,8 +92,6 @@ namespace Snowball
 
         public async Task ReceiveAsync()
         {
-            
-
             while (IsActive)
             {
                 try

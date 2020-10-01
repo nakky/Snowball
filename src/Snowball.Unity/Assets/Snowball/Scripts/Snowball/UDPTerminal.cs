@@ -6,7 +6,7 @@ using System.Net;
 
 namespace Snowball
 {
-    public class UDPTerminal
+    public class UDPTerminal : IDisposable
     {
         public const int DefaultBufferSize = 8192;
 
@@ -33,7 +33,7 @@ namespace Snowball
             client.Client.ReceiveBufferSize = bufferSize;
         }
 
-        ~UDPTerminal()
+        public void Dispose()
         {
             Close();
         }
@@ -134,7 +134,7 @@ namespace Snowball
                 }
                 catch//(Exception e)
                 {
-                    //Util.Log("UDPReceiver:" + e.Message);
+                    //Util.Log("UDPReceiver:" + e.Message + ":" + e.StackTrace);
                     break;
                 }
 

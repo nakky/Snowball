@@ -20,6 +20,8 @@ namespace Snowball
         public int HealthLostCount { get; set; }
 
         public byte[] TmpKey { get; set; }
+
+        public bool IsDisconnecting { get; set; }
     }
 
     public class ComSnowballNode : ComNode

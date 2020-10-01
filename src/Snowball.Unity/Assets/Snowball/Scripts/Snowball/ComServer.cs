@@ -36,6 +36,8 @@ namespace Snowball
         public delegate void DisconnectedHandler(ComNode node);
         public DisconnectedHandler OnDisconnected;
 
+        bool isDisconnecting = false;
+
         protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
         protected Dictionary<string, ComNode> userNodeMap = new Dictionary<string, ComNode>();
@@ -187,6 +189,8 @@ namespace Snowball
 
         void OnBeaconTimer(object sender, ElapsedEventArgs args)
         {
+            if (!IsOpened) return;
+
             BytePacker packer;
             int length = CreateBeaconData(out packer);
 
@@ -272,6 +276,7 @@ namespace Snowball
 
         public void OnHealthCheck(object sender, ElapsedEventArgs args)
         {
+            if (!IsOpened) return;
             HealthCheck();
         }
 
@@ -335,8 +340,10 @@ namespace Snowball
 
         public bool Disconnect(ComNode node)
         {
-            if (nodeTcpMap.ContainsKey(node.TcpEndPoint))
+            if (!node.IsDisconnecting && nodeTcpMap.ContainsKey(node.TcpEndPoint))
             {
+                node.IsDisconnecting = true;
+
                 ComSnowballNode snode = (ComSnowballNode)node;
                 snode.Connection.Disconnect();
 
@@ -357,6 +364,7 @@ namespace Snowball
                     if (userNodeMap.ContainsKey(node.UserName)) userNodeMap.Remove(node.UserName);
                     if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
                     node.UdpEndPoint = null;
+                    node.IsDisconnecting = false;
 
                     if (OnDisconnected != null) OnDisconnected(node);
 

@@ -94,6 +94,7 @@ namespace Snowball
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
 
         bool isConnecting = false;
+        bool isDisconnecting = false;
 
         public bool IsConnected { get { lock (this) { return (serverNode != null); } } }
 
@@ -162,6 +163,8 @@ namespace Snowball
             if (!IsOpened) return;
 
             healthTimer.Stop();
+
+            AcceptBeacon = false;
 
             Disconnect();
 
@@ -290,8 +293,9 @@ namespace Snowball
 
         public bool Disconnect()
         {
-            if (serverNode != null)
+            if (!isDisconnecting && serverNode != null)
             {
+                isDisconnecting = true;
                 ((ComSnowballNode)serverNode).Connection.Disconnect();
                 return true;
             }
@@ -305,7 +309,7 @@ namespace Snowball
             serverNode = null;
             if(udpTerminal != null) udpTerminal.ReceiveStop();
 
-            //Util.Log("Client:Disconnected");
+            isDisconnecting = false;
         }
 
         void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
@@ -424,7 +428,9 @@ namespace Snowball
             int receivedSize = 0;
             while (true)
             {
+                tmpSize = 0;
                 tmpSize = await nStream.ReadAsync(receiveBuffer, receivedSize, size - receivedSize, cancelToken.Token).ConfigureAwait(false);
+
                 if (tmpSize == 0)
                 {
                     return 0;
@@ -491,7 +497,7 @@ namespace Snowball
             }
             catch//(Exception e)
             {
-                //Util.Log("TCP:" + e.Message + ":" +  e.StackTrace);
+                //Util.Log("TCP:" + e.GetType().Name + ":" + e.Message + ":" +  e.StackTrace);
                 return false;
             }
 
