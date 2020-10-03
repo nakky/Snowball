@@ -54,20 +54,41 @@ public class ServerClientSceneMain : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 
-        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.None, Encryption.None, (node, data) => {
             serverObject.transform.localPosition = data.Position;
             serverObject.transform.localRotation = data.Rotation;
         }, CheckMode.Speedy));
 
-        server.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {
+        server.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, Encryption.Aes, (node, data) => {
             Debug.Log("rec:" + data);
         }));
 
-        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.None, Encryption.None, (node, data) => {
         }, CheckMode.Speedy));
 
-        client.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, (node, data) => {
+        client.AddChannel(new DataChannel<string>(1, QosType.Reliable, Snowball.Compression.None, Encryption.Aes, (node, data) => {
         }));
+
+        server.OnConnected += (node) =>
+        {
+            if (node != null) Debug.Log("Server:Connected");
+        };
+
+        server.OnDisconnected += (node) =>
+        {
+            if (node != null) Debug.Log("Server:Disconnected");
+        };
+
+        client.OnConnected += (node) =>
+        {
+            if (node != null) Debug.Log("Client:Connected");
+        };
+
+        client.OnDisconnected += (node) =>
+        {
+            if (node != null) Debug.Log("Client:Disconnected");
+        };
+
 
 
         client.AcceptBeacon = true;

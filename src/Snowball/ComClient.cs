@@ -9,6 +9,7 @@ using System.Timers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 
 namespace Snowball
 {
@@ -96,18 +97,23 @@ namespace Snowball
         bool isConnecting = false;
         bool isDisconnecting = false;
 
-        public bool IsConnected { get { lock (this) { return (serverNode != null); } } }
+        bool IsTcpConnected { get { lock (this) { return (serverNode != null); } } }
+        public bool IsConnected { get; private set; }
+
+        public RsaEncrypter rsaEncrypter;
 
         public ComClient()
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
+                rsaEncrypter = new RsaEncrypter();
+                rsaEncrypter.FromPublicKeyXmlString(data);
                 udpAck = false;
             }));
 
-            AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
                 //Util.Log("Health");
                 healthLostCount = 0;
@@ -115,13 +121,25 @@ namespace Snowball
                 Send((short)PreservedChannelId.Health, encrypted);
             }));
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
             }));
 
-            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotifyAck, QosType.Reliable, Compression.None, (node, data) =>
+            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotifyAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
+            {
+                AesKeyPair pair = GenerateAesKey();
+                Send((short)PreservedChannelId.KeyExchange, pair);
+            }));
+
+            AddChannel(new DataChannel<AesKeyPair>((short)PreservedChannelId.KeyExchange, QosType.Reliable, Compression.None, Encryption.Rsa, (node, data) =>
+            {
+                
+            }));
+
+            AddChannel(new DataChannel<int>((short)PreservedChannelId.KeyExchangeAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
                 udpAck = true;
+                IsConnected = true;
                 if (OnConnected != null) OnConnected(serverNode);
             }));
 
@@ -181,6 +199,23 @@ namespace Snowball
             return decrypted;
         }
 
+        protected AesKeyPair GenerateAesKey()
+        {
+            var aes = Aes.Create();
+            aes.GenerateIV();
+            aes.GenerateKey();
+            aes.Padding = PaddingMode.PKCS7;
+
+            serverNode.AesEncrypter = new AesEncrypter(aes);
+            serverNode.AesDecrypter = new AesDecrypter(aes);
+
+            AesKeyPair pair = new AesKeyPair();
+            pair.Key = aes.Key;
+            pair.IV = aes.IV;
+
+            return pair;
+        }
+
         public async Task UdpCheck()
         {
             healthLostCount = 0;
@@ -191,7 +226,7 @@ namespace Snowball
                 {
                     await Task.Delay(100);
 
-                    if (IsConnected)
+                    if (IsTcpConnected)
                     {
                         if (!udpAck)
                         {
@@ -222,7 +257,7 @@ namespace Snowball
                 {
                     await Task.Delay(500);
 
-                    if (IsConnected)
+                    if (IsTcpConnected)
                     {
                         healthLostCount++;
                         if (healthLostCount > MaxHealthLostCount)
@@ -253,7 +288,7 @@ namespace Snowball
 
         public bool Connect(string ip)
         {
-            if (!isConnecting && !IsConnected && tcpConnector != null)
+            if (!isConnecting && !IsTcpConnected && tcpConnector != null)
             {
                 isConnecting = true;
                 tcpConnector.Connect(ip);
@@ -304,6 +339,7 @@ namespace Snowball
 
         void OnDisconnectedInternal(TCPConnection connection)
         {
+            IsConnected = false;
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
             serverNode = null;
@@ -328,7 +364,7 @@ namespace Snowball
 #endif
                 if (channelId == (short)PreservedChannelId.Beacon)
                 {
-                    if (acceptBeacon && !isConnecting && !IsConnected)
+                    if (acceptBeacon && !isConnecting && !IsTcpConnected)
                     {
                         string beaconData = (string)DataSerializer.Deserialize<string>(packer);
 
@@ -352,19 +388,27 @@ namespace Snowball
 
                     IDataChannel channel = dataChannelMap[channelId];
 
-                    if(channel.CheckMode == CheckMode.Sequre)
+                    if (channel.CheckMode == CheckMode.Sequre) 
                     {
+                        IDecrypter decrypter = null;
+                        if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                        else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+
                         if (serverNode == null) break;
                         if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
                         {
-                            object container = channel.FromStream(ref packer);
+                            object container = channel.FromStream(ref packer, decrypter);
 
                             channel.Received(serverNode, container);
                         }
                     }
                     else
                     {
-                        object container = channel.FromStream(ref packer);
+                        IDecrypter decrypter = null;
+                        if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                        else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+
+                        object container = channel.FromStream(ref packer, decrypter);
 
                         channel.Received(serverNode, container);
                     }
@@ -389,20 +433,28 @@ namespace Snowball
             {
                 BytePacker packer = new BytePacker(data);
                 IDataChannel channel = dataChannelMap[channelId];
+                if (channel.Encryption == Encryption.Rsa)
+                {
 
-                if (channel.CheckMode == CheckMode.Sequre)
+                }
+
+                IDecrypter decrypter = null;
+                if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+
+                if (channel.CheckMode == CheckMode.Sequre || decrypter != null)
                 {
                     if (serverNode == null) ;
                     if (endPoint.Equals(serverNode.TcpEndPoint))
                     {
-                        object container = channel.FromStream(ref packer);
+                        object container = channel.FromStream(ref packer, decrypter);
 
                         channel.Received(serverNode, container);
                     }
                 }
                 else
                 {
-                    object container = channel.FromStream(ref packer);
+                    object container = channel.FromStream(ref packer, decrypter);
 
                     channel.Received(null, container);
                 }
@@ -528,9 +580,12 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
-        public void BuildBuffer<T>(IDataChannel channel, T data, ref byte[] buffer, ref int bufferSize, ref bool isRent)
+        public void BuildBuffer<T>(
+            IDataChannel channel, T data, ref byte[] buffer, ref int bufferSize, ref bool isRent, IEncrypter encrypter
+            )
         {
             isRent = true;
+
             int bufSize = channel.GetDataSize(data);
             int lz4ext = 0;
             if (channel.Compression == Compression.LZ4) lz4ext = 4;
@@ -553,7 +608,7 @@ namespace Snowball
 #endif
             int start = packer.Position;
 
-            channel.ToStream(data, ref packer);
+            channel.ToStream(data, ref packer, encrypter);
 
             bufferSize = (int)packer.Position;
 
@@ -566,7 +621,7 @@ namespace Snowball
         {
             return await Task.Run(async () =>
             {
-                if (!IsConnected) return false;
+                if (!IsTcpConnected) return false;
                 if (!dataChannelMap.ContainsKey(channelId)) return false;
 
                 IDataChannel channel = dataChannelMap[channelId];
@@ -575,7 +630,11 @@ namespace Snowball
                 byte[] buffer = null;
                 int bufferSize = 0;
 
-                BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent);
+                IEncrypter encrypter = null;
+                if (channel.Encryption == Encryption.Rsa) encrypter = rsaEncrypter;
+                else if (channel.Encryption == Encryption.Aes) encrypter = serverNode.AesEncrypter;
+
+                BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent, encrypter);
 
                 if (channel.Qos == QosType.Reliable)
                 {

@@ -132,7 +132,7 @@ namespace Snowball
                         {
                             ComNode node = nodeUdpMap[endPoint.Address.ToString()];
 
-                            object container = channel.FromStream(ref packer);
+                            object container = channel.FromStream(ref packer, null);
 
                             channel.Received(node, container);
                         }
@@ -140,7 +140,7 @@ namespace Snowball
 
                     else
                     {
-                        object container = channel.FromStream(ref packer);
+                        object container = channel.FromStream(ref packer, null);
                         channel.Received(null, container);
                     }
  

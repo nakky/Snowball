@@ -19,9 +19,14 @@ namespace Snowball
         public string UserName { get; set; }
         public int HealthLostCount { get; set; }
 
+        public bool IsConnected { get; set; }
+
         public byte[] TmpKey { get; set; }
 
         public bool IsDisconnecting { get; set; }
+
+        public AesEncrypter AesEncrypter { get; set; }
+        public AesDecrypter AesDecrypter { get; set; }
     }
 
     public class ComSnowballNode : ComNode

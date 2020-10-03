@@ -18,6 +18,13 @@ namespace Snowball
         LZ4,
     }
 
+    public enum Encryption
+    {
+        None,
+        Aes,
+        Rsa
+    }
+
     public enum CheckMode
     {
         Sequre,
@@ -31,6 +38,8 @@ namespace Snowball
         Health = -3,
         UdpNotify = -4,
         UdpNotifyAck = -5,
+        KeyExchange = -6,
+        KeyExchangeAck = -7,
         //User can use 0 - 32767
     }
 

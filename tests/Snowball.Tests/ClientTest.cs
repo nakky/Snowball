@@ -17,6 +17,7 @@ namespace Snowball.Tests
         ServerFixture server;
 
         Compression comp = Compression.LZ4;
+        Encryption enc = Encryption.Aes;
         CheckMode checkMode = CheckMode.Speedy;
 
         public ClientTest(ITestOutputHelper logger, ServerFixture server)
@@ -169,49 +170,49 @@ namespace Snowball.Tests
 
 
             //Bool
-            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == boolData) boolCheck = true;
             }, checkMode));
 
             //Byte
-            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == byteData) byteCheck = true;
             }, checkMode));
 
             //Short
-            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == shortData) shortCheck = true;
             }, checkMode));
 
             //Int
-            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == intData) intCheck = true;
             }, checkMode));
 
             //Float
-            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == floatData) floatCheck = true;
             }, checkMode));
 
             //Double
-            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == doubleData) doubleCheck = true;
             }, checkMode));
 
             //String
-            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == stringData) stringCheck = true;
             }, checkMode));
 
             //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
@@ -302,49 +303,49 @@ namespace Snowball.Tests
             testData.stringData = "Are you human?";
 
             //Bool
-            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == boolData) boolCheck = true;
             }, checkMode));
 
             //Byte
-            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == byteData) byteCheck = true;
             }, checkMode));
 
             //Short
-            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == shortData) shortCheck = true;
             }, checkMode));
 
             //Int
-            client.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == intData) intCheck = true;
             }, checkMode));
 
             //Float
-            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == floatData) floatCheck = true;
             }, checkMode));
 
             //Double
-            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == doubleData) doubleCheck = true;
             }, checkMode));
 
             //String
-            client.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == stringData) stringCheck = true;
             }, checkMode));
 
             //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
@@ -435,50 +436,50 @@ namespace Snowball.Tests
 
 
             //Bool
-            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<bool>((short)ChannelId.BoolRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == boolData) boolCheck = true;
             }, checkMode));
 
             //Byte
-            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<byte>((short)ChannelId.ByteRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == byteData) byteCheck = true;
             }, checkMode));
 
             //Short
-            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<short>((short)ChannelId.ShortRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == shortData) shortCheck = true;
             }, checkMode));
 
             //Int
-            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<int>((short)ChannelId.IntRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == intData) intCheck = true;
             }, checkMode));
 
             //Float
-            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == floatData) floatCheck = true;
             }, checkMode));
 
             //Double
-            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<double>((short)ChannelId.DoubleRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 Util.Log("double:" + data);
                 if (data == doubleData) doubleCheck = true;
             }, checkMode));
 
             //String
-            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<string>((short)ChannelId.StringRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (data == stringData) stringCheck = true;
             }, checkMode));
 
             //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRaw, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRaw, QosType.Reliable, comp, enc, (node, data) =>
             {
                 Util.Log("class:" + data);
                 if (
@@ -560,7 +561,7 @@ namespace Snowball.Tests
 
             //Byte
             //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
@@ -635,7 +636,7 @@ namespace Snowball.Tests
 
             //Byte
             //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
@@ -689,152 +690,6 @@ namespace Snowball.Tests
             Disconnect(ref client);
         }
 
-        /*
-        [Fact]
-        //[Fact(Skip = "Skipped")]
-        public void VariantEffectTestFloat()
-        {
-            Util.Log("VariantEffectTestFloat");
-
-            ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
-
-            client.BufferSize = 8192 * 10;
-
-            Connect(ref client);
-            server.Server.BeaconStop();
-
-            int recvTestNum = 0;
-            int sendTestNum = 0;
-
-            //AddChannel
-            float testfloat = 1.0f;
-
-            //Byte
-            //Class
-            client.AddChannel(new DataChannel<float>((short)ChannelId.FloatRel, QosType.Reliable, comp, (node, data) =>
-            {
-                if (
-                    testfloat == data
-                )
-                {
-                    recvTestNum++;
-                }
-            }, checkMode));
-
-            sendTestNum = 100000;
-
-            Util.Log("sendTestNum:" + sendTestNum);
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Reset();
-            sw.Start();
-
-            //Send
-            for (int i = 0; i < sendTestNum; i++)
-            {
-                client.SendData((short)ChannelId.FloatRel, testfloat);
-            }
-
-
-            while (true)
-            {
-                if (recvTestNum == sendTestNum)
-                {
-                    Util.Log("float time:" + sw.Elapsed);
-                    break;
-                }
-                else if (sw.Elapsed.Seconds >= 30)
-                {
-                    Util.Log("recvTestNum:" + recvTestNum);
-                    client.Close();
-                    throw new TimeoutException();
-                }
-
-                Task.Delay(100);
-            }
-            sw.Stop();
-
-            Disconnect(ref client);
-        }
-
-        [Fact]
-        //[Fact(Skip = "Skipped")]
-        public void VariantEffectTestClass()
-        {
-            Util.Log("VariantEffectTestClass");
-
-            ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
-
-            client.BufferSize = 8192 * 10;
-
-            Connect(ref client);
-            server.Server.BeaconStop();
-
-            int recvTestNum = 0;
-            int sendTestNum = 0;
-
-            //AddChannel
-            TestClass testData = new TestClass();
-            testData.intData = 6;
-            testData.floatData = 6.6f;
-            testData.stringData = "Are you human?";
-
-            //Byte
-            //Class
-            client.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassRel, QosType.Reliable, comp, (node, data) =>
-            {
-                if (
-                    data.intData == testData.intData
-                    && data.floatData == testData.floatData
-                    && data.stringData == testData.stringData
-                )
-                {
-                    recvTestNum++;
-                }
-            }, checkMode));
-
-            sendTestNum = 100000;
-
-            Util.Log("sendTestNum:" + sendTestNum);
-
-            Stopwatch sw = new Stopwatch();
-
-            sw.Reset();
-            sw.Start();
-
-            //Send
-            for (int i = 0; i < sendTestNum; i++)
-            {
-                client.SendData((short)ChannelId.ClassRel, testData);
-            }
-
-
-            while (true)
-            {
-                if (recvTestNum == sendTestNum)
-                {
-                    Util.Log("class time:" + sw.Elapsed);
-                    break;
-                }
-                else if (sw.Elapsed.Seconds >= 30)
-                {
-                    Util.Log("recvTestNum:" + recvTestNum);
-                    client.Close();
-                    throw new TimeoutException();
-                }
-
-                Task.Delay(100);
-            }
-            sw.Stop();
-
-            Disconnect(ref client);
-        }
-        */
-
+ 
     }
 }

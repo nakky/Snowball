@@ -32,12 +32,12 @@ public class TerminalSceneMain : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 
-        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        server.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, Encryption.None, (node, data) => {
             serverObject.transform.localPosition = data.Position;
             serverObject.transform.localRotation = data.Rotation;
         }, CheckMode.Speedy));
 
-        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, (node, data) => {
+        client.AddChannel(new DataChannel<ObjState>(0, QosType.Unreliable, Snowball.Compression.LZ4, Encryption.None, (node, data) => {
         }, CheckMode.Speedy));
 
 

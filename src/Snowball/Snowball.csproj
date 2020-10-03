@@ -26,5 +26,6 @@
   <ItemGroup>
     <Folder Include="Serializer\" />
     <Folder Include="Serializer\Converters\" />
+    <Folder Include="Encrypter\" />
   </ItemGroup>
 </Project>

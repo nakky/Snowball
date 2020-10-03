@@ -15,6 +15,7 @@ namespace Snowball.Tests
         public ComTerminal Terminal { get; private set; }
 
         Compression comp = Compression.LZ4;
+        Encryption enc = Encryption.None;
 
         public TerminalFixture()
         {
@@ -55,49 +56,49 @@ namespace Snowball.Tests
         void AddEchoChannel()
         {
             //Bool
-            Terminal.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.BoolUnRel, data);
             }));
 
             //Byte
-            Terminal.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.ByteUnRel, data);
             }));
 
             //Short
-            Terminal.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.ShortUnRel, data);
             }));
 
             //Int
-            Terminal.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.IntUnRel, data);
             }));
 
             //Float
-            Terminal.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.FloatUnRel, data);
             }));
 
             //Double
-            Terminal.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.DoubleUnRel, data);
             }));
 
             //String
-            Terminal.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.StringUnRel, data);
             }));
 
             //Class
-            Terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            Terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 Terminal.Send(node, (short)ChannelId.ClassUnRel, data);
             }));

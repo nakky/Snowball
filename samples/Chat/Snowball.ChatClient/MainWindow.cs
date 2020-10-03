@@ -34,7 +34,10 @@ public partial class MainWindow : Gtk.Window
             buttonSend.Sensitive = false;
         };
 
-        client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (endPointIp, data) => { OnReceive(data); }));
+        client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.LZ4, Encryption.Aes, (endPointIp, data) =>
+        {
+            OnReceive(data);
+        }));
         client.AcceptBeacon = true;
         client.Open();
     }

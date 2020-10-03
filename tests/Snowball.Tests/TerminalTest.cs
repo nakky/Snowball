@@ -18,6 +18,7 @@ namespace Snowball.Tests
         TerminalFixture server;
 
         Compression comp = Compression.LZ4;
+        Encryption enc = Encryption.None;
         CheckMode checkMode = CheckMode.Speedy;
 
         public TerminalTest(ITestOutputHelper logger, TerminalFixture terminal)
@@ -81,49 +82,49 @@ namespace Snowball.Tests
             testData.stringData = "Are you human?";
 
             //Bool
-            terminal.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<bool>((short)ChannelId.BoolUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == boolData) boolCheck = true;
             }, checkMode));
 
             //Byte
-            terminal.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<byte>((short)ChannelId.ByteUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == byteData) byteCheck = true;
             }, checkMode));
 
             //Short
-            terminal.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<short>((short)ChannelId.ShortUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == shortData) shortCheck = true;
             }, checkMode));
 
             //Int
-            terminal.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<int>((short)ChannelId.IntUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == intData) intCheck = true;
             }, checkMode));
 
             //Float
-            terminal.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<float>((short)ChannelId.FloatUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == floatData) floatCheck = true;
             }, checkMode));
 
             //Double
-            terminal.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<double>((short)ChannelId.DoubleUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == doubleData) doubleCheck = true;
             }, checkMode));
 
             //String
-            terminal.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<string>((short)ChannelId.StringUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (data == stringData) stringCheck = true;
             }, checkMode));
 
             //Class
-            terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
@@ -207,7 +208,7 @@ namespace Snowball.Tests
 
             //Byte
             //Class
-            terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, (node, data) =>
+            terminal.AddChannel(new DataChannel<TestClass>((short)ChannelId.ClassUnRel, QosType.Unreliable, comp, enc, (node, data) =>
             {
                 if (
                     data.intData == testData.intData
