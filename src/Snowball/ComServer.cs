@@ -90,7 +90,7 @@ namespace Snowball
 
                 userNodeMap.Add(node.UserName, node);
                 string xml = rsaDecrypter.ToPublicKeyXmlString();
-                Send(node, (short)PreservedChannelId.Login, xml);
+                SendInternal(node, (short)PreservedChannelId.Login, xml);
 
                 //Util.Log("SetUsername:" + node.UserName);
 
@@ -127,7 +127,7 @@ namespace Snowball
                 node.AesEncrypter = new AesEncrypter(aes);
                 node.AesDecrypter = new AesDecrypter(aes);
 
-                Send(node, (short)PreservedChannelId.KeyExchangeAck, 0);
+                SendInternal(node, (short)PreservedChannelId.KeyExchangeAck, 0);
 
                 node.IsConnected = true;
                 if (OnConnected != null) OnConnected(node);
@@ -324,7 +324,7 @@ namespace Snowball
                 {
                     byte[] key = GenerateTmpKey();
                     keypair.Value.TmpKey = key;
-                    Send(keypair.Value, (short)PreservedChannelId.Health, key);
+                    SendInternal(keypair.Value, (short)PreservedChannelId.Health, key);
                     keypair.Value.HealthLostCount++;
                     if (keypair.Value.HealthLostCount > MaxHealthLostCount)
                     {
@@ -438,11 +438,11 @@ namespace Snowball
                         {
                             node.UdpEndPoint = endPoint;
                             nodeUdpMap.Add(endPoint, node);
-                            Send(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+                            SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
 
                             byte[] key = GenerateTmpKey();
                             node.TmpKey = key;
-                            Send(node, (short)PreservedChannelId.Health, key);
+                            SendInternal(node, (short)PreservedChannelId.Health, key);
                         }
                     }
                 }
@@ -721,8 +721,13 @@ namespace Snowball
             return true;
         }
 
-
         public async Task<bool> Send<T>(ComNode node, short channelId, T data)
+        {
+            if (!node.IsConnected) return false;
+            else return await SendInternal<T>(node, channelId, data);
+        }
+
+        async Task<bool> SendInternal<T>(ComNode node, short channelId, T data)
         {
             return await Task.Run(async () =>
             {

@@ -118,7 +118,7 @@ namespace Snowball
                 //Util.Log("Health");
                 healthLostCount = 0;
                 byte[] encrypted = EncrypteTmpKey(data);
-                Send((short)PreservedChannelId.Health, encrypted);
+                SendInternal((short)PreservedChannelId.Health, encrypted);
             }));
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
@@ -128,7 +128,7 @@ namespace Snowball
             AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotifyAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
                 AesKeyPair pair = GenerateAesKey();
-                Send((short)PreservedChannelId.KeyExchange, pair);
+                SendInternal((short)PreservedChannelId.KeyExchange, pair);
             }));
 
             AddChannel(new DataChannel<AesKeyPair>((short)PreservedChannelId.KeyExchange, QosType.Reliable, Compression.None, Encryption.Rsa, (node, data) =>
@@ -230,7 +230,7 @@ namespace Snowball
                     {
                         if (!udpAck)
                         {
-                            Send((short)PreservedChannelId.UdpNotify, UserName);
+                            SendInternal((short)PreservedChannelId.UdpNotify, UserName);
                         }
 
                     }
@@ -310,8 +310,8 @@ namespace Snowball
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnPoll = OnPoll;
 
-                Send((short)PreservedChannelId.Login, UserName);
-                Send((short)PreservedChannelId.UdpNotify, UserName);
+                SendInternal((short)PreservedChannelId.Login, UserName);
+                SendInternal((short)PreservedChannelId.UdpNotify, UserName);
 
                 healthLostCount = 0;
 
@@ -616,8 +616,13 @@ namespace Snowball
             packer.Write((short)(bufferSize - start));
         }
 
-
         public async Task<bool> Send<T>(short channelId, T data)
+        {
+            if (!IsConnected) return false;
+            else return await SendInternal<T>(channelId, data);
+        }
+
+        async Task<bool> SendInternal<T>(short channelId, T data)
         {
             return await Task.Run(async () =>
             {
