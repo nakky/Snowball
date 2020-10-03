@@ -102,15 +102,29 @@ namespace Snowball
 
         public RsaEncrypter rsaEncrypter;
 
+        public delegate bool ValidateRsaKeyFunc(string publicKey);
+
+        ValidateRsaKeyFunc ValidateRsaKey = (string publicKey) =>
+        {
+            return true;
+        };
+        public void SetValidateRsaKeyFunction(ValidateRsaKeyFunc func) { ValidateRsaKey = func; }
+
+
         public ComClient()
         {
             IsOpened = false;
 
             AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
-                rsaEncrypter = new RsaEncrypter();
-                rsaEncrypter.FromPublicKeyXmlString(data);
-                udpAck = false;
+                bool isValid = ValidateRsaKey(data);
+                if (isValid)
+                {
+                    rsaEncrypter = new RsaEncrypter();
+                    rsaEncrypter.FromPublicKeyXmlString(data);
+                    udpAck = false;
+                }
+                else Disconnect();
             }));
 
             AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
