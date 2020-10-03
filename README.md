@@ -58,7 +58,7 @@ Those of client side are as follows.
 ComClient client = new ComClient();
 
 //Add Data Channel (Channel Id 0 is string data transfer.)
-client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) => {
+client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, Encryption.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
 
@@ -141,16 +141,25 @@ client.Open();
 ComServer and ComClient are registered some Data Channels. A Data Channel has transfer settings and can be set a Data Receive Handler.  
 For example, if you want to transfer chat text data between server and client, you should create a Data Channel for text data translation and register server and client respectively.  
 
-Data Channel also can be set QoS Type (Reliable / Unreliable), and compression setting. 
+Data Channel also can be set QoS Type (Reliable / Unreliable), and compression, encryption setting. 
 
 ```csharp
-client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) => {
+client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, Encryption.None, (node, data) => {
 	Util.Log("Client Receive:" + data);       
 }));
-client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.LZ4, (node, data) => {
+client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.LZ4, Encryption.None, (node, data) => {
 	Util.Log("Client Receive:" + data.ToString());       
 }));
 ```
+
+### Channel Settings
+
+Reliable and Unreliable are available for QoS, and LZ4 is prepared for compression.
+For Encryption, RSA and AES are available, but RSA is implemented only for exchanging common keys, so it has many limitations. Also in terms of speed, use only AES.
+
+
+
+
 
 ### Data Types
 
