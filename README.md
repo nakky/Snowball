@@ -38,8 +38,8 @@ Server side examples are as follows.
 ComServer server = new ComServer();
 
 //Add Data Channel (Channel Id 0 is string data transfer.)
-server.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, (node, data) =>{
-	Util.Log("Server-Receive:" + data);                
+server.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>{
+    Util.Log("Server-Receive:" + data);                
 }));
 
 //Beacon Setting(Broadcast)
@@ -59,7 +59,7 @@ ComClient client = new ComClient();
 
 //Add Data Channel (Channel Id 0 is string data transfer.)
 client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, Encryption.None, (node, data) => {
-	Util.Log("Client Receive:" + data);       
+    Util.Log("Client Receive:" + data);       
 }));
 
 //Beacon Setting(Accept)
@@ -145,10 +145,10 @@ Data Channel also can be set QoS Type (Reliable / Unreliable), and compression, 
 
 ```csharp
 client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None, Encryption.None, (node, data) => {
-	Util.Log("Client Receive:" + data);       
+    Util.Log("Client Receive:" + data);       
 }));
 client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.LZ4, Encryption.None, (node, data) => {
-	Util.Log("Client Receive:" + data.ToString());       
+    Util.Log("Client Receive:" + data.ToString());       
 }));
 ```
 
@@ -251,8 +251,8 @@ Also, client can be set a function about checking beacon data.
 
 ```csharp
 client.SetBeaconAcceptFunction((data) => {
-	if (data == "Test") return true;
-	else return false;
+    if (data == "Test") return true;
+    else return false;
 });
 ```
 
