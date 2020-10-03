@@ -78,6 +78,16 @@ namespace Snowball
 
         public RsaDecrypter rsaDecrypter;
 
+        public delegate void RsaKeyGenerateFunc(out RSAParameters publicKey, out RSAParameters privateKey);
+
+        RsaKeyGenerateFunc RsaKeyGenerate = (out RSAParameters publicKey, out RSAParameters privateKey) =>
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            publicKey = rsa.ExportParameters(false);
+            privateKey = rsa.ExportParameters(true);
+        };
+        public void SetRsaKeyGenerateFunction(RsaKeyGenerateFunc func) { RsaKeyGenerate = func; }
+
         public ComServer()
         {
             IsOpened = false;
@@ -166,9 +176,12 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-            RsaPrivateKey = rsa.ExportParameters(true);
-            RsaPublicKey = rsa.ExportParameters(false);
+            RSAParameters publicKey;
+            RSAParameters privateKey;
+
+            RsaKeyGenerate(out publicKey, out privateKey);
+            RsaPublicKey = publicKey;
+            RsaPrivateKey = privateKey;
 
             rsaDecrypter = new RsaDecrypter(RsaPrivateKey);
 
