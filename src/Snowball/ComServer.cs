@@ -38,6 +38,9 @@ namespace Snowball
         public delegate void DisconnectedHandler(ComNode node);
         public DisconnectedHandler OnDisconnected;
 
+        public delegate void NodeRemovedHandler(ComNode node);
+        public NodeRemovedHandler OnNodeRemoved;
+
         bool isDisconnecting = false;
 
         protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
@@ -175,12 +178,16 @@ namespace Snowball
                 if (previousNode != null && previousNode.AesDecrypter != null)
                 {
                     byte[] decrypted = previousNode.AesDecrypter.Decrypt(data.encryptionData);
-                    node.UserId = previousNode.UserId;
-                    lock (userNodeMapLock)
+                    if (decrypted.SequenceEqual(Global.ReconnectRawData))
                     {
-                        userNodeMap.Add(node.UserId, node);
+                        node.UserId = previousNode.UserId;
+                        lock (userNodeMapLock)
+                        {
+                            userNodeMap.Add(node.UserId, node);
+                        }
+                        registerd = true;
                     }
-                    registerd = true;
+                    
                 }
 
             }
@@ -246,7 +253,7 @@ namespace Snowball
                     }
                 }
             }
-            
+
         }
 
         public void Open()
@@ -449,17 +456,22 @@ namespace Snowball
             {
                 TimeSpan elapsed = DateTime.Now - pair.Value.DisconnectedTimeStamp;
 
-                if(elapsed > intervalSpan)
+                if (elapsed > intervalSpan)
                 {
                     removed.Add(pair.Key);
                 }
             }
 
-            foreach(var key in removed)
+            foreach (var key in removed)
             {
                 lock (disconnectedUserNodeMapLock)
                 {
-                    if (disconnectedUserNodeMap.ContainsKey(key)) disconnectedUserNodeMap.Remove(key);
+                    if (disconnectedUserNodeMap.ContainsKey(key))
+                    {
+                        ComNode node = disconnectedUserNodeMap[key];
+                        disconnectedUserNodeMap.Remove(key);
+                        if (OnNodeRemoved != null) OnNodeRemoved(node);
+                    }
                 }
             }
         }
@@ -584,7 +596,7 @@ namespace Snowball
                             }
                         }
                     }
-                    
+
                 }
                 else if (!dataChannelMap.ContainsKey(channelId))
                 {
@@ -651,7 +663,7 @@ namespace Snowball
 
                     IDecrypter decrypter = null;
                     if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
-                    else if(channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
+                    else if (channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
 
                     object container = channel.FromStream(ref packer, decrypter);
 
