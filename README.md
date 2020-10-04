@@ -117,21 +117,23 @@ Snowball consists of "ComServer" and "ComClient". ComClient connect to ComServer
 
 ### Server/Client
 
-ComServer and ComClient can be set some parameters (ex. Send Port, Receive Port, Buffer Size...). You can set those parameters before Open().  
-Snowball use UDP, though if you want to test on localhost, you can not use same port in Send and Receive (Two UDP sockets can not be bind to the same port). In those case, you should set contrasting numbers to Server and Client respectively.  
-(Default port numbers are contrasting.)
+ComServer and ComClient can be set some parameters (ex. Port Number, Buffer Size...). You can set those parameters before Open().  
+Snowball use UDP, though if you want to test on localhost, you can not use same port in two application (Two UDP sockets can not be bind to the same port). In those case, you should set different number to Client Listen Port.  
+(The Default value of ListenPortNumber is 0, and if 0 is set, UDP ListenPortNumber will be the same value as PortNumber.)
 
 ```csharp
-server.SendPortNumber = 32001;
-server.ListenPortNumber = 32002;
+server.PortNumber = 32001;
 server.Open();
 ```
 
 ```csharp
-client.SendPortNumber = 32002;
-client.ListenPortNumber = 32001;
+client.PortNumber = 32001;
+//client.ListenPortNumber = 32002;
 client.Open();
 ```
+
+Multiple Clients can be launched by setting different ListenPortNumbers. This is useful for stress tests etc.
+
 
 
 ### Data Channel
@@ -155,10 +157,7 @@ client.AddChannel(new DataChannel<TestClass>(1, QosType.Unreliable, Compression.
 ### Channel Settings
 
 Reliable and Unreliable are available for QoS, and LZ4 is prepared for compression.
-For Encryption, RSA and AES are available, but RSA is implemented only for exchanging common keys, so it has many limitations. Also in terms of speed, use only AES.
-
-
-
+For Encryption, RSA and AES are available, but RSA is implemented only for exchanging common AES keys, so it has many limitations. Also in terms of speed, use only AES.
 
 
 ### Data Types
