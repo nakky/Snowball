@@ -47,6 +47,9 @@ public partial class MainWindow : Gtk.Window
             OnReceive(data);
         }));
         client.AcceptBeacon = true;
+
+        client.ListenPortNumber = client.PortNumber + 1;
+
         client.Open();
     }
 

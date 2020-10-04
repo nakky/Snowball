@@ -49,11 +49,11 @@ namespace Snowball
         int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
 
-        int listenPortNumber = 32002;
-        public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened) listenPortNumber = value; } }
+        int portNumber = 32001;
+        public int PortNumber { get { return portNumber; } set { if (!IsOpened) portNumber = value; } }
 
-        int sendPortNumber = 32001;
-        public int SendPortNumber { get { return sendPortNumber; } set { if (!IsOpened) sendPortNumber = value; } }
+        int listenPortNumber = 0;
+        public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened) listenPortNumber = value; } }
 
         int bufferSize = 8192;
         public int BufferSize { get { return bufferSize; } set { if (!IsOpened) bufferSize = value; } }
@@ -176,11 +176,13 @@ namespace Snowball
             if (Global.UseSyncContextPost && Global.SyncContext == null)
                 Global.SyncContext = SynchronizationContext.Current;
 
-            udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
+            int port = PortNumber;
+            if (listenPortNumber != 0) port = listenPortNumber;
+            udpTerminal = new UDPTerminal(port, bufferSize);
             udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             udpTerminal.OnReceive += OnUDPReceived;
 
-            tcpConnector = new TCPConnector(sendPortNumber);
+            tcpConnector = new TCPConnector(portNumber);
             tcpConnector.ConnectionBufferSize = bufferSize;
             tcpConnector.ConnectTimeOutMilliSec = connectTimeOutMilliSec;
             tcpConnector.OnConnected += OnConnectedInternal;
@@ -683,7 +685,7 @@ namespace Snowball
                 }
                 else if (channel.Qos == QosType.Unreliable)
                 {
-                    await udpTerminal.Send(serverNode.Ip, sendPortNumber, bufferSize, buffer).ConfigureAwait(false);
+                    await udpTerminal.Send(serverNode.Ip, portNumber, bufferSize, buffer).ConfigureAwait(false);
                 }
 
                 if (isRent) arrayPool.Return(buffer);

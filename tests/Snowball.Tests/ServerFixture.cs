@@ -9,8 +9,7 @@ namespace Snowball.Tests
 {
     public class ServerFixture : IDisposable
     {
-        public int SendPort { get; private set; }
-        public int ListenPort { get; private set; }
+        public int Port { get; private set; }
 
         public ComServer Server { get; private set; }
 
@@ -24,19 +23,12 @@ namespace Snowball.Tests
             Global.UseSyncContextPost = false;
 
             Random rand = new Random();
-            SendPort = rand.Next(10000, 20000);
-            ListenPort = SendPort;
+            Port = rand.Next(10000, 20000);
 
-            while (ListenPort == SendPort)
-            {
-                ListenPort = rand.Next(10000, 20000);
-            }
-
-            Util.Log("send:" + SendPort + ", listen:" + ListenPort);
+            Util.Log("server port:" + Port);
 
             Server = new ComServer();
-            Server.SendPortNumber = SendPort;
-            Server.ListenPortNumber = ListenPort;
+            Server.PortNumber = Port;
             Server.BufferSize = 8192 * 10;
 
             Server.AddBeaconList(IPAddress.Broadcast.ToString());

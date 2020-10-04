@@ -11,10 +11,7 @@ namespace Snowball
         int DefaultBeaconPort = 32000;
 
         [SerializeField]
-        int DefaultSendPort = 32002;
-
-        [SerializeField]
-        int DefaultListenPort = 32001;
+        int DefaultPort = 32001;
 
         [SerializeField]
         int DefaultBufferSize = 8192;
@@ -22,8 +19,8 @@ namespace Snowball
         public bool IsOpened { get { return com.IsOpened; } }
 
         public int BeaconPort { get { return com.BeaconPortNumber; } set { com.BeaconPortNumber = value; } }
-        public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
-        public int ListenPort { get { return com.ListenPortNumber; } set { com.ListenPortNumber = value; } }
+        public int Port { get { return com.PortNumber; } set { com.PortNumber = value; } }
+
         [SerializeField]
         public int BufferSize { get { return com.BufferSize; } set { com.BufferSize = value; } }
 
@@ -63,8 +60,7 @@ namespace Snowball
         public void Open()
         {
             this.BeaconPort = DefaultBeaconPort;
-            this.SendPort = DefaultSendPort;
-			this.ListenPort = DefaultListenPort;
+            this.Port = DefaultPort;
 			this.BufferSize = DefaultBufferSize;
 
 			com.Open();

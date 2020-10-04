@@ -44,6 +44,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DefaultBeaconPort: 32000
-  DefaultSendPort: 32001
-  DefaultListenPort: 32002
+  DefaultPort: 32001
   DefaultBufferSize: 8192

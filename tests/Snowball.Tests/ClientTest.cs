@@ -40,8 +40,8 @@ namespace Snowball.Tests
             Util.Log("OpenClose");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
             client.Open();
 
             client.Close();
@@ -122,8 +122,8 @@ namespace Snowball.Tests
             Util.Log("ConnectDisconnect");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             Connect(ref client);
             server.Server.BeaconStop();
@@ -140,8 +140,8 @@ namespace Snowball.Tests
             Util.Log("SendReceiveReliable");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             Connect(ref client);
             server.Server.BeaconStop();
@@ -274,8 +274,8 @@ namespace Snowball.Tests
             Util.Log("SendReceiveUnreliable");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             Connect(ref client);
             server.Server.BeaconStop();
@@ -406,8 +406,8 @@ namespace Snowball.Tests
             Util.Log("SendReceiveRaw");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             Connect(ref client);
             server.Server.BeaconStop();
@@ -542,8 +542,8 @@ namespace Snowball.Tests
             Util.Log("StressTestReliable");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             client.BufferSize = 8192 * 10;
 
@@ -617,8 +617,8 @@ namespace Snowball.Tests
             Util.Log("StressTestUnreliable");
 
             ComClient client = new ComClient();
-            client.ListenPortNumber = this.server.SendPort;
-            client.SendPortNumber = this.server.ListenPort;
+            client.PortNumber = this.server.Port;
+            client.ListenPortNumber = this.server.Port + 1;
 
             client.BufferSize = 8192 * 10;
 

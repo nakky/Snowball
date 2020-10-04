@@ -501,6 +501,11 @@ PrefabInstance:
       propertyPath: DefaultBufferSize
       value: 81920
       objectReference: {fileID: 0}
+    - target: {fileID: 1269959842642623626, guid: d640fdaedba4248b4bd49bcb9fc246ee,
+        type: 3}
+      propertyPath: DefaultListenPort
+      value: 32002
+      objectReference: {fileID: 0}
     - target: {fileID: 1269959842642623625, guid: d640fdaedba4248b4bd49bcb9fc246ee,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -937,6 +942,7 @@ MonoBehaviour:
   client: {fileID: 104808855}
   serverObject: {fileID: 1957173662}
   clientObject: {fileID: 322521521}
+  numSend: 70
 --- !u!4 &1764324509
 Transform:
   m_ObjectHideFlags: 0

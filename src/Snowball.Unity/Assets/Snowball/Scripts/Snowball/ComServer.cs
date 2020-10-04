@@ -23,11 +23,8 @@ namespace Snowball
         int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
 
-        int listenPortNumber = 32001;
-        public int ListenPortNumber { get { return listenPortNumber; } set { if (!IsOpened) listenPortNumber = value; } }
-
-        int sendPortNumber = 32002;
-        public int SendPortNumber { get { return sendPortNumber; } set { if (!IsOpened) sendPortNumber = value; } }
+        int portNumber = 32001;
+        public int PortNumber { get { return portNumber; } set { if (!IsOpened) portNumber = value; } }
 
         int bufferSize = 81920;
         public int BufferSize { get { return bufferSize; } set { if (!IsOpened) bufferSize = value; } }
@@ -242,9 +239,9 @@ namespace Snowball
 
             while (true)
             {
-                id = userIdRandom.Next(1, int.MaxValue);
                 lock (userNodeMapLock)
                 {
+                    id = userIdRandom.Next(1, int.MaxValue);
                     if (!userNodeMap.ContainsKey(id))
                     {
                         userNodeMap.Add(id, node);
@@ -272,10 +269,10 @@ namespace Snowball
 
             rsaDecrypter = new RsaDecrypter(RsaPrivateKey);
 
-            udpTerminal = new UDPTerminal(listenPortNumber, bufferSize);
+            udpTerminal = new UDPTerminal(portNumber, bufferSize);
             udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            tcpListener = new TCPListener(listenPortNumber);
+            tcpListener = new TCPListener(portNumber);
             tcpListener.ConnectionBufferSize = bufferSize;
             tcpListener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.OnConnected += OnConnectedInternal;
