@@ -42,9 +42,16 @@ namespace Snowball
 
         protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
-        protected Dictionary<string, ComNode> userNodeMap = new Dictionary<string, ComNode>();
+        protected Dictionary<int, ComNode> userNodeMap = new Dictionary<int, ComNode>();
+        object userNodeMapLock = new object();
+
         protected Dictionary<IPEndPoint, ComNode> nodeTcpMap = new Dictionary<IPEndPoint, ComNode>();
         protected Dictionary<IPEndPoint, ComNode> nodeUdpMap = new Dictionary<IPEndPoint, ComNode>();
+
+        Random userIdRandom = new Random();
+
+        protected Dictionary<int, ComNode> disconnectedUserNodeMap = new Dictionary<int, ComNode>();
+        object disconnectedUserNodeMapLock = new object();
 
         public delegate string BeaconDataGenerateFunc();
         BeaconDataGenerateFunc BeaconDataCreate = () => {
@@ -65,6 +72,13 @@ namespace Snowball
 
         protected int healthIntervalMs = 500;
         System.Timers.Timer healthTimer;
+
+        protected int removeNodeCheckIntervalMs = 1000;
+        System.Timers.Timer removeNodeCheckTimer;
+
+        protected int removeIntervalSec = 30;
+        public int RemoveIntervalSec { get { return removeIntervalSec; } set { if (!IsOpened) removeIntervalSec = value; } }
+
 
         Converter beaconConverter;
 
@@ -92,34 +106,19 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.IssueId, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
-                node.UserName = data;
-
-                if (userNodeMap.ContainsKey(node.UserName)) { userNodeMap.Remove(node.UserName); }
-
-                userNodeMap.Add(node.UserName, node);
-                string xml = rsaDecrypter.ToPublicKeyXmlString();
-                SendInternal(node, (short)PreservedChannelId.Login, xml);
-
-                //Util.Log("SetUsername:" + node.UserName);
-
+                OnIssueId(node, data);
             }));
 
             AddChannel(new DataChannel<byte[]>((short)PreservedChannelId.Health, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
                 byte[] decrypted = DecrypteTmpKey(data);
-                if (node.TmpKey != null && node.TmpKey.SequenceEqual(decrypted))
-                {
-                    node.HealthLostCount = 0;
-                }
-                else
-                {
-                    node.TmpKey = null;
-                }
+                if (node.TmpKey != null && node.TmpKey.SequenceEqual(decrypted)) node.HealthLostCount = 0;
+                else node.TmpKey = null;
             }));
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
             }));
 
@@ -129,18 +128,7 @@ namespace Snowball
 
             AddChannel(new DataChannel<AesKeyPair>((short)PreservedChannelId.KeyExchange, QosType.Reliable, Compression.None, Encryption.Rsa, (node, data) =>
             {
-                var aes = Aes.Create();
-                aes.Padding = PaddingMode.PKCS7;
-                aes.Key = data.Key;
-                aes.IV = data.IV;
-
-                node.AesEncrypter = new AesEncrypter(aes);
-                node.AesDecrypter = new AesDecrypter(aes);
-
-                SendInternal(node, (short)PreservedChannelId.KeyExchangeAck, 0);
-
-                node.IsConnected = true;
-                if (OnConnected != null) OnConnected(node);
+                OnKeyExchange(node, data);
             }));
 
             AddChannel(new DataChannel<int>((short)PreservedChannelId.KeyExchangeAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
@@ -151,12 +139,84 @@ namespace Snowball
 
             healthTimer = new System.Timers.Timer(healthIntervalMs);
             healthTimer.Elapsed += OnHealthCheck;
+
+            removeNodeCheckTimer = new System.Timers.Timer(removeNodeCheckIntervalMs);
+            removeNodeCheckTimer.Elapsed += OnRemoveNodeCheck;
+
         }
 
         public void Dispose()
         {
             BeaconStop();
             Close();
+        }
+
+        void OnIssueId(ComNode node, IssueIdData data)
+        {
+            bool registerd = false;
+
+            if (data.Id != 0 && data.encryptionData.Length > 0)
+            {
+                ComNode previousNode = null;
+                lock (userNodeMapLock)
+                {
+                    if (userNodeMap.ContainsKey(data.Id)) previousNode = userNodeMap[data.Id];
+                }
+
+                lock (disconnectedUserNodeMapLock)
+                {
+                    if (previousNode == null && disconnectedUserNodeMap.ContainsKey(data.Id))
+                    {
+                        previousNode = disconnectedUserNodeMap[data.Id];
+                        disconnectedUserNodeMap.Remove(data.Id);
+                    }
+                }
+
+                if (previousNode != null && previousNode.AesDecrypter != null)
+                {
+                    byte[] decrypted = previousNode.AesDecrypter.Decrypt(data.encryptionData);
+                    node.UserId = previousNode.UserId;
+                    lock (userNodeMapLock)
+                    {
+                        userNodeMap.Add(node.UserId, node);
+                    }
+                    registerd = true;
+                }
+
+            }
+
+            if (!registerd)
+            {
+                GenerateId(ref node);
+                registerd = true;
+            }
+
+            if (!registerd) Disconnect(node);
+            else
+            {
+                IssueIdData ldata = new IssueIdData();
+                ldata.Id = node.UserId;
+                string xml = rsaDecrypter.ToPublicKeyXmlString();
+                ldata.PublicKey = xml;
+                ldata.encryptionData = new byte[0];
+                SendInternal(node, (short)PreservedChannelId.IssueId, ldata);
+            }
+        }
+
+        void OnKeyExchange(ComNode node, AesKeyPair data)
+        {
+            var aes = Aes.Create();
+            aes.Padding = PaddingMode.PKCS7;
+            aes.Key = data.Key;
+            aes.IV = data.IV;
+
+            node.AesEncrypter = new AesEncrypter(aes);
+            node.AesDecrypter = new AesDecrypter(aes);
+
+            SendInternal(node, (short)PreservedChannelId.KeyExchangeAck, 0);
+
+            node.IsConnected = true;
+            if (OnConnected != null) OnConnected(node);
         }
 
         public void AddBeaconList(string ip)
@@ -167,6 +227,26 @@ namespace Snowball
         public void RemoveBeaconList(string ip)
         {
             beaaconList.Remove(ip);
+        }
+
+        void GenerateId(ref ComNode node)
+        {
+            int id;
+
+            while (true)
+            {
+                id = userIdRandom.Next(1, int.MaxValue);
+                lock (userNodeMapLock)
+                {
+                    if (!userNodeMap.ContainsKey(id))
+                    {
+                        userNodeMap.Add(id, node);
+                        node.UserId = id;
+                        break;
+                    }
+                }
+            }
+            
         }
 
         public void Open()
@@ -202,6 +282,7 @@ namespace Snowball
             IsOpened = true;
 
             healthTimer.Start();
+            removeNodeCheckTimer.Start();
         }
 
         int CreateBeaconData(out BytePacker packer)
@@ -252,6 +333,7 @@ namespace Snowball
             if (!IsOpened) return;
 
             healthTimer.Stop();
+            removeNodeCheckTimer.Stop();
 
             var nMap = new Dictionary<IPEndPoint, ComNode>(nodeTcpMap);
             foreach (var node in nMap)
@@ -353,6 +435,34 @@ namespace Snowball
             }
         }
 
+        public void OnRemoveNodeCheck(object sender, ElapsedEventArgs args)
+        {
+            RemoveNodeCheck();
+        }
+        public async Task RemoveNodeCheck()
+        {
+            TimeSpan intervalSpan = new TimeSpan(0, 0, RemoveIntervalSec);
+
+            List<int> removed = new List<int>();
+
+            foreach (var pair in disconnectedUserNodeMap)
+            {
+                TimeSpan elapsed = DateTime.Now - pair.Value.DisconnectedTimeStamp;
+
+                if(elapsed > intervalSpan)
+                {
+                    removed.Add(pair.Key);
+                }
+            }
+
+            foreach(var key in removed)
+            {
+                lock (disconnectedUserNodeMapLock)
+                {
+                    if (disconnectedUserNodeMap.ContainsKey(key)) disconnectedUserNodeMap.Remove(key);
+                }
+            }
+        }
 
         public void AddChannel(IDataChannel channel)
         {
@@ -407,8 +517,20 @@ namespace Snowball
                 {
                     ComSnowballNode node = (ComSnowballNode)nodeTcpMap[(IPEndPoint)connection.EndPoint];
                     nodeTcpMap.Remove((IPEndPoint)connection.EndPoint);
-                    
-                    if (userNodeMap.ContainsKey(node.UserName)) userNodeMap.Remove(node.UserName);
+
+                    lock (userNodeMapLock)
+                    {
+                        if (userNodeMap.ContainsKey(node.UserId)) userNodeMap.Remove(node.UserId);
+                    }
+
+                    node.DisconnectedTimeStamp = DateTime.Now;
+
+                    lock (disconnectedUserNodeMapLock)
+                    {
+                        if (!disconnectedUserNodeMap.ContainsKey(node.UserId))
+                            disconnectedUserNodeMap.Add(node.UserId, node);
+                    }
+
                     if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
                     node.UdpEndPoint = null;
                     node.IsDisconnecting = false;
@@ -442,22 +564,27 @@ namespace Snowball
                 else if (channelId == (short)PreservedChannelId.UdpNotify)
                 {
                     IDataChannel channel = dataChannelMap[channelId];
-                    string userName = (string)channel.FromStream(ref packer);
-                    if (userNodeMap.ContainsKey(userName))
-                    {
-                        //Util.Log("UdpUserName:" + userName);
-                        ComSnowballNode node = (ComSnowballNode)userNodeMap[userName];
-                        if (node.UdpEndPoint == null)
-                        {
-                            node.UdpEndPoint = endPoint;
-                            nodeUdpMap.Add(endPoint, node);
-                            SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+                    int userId = (int)channel.FromStream(ref packer);
 
-                            byte[] key = GenerateTmpKey();
-                            node.TmpKey = key;
-                            SendInternal(node, (short)PreservedChannelId.Health, key);
+                    lock (userNodeMapLock)
+                    {
+                        if (userNodeMap.ContainsKey(userId))
+                        {
+                            //Util.Log("UdpUserName:" + userName);
+                            ComSnowballNode node = (ComSnowballNode)userNodeMap[userId];
+                            if (node.UdpEndPoint == null)
+                            {
+                                node.UdpEndPoint = endPoint;
+                                nodeUdpMap.Add(endPoint, node);
+                                SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+
+                                byte[] key = GenerateTmpKey();
+                                node.TmpKey = key;
+                                SendInternal(node, (short)PreservedChannelId.Health, key);
+                            }
                         }
                     }
+                    
                 }
                 else if (!dataChannelMap.ContainsKey(channelId))
                 {

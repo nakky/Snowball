@@ -18,21 +18,21 @@ namespace Snowball.ChatServer
             server.OnConnected += (node) =>
             {
                 room.Add(node);
-                server.Broadcast(room, 0, node.UserName + " is logined.");
+                server.Broadcast(room, 0, node.UserId + " is logined.");
             };
 
             server.OnDisconnected += (node) =>
             {
                 room.Remove(node);
-                server.Broadcast(room, 0, node.UserName + " is logouted.");
+                server.Broadcast(room, 0, node.UserId + " is logouted.");
             };
 
             server.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.LZ4, Encryption.Aes, (node, data) =>{
-                server.Broadcast(room, 0, node.UserName + " > " + data);
+                server.Broadcast(room, 0, "User " + node.UserId + " > " + data);
             }));
 
             server.Open();
-            server.BeaconStart();
+            //server.BeaconStart();
 
             Console.WriteLine("Running... Press any key to stop...");
             Console.ReadLine();

@@ -22,16 +22,24 @@ public partial class MainWindow : Gtk.Window
 
         };
 
+        buttonConnect.Clicked += (sender, e) =>
+        {
+            if (client.IsConnected) client.Disconnect();
+            else client.Connect("127.0.0.1");
+        };
+
         client.OnConnected += (node) =>
         {
             textviewInput.Sensitive = true;
             buttonSend.Sensitive = true;
+            buttonConnect.Label = "Disconnect";
         };
 
         client.OnDisconnected += (node) =>
         {
             textviewInput.Sensitive = false;
             buttonSend.Sensitive = false;
+            buttonConnect.Label = "Connect";
         };
 
         client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.LZ4, Encryption.Aes, (endPointIp, data) =>

@@ -44,8 +44,7 @@ namespace Snowball
             }
         }
 
-        string userName = "u001";
-        public string UserName { get { return userName; } set { userName = value; } }
+        public int UserId { get; private set; }
 
         int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
@@ -79,6 +78,7 @@ namespace Snowball
         public void SetBeaconAcceptFunction(BeaconAcceptFunc func) { BeaconAccept = func; }
 
         ComNode serverNode;
+        ComNode previousServerNode;
 
         TCPConnector tcpConnector;
 
@@ -115,13 +115,15 @@ namespace Snowball
         {
             IsOpened = false;
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.Login, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.IssueId, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
-                bool isValid = ValidateRsaKey(data);
+                UserId = data.Id;
+
+                bool isValid = ValidateRsaKey(data.PublicKey);
                 if (isValid)
                 {
                     rsaEncrypter = new RsaEncrypter();
-                    rsaEncrypter.FromPublicKeyXmlString(data);
+                    rsaEncrypter.FromPublicKeyXmlString(data.PublicKey);
                     udpAck = false;
                 }
                 else Disconnect();
@@ -135,7 +137,7 @@ namespace Snowball
                 SendInternal((short)PreservedChannelId.Health, encrypted);
             }));
 
-            AddChannel(new DataChannel<string>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
             }));
 
@@ -244,7 +246,7 @@ namespace Snowball
                     {
                         if (!udpAck)
                         {
-                            SendInternal((short)PreservedChannelId.UdpNotify, UserName);
+                            SendInternal((short)PreservedChannelId.UdpNotify, UserId);
                         }
 
                     }
@@ -324,9 +326,28 @@ namespace Snowball
                 connection.OnDisconnected = OnDisconnectedInternal;
                 connection.OnPoll = OnPoll;
 
-                SendInternal((short)PreservedChannelId.Login, UserName);
-                SendInternal((short)PreservedChannelId.UdpNotify, UserName);
+                IssueIdData ldata = new IssueIdData();
 
+                if (UserId != 0)
+                {
+                    if (previousServerNode != null && previousServerNode.AesEncrypter != null)
+                    {
+                        ldata.Id = UserId;
+                        ldata.encryptionData = previousServerNode.AesEncrypter.Encrypt(Global.ReconnectRawData);
+                        ldata.PublicKey = "";
+                    }
+                    else UserId = 0;
+                }
+
+                if(UserId == 0)
+                {
+                    ldata.Id = UserId;
+                    ldata.encryptionData = new byte[0];
+                    ldata.PublicKey = "";
+                }
+
+                SendInternal((short)PreservedChannelId.IssueId, ldata);
+                
                 healthLostCount = 0;
 
                 //Util.Log("Client:Connected");
@@ -356,6 +377,7 @@ namespace Snowball
             IsConnected = false;
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
+            previousServerNode = serverNode;
             serverNode = null;
             if(udpTerminal != null) udpTerminal.ReceiveStop();
 

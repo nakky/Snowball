@@ -34,7 +34,7 @@ namespace Snowball
     public enum PreservedChannelId
     {
         Beacon = -1,
-        Login = -2,
+        IssueId = -2,
         Health = -3,
         UdpNotify = -4,
         UdpNotifyAck = -5,
@@ -43,10 +43,24 @@ namespace Snowball
         //User can use 0 - 32767
     }
 
+    [Transferable]
+    public class IssueIdData
+    {
+        public IssueIdData() { }
+
+        [Data(0)]
+        public int Id { get; set; }
+        [Data(1)]
+        public byte[] encryptionData { get; set; }
+        [Data(2)]
+        public string PublicKey { get; set; }
+    }
+
     public static class Global
 	{
 		public static SynchronizationContext SyncContext { get; set; }
 		public static bool UseSyncContextPost = true;
+        public static byte[] ReconnectRawData = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 	}
 
 }

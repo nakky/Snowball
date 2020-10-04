@@ -5,6 +5,8 @@ public partial class MainWindow
 {
 	private global::Gtk.VBox vbox1;
 
+	private global::Gtk.Button buttonConnect;
+
 	private global::Gtk.ScrolledWindow GtkScrolledWindow;
 
 	private global::Gtk.TextView textviewDisplay;
@@ -27,6 +29,17 @@ public partial class MainWindow
 		this.vbox1.Name = "vbox1";
 		this.vbox1.Spacing = 6;
 		// Container child vbox1.Gtk.Box+BoxChild
+		this.buttonConnect = new global::Gtk.Button();
+		this.buttonConnect.CanFocus = true;
+		this.buttonConnect.Name = "buttonConnect";
+		this.buttonConnect.UseUnderline = true;
+		this.buttonConnect.Label = global::Mono.Unix.Catalog.GetString("Connect");
+		this.vbox1.Add(this.buttonConnect);
+		global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.buttonConnect]));
+		w1.Position = 0;
+		w1.Expand = false;
+		w1.Fill = false;
+		// Container child vbox1.Gtk.Box+BoxChild
 		this.GtkScrolledWindow = new global::Gtk.ScrolledWindow();
 		this.GtkScrolledWindow.Name = "GtkScrolledWindow";
 		this.GtkScrolledWindow.ShadowType = ((global::Gtk.ShadowType)(1));
@@ -38,8 +51,8 @@ public partial class MainWindow
 		this.textviewDisplay.CursorVisible = false;
 		this.GtkScrolledWindow.Add(this.textviewDisplay);
 		this.vbox1.Add(this.GtkScrolledWindow);
-		global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.GtkScrolledWindow]));
-		w2.Position = 0;
+		global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.GtkScrolledWindow]));
+		w3.Position = 1;
 		// Container child vbox1.Gtk.Box+BoxChild
 		this.GtkScrolledWindow1 = new global::Gtk.ScrolledWindow();
 		this.GtkScrolledWindow1.Name = "GtkScrolledWindow1";
@@ -50,8 +63,8 @@ public partial class MainWindow
 		this.textviewInput.Name = "textviewInput";
 		this.GtkScrolledWindow1.Add(this.textviewInput);
 		this.vbox1.Add(this.GtkScrolledWindow1);
-		global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.GtkScrolledWindow1]));
-		w4.Position = 1;
+		global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.GtkScrolledWindow1]));
+		w5.Position = 2;
 		// Container child vbox1.Gtk.Box+BoxChild
 		this.buttonSend = new global::Gtk.Button();
 		this.buttonSend.Sensitive = false;
@@ -60,10 +73,10 @@ public partial class MainWindow
 		this.buttonSend.UseUnderline = true;
 		this.buttonSend.Label = global::Mono.Unix.Catalog.GetString("Send");
 		this.vbox1.Add(this.buttonSend);
-		global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.buttonSend]));
-		w5.Position = 2;
-		w5.Expand = false;
-		w5.Fill = false;
+		global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.vbox1[this.buttonSend]));
+		w6.Position = 3;
+		w6.Expand = false;
+		w6.Fill = false;
 		this.Add(this.vbox1);
 		if ((this.Child != null))
 		{
