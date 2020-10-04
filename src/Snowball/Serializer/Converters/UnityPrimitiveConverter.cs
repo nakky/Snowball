@@ -1,8 +1,8 @@
-﻿#if UNITY_2017_1_OR_NEWER
+﻿using System;
 
-using System;
-
+#if UNITY_2017_1_OR_NEWER
 using UnityEngine;
+#endif
 
 namespace Snowball
 {
@@ -233,6 +233,121 @@ namespace Snowball
         }
     }
 
+    public class ColorConverter : Converter
+    {
+        public static Converter constract() { return new ColorConverter(); }
+
+        public override void Serialize(BytePacker packer, object data)
+        {
+            if (data == null)
+            {
+                packer.Write((byte)0);
+            }
+            else
+            {
+                packer.Write((byte)1);
+
+                Color color = (Color)data;
+
+                packer.Write(color.r);
+                packer.Write(color.g);
+                packer.Write(color.b);
+                packer.Write(color.a);
+            }
+        }
+
+        public override object Deserialize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
+            {
+                return null;
+            }
+            else
+            {
+                Color color = new Color();
+
+                color.r = packer.ReadFloat();
+                color.g = packer.ReadFloat();
+                color.b = packer.ReadFloat();
+                color.a = packer.ReadFloat();
+
+                return color;
+            }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(float) * 4;
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(float) * 4;
+            return sizeof(byte) + sizeof(float) * 4;
+        }
+    }
+
+    public class Color32Converter : Converter
+    {
+        public static Converter constract() { return new Color32Converter(); }
+
+        public override void Serialize(BytePacker packer, object data)
+        {
+            if (data == null)
+            {
+                packer.Write((byte)0);
+            }
+            else
+            {
+                packer.Write((byte)1);
+
+                Color32 color = (Color32)data;
+
+                packer.Write(color.r);
+                packer.Write(color.g);
+                packer.Write(color.b);
+                packer.Write(color.a);
+            }
+        }
+
+        public override object Deserialize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0)
+            {
+                return null;
+            }
+            else
+            {
+                Color32 color = new Color32();
+
+                color.r = packer.ReadByte();
+                color.g = packer.ReadByte();
+                color.b = packer.ReadByte();
+                color.a = packer.ReadByte();
+
+                return color;
+            }
+        }
+
+        public override int GetDataSize(object data)
+        {
+            return sizeof(byte) + sizeof(byte) * 4;
+        }
+
+        public override int GetDataSize(BytePacker packer)
+        {
+            byte isNull = packer.ReadByte();
+            if (isNull == 0) return sizeof(byte);
+
+            packer.Position += sizeof(byte) * 4;
+            return sizeof(byte) + sizeof(byte) * 4;
+        }
+    }
+
 }
 
-#endif

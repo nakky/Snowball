@@ -27,5 +27,7 @@
     <Folder Include="Serializer\" />
     <Folder Include="Serializer\Converters\" />
     <Folder Include="Encrypter\" />
+    <Folder Include="Type\" />
+    <Folder Include="Type\Unity\" />
   </ItemGroup>
 </Project>

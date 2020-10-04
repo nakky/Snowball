@@ -114,14 +114,13 @@ namespace Snowball
 
             constractorMap.Add(typeof(byte[]), ByteArrayConverter.constract);
 
-#if UNITY_2017_1_OR_NEWER
-
             constractorMap.Add(typeof(Vector2), Vector2Converter.constract);
             constractorMap.Add(typeof(Vector3), Vector3Converter.constract);
             constractorMap.Add(typeof(Vector4), Vector4Converter.constract);
             constractorMap.Add(typeof(Quaternion), QuaternionConverter.constract);
 
-#endif
+            constractorMap.Add(typeof(Color), ColorConverter.constract);
+            constractorMap.Add(typeof(Color32), Color32Converter.constract);
 
             setup = true;
         }

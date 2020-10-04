@@ -172,7 +172,8 @@ Othres : [DateTime, TimeSpan]
 
 #### Unity Extension
 
-Transform : [Vector2, Vector3, Vector4, Quaternion]
+Transform : [Vector2, Vector3, Vector4, Quaternion]  
+Color : [Color, Color32]
 
 #### Custom Attributed Class
 
