@@ -18,11 +18,9 @@ namespace Snowball
 
         public bool IsOpened { get { return com.IsOpened; } }
 
-        public int BeaconPort { get { return com.BeaconPortNumber; } set { com.BeaconPortNumber = value; } }
-        public int Port { get { return com.PortNumber; } set { com.PortNumber = value; } }
-
-        [SerializeField]
-        public int BufferSize { get { return com.BufferSize; } set { com.BufferSize = value; } }
+        public int BeaconPort { get { return com.BeaconPortNumber; } private set { com.BeaconPortNumber = value; } }
+        public int Port { get { return com.PortNumber; } private set { com.PortNumber = value; } }
+        public int BufferSize { get { return com.BufferSize; } private set { com.BufferSize = value; } }
 
         public ComServer.ConnectedHandler OnConnected { get { return com.OnConnected; } set { com.OnConnected = value; } }
         public ComServer.DisconnectedHandler OnDisconnected { get { return com.OnDisconnected; } set { com.OnDisconnected = value; } }

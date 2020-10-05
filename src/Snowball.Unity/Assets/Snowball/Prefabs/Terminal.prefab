@@ -43,6 +43,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 694f9462d910549b693b80033ff14332, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultSendPort: 59901
-  DefaultListenPort: 59902
+  DefaultPort: 32001
+  DefaultListenPort: 0
   DefaultBufferSize: 8192

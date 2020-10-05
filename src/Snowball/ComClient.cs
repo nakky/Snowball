@@ -13,11 +13,11 @@ using System.Security.Cryptography;
 
 namespace Snowball
 {
-    public class ComClient : IDisposable
+    public sealed class ComClient : IDisposable
     {
-        public bool IsOpened { get; protected set; }
+        public bool IsOpened { get; private set; }
 
-        public bool acceptBeacon = false;
+        bool acceptBeacon = false;
         public bool AcceptBeacon {
             get {
                 return acceptBeacon;
@@ -28,7 +28,7 @@ namespace Snowball
                     if(udpBeaconReceiver == null)
                     {
                         udpBeaconReceiver = new UDPReceiver(beaconPortNumber);
-                        udpBeaconReceiver.OnReceive += OnUDPReceived;
+                        udpBeaconReceiver.OnReceive += OnUnreliableReceived;
                         udpBeaconReceiver.Start();
                     }
                 }
@@ -70,7 +70,7 @@ namespace Snowball
         public delegate void DisconnectedHandler(ComNode node);
         public DisconnectedHandler OnDisconnected;
 
-        protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
+        Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
         public delegate bool BeaconAcceptFunc(string data);
         BeaconAcceptFunc BeaconAccept = (data) => { if (data == "Snowball") return true; else return false; };
@@ -85,7 +85,7 @@ namespace Snowball
         UDPTerminal udpTerminal;
         UDPReceiver udpBeaconReceiver;
 
-        protected int healthIntervalMs = 500;
+        int healthIntervalMs = 500;
         System.Timers.Timer healthTimer;
 
         int healthLostCount = 0;
@@ -100,10 +100,9 @@ namespace Snowball
         bool IsTcpConnected { get { lock (this) { return (serverNode != null); } } }
         public bool IsConnected { get; private set; }
 
-        public RsaEncrypter rsaEncrypter;
+        RsaEncrypter rsaEncrypter;
 
         public delegate bool ValidateRsaKeyFunc(string publicKey);
-
         ValidateRsaKeyFunc ValidateRsaKey = (string publicKey) =>
         {
             return true;
@@ -169,7 +168,7 @@ namespace Snowball
             Close();
         }
 
-        public virtual void Open()
+        public void Open()
         {
             if (IsOpened) return;
 
@@ -180,7 +179,7 @@ namespace Snowball
             if (listenPortNumber != 0) port = listenPortNumber;
             udpTerminal = new UDPTerminal(port, bufferSize);
             udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            udpTerminal.OnReceive += OnUDPReceived;
+            udpTerminal.OnReceive += OnUnreliableReceived;
 
             tcpConnector = new TCPConnector(portNumber);
             tcpConnector.ConnectionBufferSize = bufferSize;
@@ -194,7 +193,7 @@ namespace Snowball
             UdpCheck();
         }
 
-        public virtual void Close()
+        public void Close()
         {
             if (!IsOpened) return;
 
@@ -212,12 +211,12 @@ namespace Snowball
             IsOpened = false;
         }
 
-        public virtual byte[] EncrypteTmpKey(byte[] decrypted)
+        byte[] EncrypteTmpKey(byte[] decrypted)
         {
             return decrypted;
         }
 
-        protected AesKeyPair GenerateAesKey()
+        AesKeyPair GenerateAesKey()
         {
             var aes = Aes.Create();
             aes.GenerateIV();
@@ -234,7 +233,7 @@ namespace Snowball
             return pair;
         }
 
-        public async Task UdpCheck()
+        async Task UdpCheck()
         {
             healthLostCount = 0;
 
@@ -260,12 +259,12 @@ namespace Snowball
             }
         }
 
-        public void OnHealthCheck(object sender, ElapsedEventArgs args)
+        void OnHealthCheck(object sender, ElapsedEventArgs args)
         {
             HealthCheck();
         }
 
-        public async Task HealthCheck()
+        async Task HealthCheck()
         {
             healthLostCount = 0;
 
@@ -383,7 +382,7 @@ namespace Snowball
             isDisconnecting = false;
         }
 
-        void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
+        void OnUnreliableReceived(IPEndPoint endPoint, byte[] data, int size)
         {
             int head = 0;
 
@@ -452,11 +451,9 @@ namespace Snowball
                 head += datasize + 4;
 
             }
-
-
         }
 
-        void OnTCPReceived(IPEndPoint endPoint, short channelId, byte[] data, int size)
+        void OnReliableReceived(IPEndPoint endPoint, short channelId, byte[] data, int size)
         {
             if (channelId == (short)PreservedChannelId.Beacon)
             {
@@ -530,7 +527,7 @@ namespace Snowball
             }
         }
 
-        public async Task<bool> OnPoll(
+        async Task<bool> OnPoll(
             TCPConnection connection,
             NetworkStream nStream,
             byte[] receiveBuffer,
@@ -601,13 +598,13 @@ namespace Snowball
                 {
                     if (cancelToken.IsCancellationRequested) return;
                     CallbackParam param = (CallbackParam)state;
-                    OnTCPReceived(param.endPoint, param.channelId, param.buffer, param.size);
+                    OnReliableReceived(param.endPoint, param.channelId, param.buffer, param.size);
                     if (isRent) arrayPool.Return(buffer);
                 }, new CallbackParam((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize, isRent));
             }
             else
             {
-                OnTCPReceived((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize);
+                OnReliableReceived((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize);
             }
 
             return true;
@@ -615,7 +612,7 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
-        public void BuildBuffer<T>(
+        void BuildBuffer<T>(
             IDataChannel channel, T data, ref byte[] buffer, ref int bufferSize, ref bool isRent, IEncrypter encrypter
             )
         {

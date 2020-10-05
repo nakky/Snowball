@@ -9,8 +9,7 @@ namespace Snowball.Tests
 {
     public class TerminalFixture : IDisposable
     {
-        public int SendPort { get; private set; }
-        public int ListenPort { get; private set; }
+        public int Port { get; private set; }
 
         public ComTerminal Terminal { get; private set; }
 
@@ -24,19 +23,13 @@ namespace Snowball.Tests
             Global.UseSyncContextPost = false;
 
             Random rand = new Random();
-            SendPort = rand.Next(10000, 20000);
-            ListenPort = SendPort;
+            Port = rand.Next(10000, 20000);
 
-            while (ListenPort == SendPort)
-            {
-                ListenPort = rand.Next(10000, 20000);
-            }
-
-            Util.Log("send:" + SendPort + ", listen:" + ListenPort);
+            Util.Log("port:" + Port);
 
             Terminal = new ComTerminal();
-            Terminal.SendPortNumber = SendPort;
-            Terminal.ListenPortNumber = ListenPort;
+            Terminal.PortNumber = Port;
+            Terminal.ListenPortNumber = Port + 1;
             Terminal.BufferSize = 8192 * 10;
 
             Terminal.AddAcceptList(IPAddress.Loopback.ToString());

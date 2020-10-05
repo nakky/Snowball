@@ -15,10 +15,9 @@ using System.Security.Cryptography;
 
 namespace Snowball
 {
-
-    public class ComServer : IDisposable
+    public sealed class ComServer : IDisposable
     {
-        public bool IsOpened { get; protected set; }
+        public bool IsOpened { get; private set; }
 
         int beaconPortNumber = 32000;
         public int BeaconPortNumber { get { return beaconPortNumber; } set { if (!IsOpened) beaconPortNumber = value; } }
@@ -40,24 +39,23 @@ namespace Snowball
 
         bool isDisconnecting = false;
 
-        protected Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
+        Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
-        protected Dictionary<int, ComNode> userNodeMap = new Dictionary<int, ComNode>();
+        Dictionary<int, ComNode> userNodeMap = new Dictionary<int, ComNode>();
         object userNodeMapLock = new object();
 
-        protected Dictionary<IPEndPoint, ComNode> nodeTcpMap = new Dictionary<IPEndPoint, ComNode>();
-        protected Dictionary<IPEndPoint, ComNode> nodeUdpMap = new Dictionary<IPEndPoint, ComNode>();
+        Dictionary<IPEndPoint, ComNode> nodeTcpMap = new Dictionary<IPEndPoint, ComNode>();
+        Dictionary<IPEndPoint, ComNode> nodeUdpMap = new Dictionary<IPEndPoint, ComNode>();
 
         Random userIdRandom = new Random();
 
-        protected Dictionary<int, ComNode> disconnectedUserNodeMap = new Dictionary<int, ComNode>();
+        Dictionary<int, ComNode> disconnectedUserNodeMap = new Dictionary<int, ComNode>();
         object disconnectedUserNodeMapLock = new object();
 
         public delegate string BeaconDataGenerateFunc();
         BeaconDataGenerateFunc BeaconDataCreate = () => {
             return "Snowball";
         };
-
         public void SetBeaconDataCreateFunction(BeaconDataGenerateFunc func) { BeaconDataCreate = func; }
 
         UDPSender udpBeaconSender;
@@ -65,20 +63,18 @@ namespace Snowball
 
         TCPListener tcpListener;
 
-
-        protected int beaconIntervalMs = 1000;
+        int beaconIntervalMs = 1000;
         public int BeaconIntervalMs { get { return beaconIntervalMs; } set { if (!IsOpened) beaconIntervalMs = value; } }
         System.Timers.Timer beaconTimer;
 
-        protected int healthIntervalMs = 500;
+        int healthIntervalMs = 500;
         System.Timers.Timer healthTimer;
 
-        protected int removeNodeCheckIntervalMs = 1000;
+        int removeNodeCheckIntervalMs = 1000;
         System.Timers.Timer removeNodeCheckTimer;
 
-        protected int removeIntervalSec = 30;
+        int removeIntervalSec = 30;
         public int RemoveIntervalSec { get { return removeIntervalSec; } set { if (!IsOpened) removeIntervalSec = value; } }
-
 
         Converter beaconConverter;
 
@@ -87,10 +83,10 @@ namespace Snowball
 
         List<string> beaaconList = new List<string>();
 
-        public RSAParameters RsaPrivateKey { get; set; }
-        public RSAParameters RsaPublicKey { get; set; }
+        public RSAParameters RsaPrivateKey { get; private set; }
+        public RSAParameters RsaPublicKey { get; private set; }
 
-        public RsaDecrypter rsaDecrypter;
+        RsaDecrypter rsaDecrypter;
 
         public delegate void RsaKeyGenerateFunc(out RSAParameters publicKey, out RSAParameters privateKey);
 
@@ -191,7 +187,6 @@ namespace Snowball
                     {
 
                     }
-                    
                 }
 
             }
@@ -288,7 +283,7 @@ namespace Snowball
             tcpListener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.OnConnected += OnConnectedInternal;
 
-            udpTerminal.OnReceive += OnUDPReceived;
+            udpTerminal.OnReceive += OnUnreliableReceived;
 
             tcpListener.Start();
 
@@ -387,7 +382,7 @@ namespace Snowball
             }
         }
 
-        public ComNode GetTcpNodeByEndPoint(IPEndPoint endPoint)
+        public ComNode GetNodeByEndPoint(IPEndPoint endPoint)
         {
             if (nodeTcpMap.ContainsKey(endPoint))
             {
@@ -396,16 +391,7 @@ namespace Snowball
             return null;
         }
 
-        public ComNode GetUdpNodeByEndPoint(IPEndPoint endPoint)
-        {
-            if (nodeUdpMap.ContainsKey(endPoint))
-            {
-                return nodeUdpMap[endPoint];
-            }
-            return null;
-        }
-
-        public virtual byte[] GenerateTmpKey()
+        byte[] GenerateTmpKey()
         {
             Random rand = new Random();
             byte[] key = new byte[4];
@@ -413,18 +399,18 @@ namespace Snowball
             return key;
         }
 
-        public virtual byte[] DecrypteTmpKey(byte[] encrypted)
+        byte[] DecrypteTmpKey(byte[] encrypted)
         {
             return encrypted;
         }
 
-        public void OnHealthCheck(object sender, ElapsedEventArgs args)
+        void OnHealthCheck(object sender, ElapsedEventArgs args)
         {
             if (!IsOpened) return;
             HealthCheck();
         }
 
-        public async Task HealthCheck()
+        async Task HealthCheck()
         {
             if (IsOpened)
             {
@@ -450,11 +436,11 @@ namespace Snowball
             }
         }
 
-        public void OnRemoveNodeCheck(object sender, ElapsedEventArgs args)
+        void OnRemoveNodeCheck(object sender, ElapsedEventArgs args)
         {
             RemoveNodeCheck();
         }
-        public async Task RemoveNodeCheck()
+        async Task RemoveNodeCheck()
         {
             TimeSpan intervalSpan = new TimeSpan(0, 0, RemoveIntervalSec);
 
@@ -563,7 +549,7 @@ namespace Snowball
             }
         }
 
-        void OnUDPReceived(IPEndPoint endPoint, byte[] data, int size)
+        void OnUnreliableReceived(IPEndPoint endPoint, byte[] data, int size)
         {
             int head = 0;
 
@@ -644,7 +630,7 @@ namespace Snowball
             }
         }
 
-        void OnTCPReceived(IPEndPoint endPoint, short channelId, byte[] data, int size)
+        void OnReliableReceived(IPEndPoint endPoint, short channelId, byte[] data, int size)
         {
             if (channelId == (short)PreservedChannelId.Beacon)
             {
@@ -712,7 +698,7 @@ namespace Snowball
             }
         }
 
-        public async Task<bool> OnPoll(
+        async Task<bool> OnPoll(
             TCPConnection connection,
             NetworkStream nStream,
             byte[] receiveBuffer,
@@ -783,13 +769,13 @@ namespace Snowball
                 {
                     if (cancelToken.IsCancellationRequested) return;
                     CallbackParam param = (CallbackParam)state;
-                    OnTCPReceived(param.endPoint, param.channelId, param.buffer, param.size);
+                    OnReliableReceived(param.endPoint, param.channelId, param.buffer, param.size);
                     if (isRent) arrayPool.Return(buffer);
                 }, new CallbackParam((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize, isRent));
             }
             else
             {
-                OnTCPReceived((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize);
+                OnReliableReceived((IPEndPoint)connection.Client.Client.RemoteEndPoint, channelId, buffer, resSize);
             }
 
             return true;
@@ -797,7 +783,7 @@ namespace Snowball
 
         ArrayPool<byte> arrayPool = ArrayPool<byte>.Create();
 
-        public void BuildBuffer<T>(
+        void BuildBuffer<T>(
             IDataChannel channel, T data, ref byte[] buffer, ref int bufferSize, ref bool isRent, IEncrypter encrypter
             )
         {
@@ -851,7 +837,7 @@ namespace Snowball
                 BuildBuffer(channel, data, ref buffer, ref bufferSize, ref isRent, null);
             }
 
-            foreach (var node in group.NodeList)
+            foreach (var node in group)
             {
                 if (node == exception) continue;
                 if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) continue;

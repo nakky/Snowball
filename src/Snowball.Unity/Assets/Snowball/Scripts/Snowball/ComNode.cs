@@ -16,19 +16,19 @@ namespace Snowball
         public string Ip { get; private set; }
         public IPEndPoint TcpEndPoint { get; private set; }
         public IPEndPoint UdpEndPoint { get; internal set; }
-        public int UserId { get; set; }
-        public int HealthLostCount { get; set; }
+        public int UserId { get; internal set; }
+        public int HealthLostCount { get; internal set; }
 
-        public bool IsConnected { get; set; }
+        public bool IsConnected { get; internal set; }
 
-        public byte[] TmpKey { get; set; }
+        public byte[] TmpKey { get; internal set; }
 
-        public bool IsDisconnecting { get; set; }
+        public bool IsDisconnecting { get; internal set; }
 
-        public AesEncrypter AesEncrypter { get; set; }
-        public AesDecrypter AesDecrypter { get; set; }
+        public AesEncrypter AesEncrypter { get; internal set; }
+        public AesDecrypter AesDecrypter { get; internal set; }
 
-        public DateTime DisconnectedTimeStamp { get; set; }
+        public DateTime DisconnectedTimeStamp { get; internal set; }
     }
 
     public class ComSnowballNode : ComNode

@@ -8,20 +8,20 @@ using Snowball;
 public class Terminal : MonoBehaviour
 {
     [SerializeField]
-    int DefaultSendPort = 59901;
+    int DefaultPort = 32001;
 
     [SerializeField]
-    int DefaultListenPort = 59902;
+    int DefaultListenPort = 0;
 
     [SerializeField]
     int DefaultBufferSize = 8192;
 
     public bool IsOpened { get { return com.IsOpened; } }
 
-    public int SendPort { get { return com.SendPortNumber; } set { com.SendPortNumber = value; } }
-    public int ListenPort { get { return com.ListenPortNumber; } set { com.ListenPortNumber = value; } }
+    public int Port { get { return com.PortNumber; } private set { com.PortNumber = value; } }
+    public int ListenPort { get { return com.ListenPortNumber; } private set { com.ListenPortNumber = value; } }
     [SerializeField]
-    public int BufferSize { get { return com.BufferSize; } set { com.BufferSize = value; } }
+    public int BufferSize { get { return com.BufferSize; } private set { com.BufferSize = value; } }
 
     public void AddAcceptList(string ip) { com.AddAcceptList(ip); }
     public void RemoveAcceptList(string ip) { com.RemoveAcceptList(ip); }
@@ -37,7 +37,7 @@ public class Terminal : MonoBehaviour
 
     public void Open()
     {
-        this.SendPort = DefaultSendPort;
+        this.Port = DefaultPort;
         this.ListenPort = DefaultListenPort;
         this.BufferSize = DefaultBufferSize;
 

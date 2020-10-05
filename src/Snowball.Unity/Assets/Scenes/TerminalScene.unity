@@ -364,7 +364,7 @@ PrefabInstance:
     - target: {fileID: 4013215487721650797, guid: ce984a9283a7f4f688414635796293f7,
         type: 3}
       propertyPath: DefaultListenPort
-      value: 59901
+      value: 32002
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce984a9283a7f4f688414635796293f7, type: 3}
@@ -663,6 +663,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4013215487721650797, guid: ce984a9283a7f4f688414635796293f7,
+        type: 3}
+      propertyPath: DefaultPort
+      value: 32002
+      objectReference: {fileID: 0}
+    - target: {fileID: 4013215487721650797, guid: ce984a9283a7f4f688414635796293f7,
+        type: 3}
+      propertyPath: DefaultListenPort
+      value: 32001
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce984a9283a7f4f688414635796293f7, type: 3}

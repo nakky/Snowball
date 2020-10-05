@@ -8,8 +8,8 @@ namespace Snowball
     {
         public string Name { get; private set; }
 
-        public List<ComNode> NodeList { get; private set; }
-        public Dictionary<IPEndPoint, ComNode> EndPointNodeMap { get; private set; }
+        List<ComNode> NodeList { get; set; }
+        Dictionary<IPEndPoint, ComNode> EndPointNodeMap { get; set; }
 
         public IEnumerator<ComNode> GetEnumerator() { return NodeList.GetEnumerator(); }
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return NodeList.GetEnumerator(); }

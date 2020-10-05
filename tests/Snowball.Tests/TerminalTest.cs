@@ -40,8 +40,8 @@ namespace Snowball.Tests
             Util.Log("OpenClose");
 
             ComTerminal terminal = new ComTerminal();
-            terminal.ListenPortNumber = this.server.SendPort;
-            terminal.SendPortNumber = this.server.ListenPort;
+            terminal.ListenPortNumber = this.server.Port;
+            terminal.PortNumber = this.server.Port + 1;
             terminal.Open();
 
             terminal.Close();
@@ -54,8 +54,8 @@ namespace Snowball.Tests
             Util.Log("SendReceive");
 
             ComTerminal terminal = new ComTerminal();
-            terminal.ListenPortNumber = this.server.SendPort;
-            terminal.SendPortNumber = this.server.ListenPort;
+            terminal.ListenPortNumber = this.server.Port;
+            terminal.PortNumber = this.server.Port + 1;
 
             terminal.AddAcceptList(IPAddress.Loopback.ToString());
 
@@ -138,7 +138,7 @@ namespace Snowball.Tests
 
             terminal.Open();
 
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.SendPortNumber);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.PortNumber);
             ComNode lnode = new ComNode(endPoint);
 
             //Send
@@ -190,8 +190,8 @@ namespace Snowball.Tests
             Util.Log("StressTest");
 
             ComTerminal terminal = new ComTerminal();
-            terminal.ListenPortNumber = this.server.SendPort;
-            terminal.SendPortNumber = this.server.ListenPort;
+            terminal.ListenPortNumber = this.server.Port;
+            terminal.PortNumber = this.server.Port + 1;
 
             terminal.AddAcceptList(IPAddress.Loopback.ToString());
 
@@ -227,7 +227,7 @@ namespace Snowball.Tests
 
             Util.Log("sendTestNum:" + sendTestNum);
 
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.SendPortNumber);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Loopback, terminal.PortNumber);
             ComNode lnode = new ComNode(endPoint);
 
             //Send
