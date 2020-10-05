@@ -361,6 +361,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.ASCII.GetByteCount((string)data);
         }
 
@@ -423,6 +424,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.Unicode.GetByteCount((string)data);
         }
 
@@ -484,6 +486,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.UTF8.GetByteCount((string)data);
         }
 

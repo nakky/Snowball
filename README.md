@@ -64,6 +64,11 @@ client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None,
 
 //Beacon Setting(Accept)
 client.AcceptBeacon = true;
+
+//When launching multiple Snowball applications locally, 
+//it is necessary to set different values ​​for ListenPortNumber.
+client.ListenPortNumber = client.PortNumber + 1;
+
 //Start Client
 client.Open();
 //You can also connect to the server by using Connect function.
@@ -132,7 +137,8 @@ client.PortNumber = 32001;
 client.Open();
 ```
 
-Multiple Clients can be launched by setting different ListenPortNumbers. This is useful for stress tests etc.
+Multiple Clients can be launched by setting different ListenPortNumbers. This is useful for stress tests etc.   
+Also, since UDP is also used for Beacon, you have to stop using Beacon with AcceptBeacon = false. or use a different value for BeaconPortNumber.
 
 
 

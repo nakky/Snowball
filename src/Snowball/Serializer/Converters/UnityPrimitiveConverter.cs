@@ -47,6 +47,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 2;
         }
 
@@ -103,6 +104,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 3;
         }
 
@@ -161,6 +163,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
@@ -220,6 +223,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
@@ -278,6 +282,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
@@ -336,6 +341,7 @@ namespace Snowball
 
         public override int GetDataSize(object data)
         {
+            if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(byte) * 4;
         }
 

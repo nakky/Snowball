@@ -155,7 +155,7 @@ namespace Snowball
         {
             bool registerd = false;
 
-            if (data.Id != 0 && data.encryptionData.Length > 0)
+            if (data.Id != 0 && data.encryptionData != null && data.encryptionData.Length > 0)
             {
                 ComNode previousNode = null;
                 lock (userNodeMapLock)
@@ -174,15 +174,22 @@ namespace Snowball
 
                 if (previousNode != null && previousNode.AesDecrypter != null)
                 {
-                    byte[] decrypted = previousNode.AesDecrypter.Decrypt(data.encryptionData);
-                    if (decrypted.SequenceEqual(Global.ReconnectRawData))
+                    try
                     {
-                        node.UserId = previousNode.UserId;
-                        lock (userNodeMapLock)
+                        byte[] decrypted = previousNode.AesDecrypter.Decrypt(data.encryptionData);
+                        if (decrypted.SequenceEqual(Global.ReconnectRawData))
                         {
-                            userNodeMap.Add(node.UserId, node);
+                            node.UserId = previousNode.UserId;
+                            lock (userNodeMapLock)
+                            {
+                                userNodeMap.Add(node.UserId, node);
+                            }
+                            registerd = true;
                         }
-                        registerd = true;
+                    }
+                    catch
+                    {
+
                     }
                     
                 }
@@ -241,13 +248,17 @@ namespace Snowball
             {
                 lock (userNodeMapLock)
                 {
-                    id = userIdRandom.Next(1, int.MaxValue);
-                    if (!userNodeMap.ContainsKey(id))
+                    lock (disconnectedUserNodeMapLock)
                     {
-                        userNodeMap.Add(id, node);
-                        node.UserId = id;
-                        break;
+                        id = userIdRandom.Next(1, int.MaxValue);
+                        if (!userNodeMap.ContainsKey(id) && !disconnectedUserNodeMap.ContainsKey(id))
+                        {
+                            userNodeMap.Add(id, node);
+                            node.UserId = id;
+                            break;
+                        }
                     }
+                    
                 }
             }
 
