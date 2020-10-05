@@ -336,7 +336,6 @@ namespace Snowball
                     {
                         ldata.Id = UserId;
                         ldata.encryptionData = previousServerNode.AesEncrypter.Encrypt(Global.ReconnectRawData);
-                        ldata.PublicKey = "";
                     }
                     else UserId = 0;
                 }
@@ -344,8 +343,6 @@ namespace Snowball
                 if(UserId == 0)
                 {
                     ldata.Id = UserId;
-                    ldata.encryptionData = new byte[0];
-                    ldata.PublicKey = "";
                 }
 
                 SendInternal((short)PreservedChannelId.IssueId, ldata);
