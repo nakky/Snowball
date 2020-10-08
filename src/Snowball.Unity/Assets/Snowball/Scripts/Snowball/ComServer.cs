@@ -42,7 +42,7 @@ namespace Snowball
         Dictionary<short, IDataChannel> dataChannelMap = new Dictionary<short, IDataChannel>();
 
         Dictionary<int, ComNode> userNodeMap = new Dictionary<int, ComNode>();
-        object userNodeMapLock = new object();
+        ReaderWriterLock userNodeMapLock = new ReaderWriterLock();
 
         Dictionary<IPEndPoint, ComNode> nodeTcpMap = new Dictionary<IPEndPoint, ComNode>();
         Dictionary<IPEndPoint, ComNode> nodeUdpMap = new Dictionary<IPEndPoint, ComNode>();
@@ -50,7 +50,7 @@ namespace Snowball
         Random userIdRandom = new Random();
 
         Dictionary<int, ComNode> disconnectedUserNodeMap = new Dictionary<int, ComNode>();
-        object disconnectedUserNodeMapLock = new object();
+        ReaderWriterLock disconnectedUserNodeMapLock = new ReaderWriterLock();
 
         public delegate string BeaconDataGenerateFunc();
         BeaconDataGenerateFunc BeaconDataCreate = () => {
@@ -114,7 +114,7 @@ namespace Snowball
                 else node.TmpKey = null;
             }));
 
-            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
             }));
 
@@ -154,18 +154,28 @@ namespace Snowball
             if (data.Id != 0 && data.encryptionData != null && data.encryptionData.Length > 0)
             {
                 ComNode previousNode = null;
-                lock (userNodeMapLock)
+                try
                 {
+                    userNodeMapLock.AcquireReaderLock(1000);
                     if (userNodeMap.ContainsKey(data.Id)) previousNode = userNodeMap[data.Id];
                 }
-
-                lock (disconnectedUserNodeMapLock)
+                finally
                 {
+                    userNodeMapLock.ReleaseReaderLock();
+                }
+
+                try
+                {
+                    disconnectedUserNodeMapLock.AcquireWriterLock(1000);
                     if (previousNode == null && disconnectedUserNodeMap.ContainsKey(data.Id))
                     {
                         previousNode = disconnectedUserNodeMap[data.Id];
                         disconnectedUserNodeMap.Remove(data.Id);
                     }
+                }
+                finally
+                {
+                    disconnectedUserNodeMapLock.ReleaseWriterLock();
                 }
 
                 if (previousNode != null && previousNode.AesDecrypter != null)
@@ -176,9 +186,15 @@ namespace Snowball
                         if (decrypted.SequenceEqual(Global.ReconnectRawData))
                         {
                             node.UserId = previousNode.UserId;
-                            lock (userNodeMapLock)
+
+                            try
                             {
+                                userNodeMapLock.AcquireWriterLock(1000);
                                 userNodeMap.Add(node.UserId, node);
+                            }
+                            finally
+                            {
+                                userNodeMapLock.ReleaseWriterLock();
                             }
                             registerd = true;
                         }
@@ -221,8 +237,6 @@ namespace Snowball
 
             SendInternal(node, (short)PreservedChannelId.KeyExchangeAck, 0);
 
-            node.IsConnected = true;
-            if (OnConnected != null) OnConnected(node);
         }
 
         public void AddBeaconList(string ip)
@@ -241,20 +255,25 @@ namespace Snowball
 
             while (true)
             {
-                lock (userNodeMapLock)
+                try
                 {
-                    lock (disconnectedUserNodeMapLock)
+                    userNodeMapLock.AcquireWriterLock(1000);
+                    disconnectedUserNodeMapLock.AcquireReaderLock(1000);
+
+                    id = userIdRandom.Next(1, int.MaxValue);
+                    if (!userNodeMap.ContainsKey(id) && !disconnectedUserNodeMap.ContainsKey(id))
                     {
-                        id = userIdRandom.Next(1, int.MaxValue);
-                        if (!userNodeMap.ContainsKey(id) && !disconnectedUserNodeMap.ContainsKey(id))
-                        {
-                            userNodeMap.Add(id, node);
-                            node.UserId = id;
-                            break;
-                        }
+                        userNodeMap.Add(id, node);
+                        node.UserId = id;
+                        break;
                     }
-                    
                 }
+                finally
+                {
+                    disconnectedUserNodeMapLock.ReleaseReaderLock();
+                    userNodeMapLock.ReleaseWriterLock();
+                }
+
             }
 
         }
@@ -458,14 +477,19 @@ namespace Snowball
 
             foreach (var key in removed)
             {
-                lock (disconnectedUserNodeMapLock)
+                try
                 {
+                    disconnectedUserNodeMapLock.AcquireWriterLock(1000);
                     if (disconnectedUserNodeMap.ContainsKey(key))
                     {
                         ComNode node = disconnectedUserNodeMap[key];
                         disconnectedUserNodeMap.Remove(key);
                         if (OnNodeRemoved != null) OnNodeRemoved(node);
                     }
+                }
+                finally
+                {
+                    disconnectedUserNodeMapLock.ReleaseWriterLock();
                 }
             }
         }
@@ -524,17 +548,27 @@ namespace Snowball
                     ComSnowballNode node = (ComSnowballNode)nodeTcpMap[(IPEndPoint)connection.EndPoint];
                     nodeTcpMap.Remove((IPEndPoint)connection.EndPoint);
 
-                    lock (userNodeMapLock)
+                    try
                     {
+                        userNodeMapLock.AcquireWriterLock(1000);
                         if (userNodeMap.ContainsKey(node.UserId)) userNodeMap.Remove(node.UserId);
+                    }
+                    finally
+                    {
+                        userNodeMapLock.ReleaseWriterLock();
                     }
 
                     node.DisconnectedTimeStamp = DateTime.Now;
 
-                    lock (disconnectedUserNodeMapLock)
+                    try
                     {
+                        disconnectedUserNodeMapLock.AcquireWriterLock(1000);
                         if (!disconnectedUserNodeMap.ContainsKey(node.UserId))
                             disconnectedUserNodeMap.Add(node.UserId, node);
+                    }
+                    finally
+                    {
+                        disconnectedUserNodeMapLock.ReleaseWriterLock();
                     }
 
                     if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
@@ -570,25 +604,44 @@ namespace Snowball
                 else if (channelId == (short)PreservedChannelId.UdpNotify)
                 {
                     IDataChannel channel = dataChannelMap[channelId];
-                    int userId = (int)channel.FromStream(ref packer);
+                    IssueIdData idData = (IssueIdData)channel.FromStream(ref packer);
 
-                    lock (userNodeMapLock)
+                    try
                     {
-                        if (userNodeMap.ContainsKey(userId))
+                        userNodeMapLock.AcquireReaderLock(1000);
+                        if (userNodeMap.ContainsKey(idData.Id))
                         {
                             //Util.Log("UdpUserName:" + userName);
-                            ComSnowballNode node = (ComSnowballNode)userNodeMap[userId];
-                            if (node.UdpEndPoint == null)
-                            {
-                                node.UdpEndPoint = endPoint;
-                                nodeUdpMap.Add(endPoint, node);
-                                SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+                            ComSnowballNode node = (ComSnowballNode)userNodeMap[idData.Id];
 
-                                byte[] key = GenerateTmpKey();
-                                node.TmpKey = key;
-                                SendInternal(node, (short)PreservedChannelId.Health, key);
+                            if (node.UdpEndPoint == null && node.AesDecrypter != null)
+                            {
+                                byte[] decrypted = node.AesDecrypter.Decrypt(idData.encryptionData);
+
+                                if (decrypted.SequenceEqual(Global.UdpRawData))
+                                {
+                                    node.UdpEndPoint = endPoint;
+
+                                    if (nodeUdpMap.ContainsKey(endPoint)) nodeUdpMap.Remove(endPoint);
+
+                                    nodeUdpMap.Add(endPoint, node);
+                                    SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+
+                                    byte[] key = GenerateTmpKey();
+                                    node.TmpKey = key;
+                                    SendInternal(node, (short)PreservedChannelId.Health, key);
+
+                                    node.IsConnected = true;
+                                    if (OnConnected != null) OnConnected(node);
+                                }
+
                             }
+
                         }
+                    }
+                    finally
+                    {
+                        userNodeMapLock.ReleaseReaderLock();
                     }
 
                 }

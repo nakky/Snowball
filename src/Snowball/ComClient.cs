@@ -97,7 +97,9 @@ namespace Snowball
         bool isConnecting = false;
         bool isDisconnecting = false;
 
-        bool IsTcpConnected { get { lock (this) { return (serverNode != null); } } }
+        object serverNodeLocker = new object();
+
+        bool IsTcpConnected { get { lock (serverNodeLocker) { return (serverNode != null); } } }
         public bool IsConnected { get; private set; }
 
         RsaEncrypter rsaEncrypter;
@@ -123,7 +125,9 @@ namespace Snowball
                 {
                     rsaEncrypter = new RsaEncrypter();
                     rsaEncrypter.FromPublicKeyXmlString(data.PublicKey);
-                    udpAck = false;
+
+                    AesKeyPair pair = GenerateAesKey();
+                    SendInternal((short)PreservedChannelId.KeyExchange, pair);
                 }
                 else Disconnect();
             }));
@@ -136,14 +140,15 @@ namespace Snowball
                 SendInternal((short)PreservedChannelId.Health, encrypted);
             }));
 
-            AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
+            AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.UdpNotify, QosType.Unreliable, Compression.None, Encryption.None, (node, data) =>
             {
             }));
 
             AddChannel(new DataChannel<int>((short)PreservedChannelId.UdpNotifyAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
-                AesKeyPair pair = GenerateAesKey();
-                SendInternal((short)PreservedChannelId.KeyExchange, pair);
+                udpAck = true;
+                IsConnected = true;
+                if (OnConnected != null) OnConnected(serverNode);
             }));
 
             AddChannel(new DataChannel<AesKeyPair>((short)PreservedChannelId.KeyExchange, QosType.Reliable, Compression.None, Encryption.Rsa, (node, data) =>
@@ -153,9 +158,7 @@ namespace Snowball
 
             AddChannel(new DataChannel<int>((short)PreservedChannelId.KeyExchangeAck, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
-                udpAck = true;
-                IsConnected = true;
-                if (OnConnected != null) OnConnected(serverNode);
+                udpAck = false;
             }));
 
             healthTimer = new System.Timers.Timer(healthIntervalMs);
@@ -247,7 +250,15 @@ namespace Snowball
                     {
                         if (!udpAck)
                         {
-                            SendInternal((short)PreservedChannelId.UdpNotify, UserId);
+                            if (serverNode != null && serverNode.AesEncrypter != null)
+                            {
+                                byte[] encrypted = serverNode.AesEncrypter.Encrypt(Global.UdpRawData);
+
+                                IssueIdData data = new IssueIdData();
+                                data.Id = UserId;
+                                data.encryptionData = encrypted;
+                                SendInternal((short)PreservedChannelId.UdpNotify, data);
+                            }
                         }
 
                     }
@@ -320,7 +331,10 @@ namespace Snowball
             {
                 connection.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                serverNode = new ComSnowballNode(connection);
+                lock (serverNodeLocker)
+                {
+                    serverNode = new ComSnowballNode(connection);
+                }
 
                 udpTerminal.ReceiveStart();
 
@@ -339,7 +353,7 @@ namespace Snowball
                     else UserId = 0;
                 }
 
-                if(UserId == 0)
+                if (UserId == 0)
                 {
                     ldata.Id = UserId;
                 }
@@ -375,8 +389,12 @@ namespace Snowball
             IsConnected = false;
             if (OnDisconnected != null) OnDisconnected(serverNode);
 
-            previousServerNode = serverNode;
-            serverNode = null;
+            lock (serverNodeLocker)
+            {
+                previousServerNode = serverNode;
+                serverNode = null;
+            }
+            
             if(udpTerminal != null) udpTerminal.ReceiveStop();
 
             isDisconnecting = false;
