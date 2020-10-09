@@ -62,9 +62,6 @@ client.AddChannel(new DataChannel<string>(0, QosType.Reliable, Compression.None,
     Util.Log("Client Receive:" + data);       
 }));
 
-//Beacon Setting(Accept)
-client.AcceptBeacon = true;
-
 //When launching multiple Snowball applications locally, 
 //it is necessary to set different values ​​for ListenPortNumber.
 client.ListenPortNumber = client.PortNumber + 1;
@@ -73,8 +70,11 @@ client.ListenPortNumber = client.PortNumber + 1;
 client.Open();
 //You can also connect to the server by using Connect function.
 //client.Connect("127.0.0.1");
+
+//Beacon
+client.AcceptBeacon = true;
 ```
-Beacon is useful to connect/reconnet to a server. But Beacon involves Security Risk, so if you use Beacon via internet, the service must be carefully designed.
+Beacon is useful to connect/reconnet to a server, but Beacon probably not available over the internet due to firewall.
 
 Sending examples are as follows. 
 
