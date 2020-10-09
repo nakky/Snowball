@@ -27,9 +27,10 @@ namespace Snowball
                 {
                     if(udpBeaconReceiver == null)
                     {
-                        udpBeaconReceiver = new UDPReceiver(beaconPortNumber);
+                        udpBeaconReceiver = new UDPTerminal(beaconPortNumber, UDPTerminal.DefaultBufferSize);
+                        udpBeaconReceiver.SyncContext = syncContext;
                         udpBeaconReceiver.OnReceive += OnUnreliableReceived;
-                        udpBeaconReceiver.Start();
+                        udpBeaconReceiver.ReceiveStart();
                     }
                 }
                 else
@@ -83,7 +84,7 @@ namespace Snowball
         TCPConnector tcpConnector;
 
         UDPTerminal udpTerminal;
-        UDPReceiver udpBeaconReceiver;
+        UDPTerminal udpBeaconReceiver;
 
         int healthIntervalMs = 500;
         System.Timers.Timer healthTimer;
@@ -111,10 +112,14 @@ namespace Snowball
         };
         public void SetValidateRsaKeyFunction(ValidateRsaKeyFunc func) { ValidateRsaKey = func; }
 
+        bool userSyncContext;
+        SynchronizationContext syncContext;
 
-        public ComClient()
+        public ComClient(bool userSyncContext = true)
         {
             IsOpened = false;
+
+            this.userSyncContext = userSyncContext;
 
             AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.IssueId, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
@@ -175,16 +180,25 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            if (Global.UseSyncContextPost && Global.SyncContext == null)
-                Global.SyncContext = SynchronizationContext.Current;
+            if (userSyncContext)
+            {
+                syncContext = SynchronizationContext.Current;
+                if (syncContext == null)
+                {
+                    syncContext = new SnowballSynchronizationContext(10);
+                    SynchronizationContext.SetSynchronizationContext(syncContext);
+                }
+            }
 
             int port = PortNumber;
             if (listenPortNumber != 0) port = listenPortNumber;
             udpTerminal = new UDPTerminal(port, bufferSize);
+            udpTerminal.SyncContext = syncContext;
             udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             udpTerminal.OnReceive += OnUnreliableReceived;
 
             tcpConnector = new TCPConnector(portNumber);
+            tcpConnector.SyncContext = syncContext;
             tcpConnector.ConnectionBufferSize = bufferSize;
             tcpConnector.ConnectTimeOutMilliSec = connectTimeOutMilliSec;
             tcpConnector.OnConnected += OnConnectedInternal;
@@ -423,46 +437,46 @@ namespace Snowball
                         if (BeaconAccept(beaconData)) Connect(endPoint.Address.ToString());
                     }
                 }
-                else if (!dataChannelMap.ContainsKey(channelId))
-                {
-                }
                 else
                 {
-                    if (channelId == (short)PreservedChannelId.Health)
-                    {
-                        if (serverNode == null) break;
+                    IDataChannel channel;
 
-                        if (serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
+                    if (dataChannelMap.TryGetValue(channelId, out channel))
+                    {
+                        if (channelId == (short)PreservedChannelId.Health)
                         {
-                            serverNode.UdpEndPoint = endPoint;
+                            if (serverNode == null) break;
+
+                            if (serverNode.UdpEndPoint == null && serverNode.TcpEndPoint.Address.Equals(endPoint.Address))
+                            {
+                                serverNode.UdpEndPoint = endPoint;
+                            }
                         }
-                    }
 
-                    IDataChannel channel = dataChannelMap[channelId];
-
-                    if (channel.CheckMode == CheckMode.Sequre) 
-                    {
-                        IDecrypter decrypter = null;
-                        if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
-                        else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
-
-                        if (serverNode == null) break;
-                        if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
+                        if (channel.CheckMode == CheckMode.Sequre)
                         {
+                            IDecrypter decrypter = null;
+                            if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                            else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+
+                            if (serverNode == null) break;
+                            if (endPoint.Address.Equals(serverNode.UdpEndPoint.Address))
+                            {
+                                object container = channel.FromStream(ref packer, decrypter);
+
+                                channel.Received(serverNode, container);
+                            }
+                        }
+                        else
+                        {
+                            IDecrypter decrypter = null;
+                            if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                            else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+
                             object container = channel.FromStream(ref packer, decrypter);
 
                             channel.Received(serverNode, container);
                         }
-                    }
-                    else
-                    {
-                        IDecrypter decrypter = null;
-                        if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
-                        else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
-
-                        object container = channel.FromStream(ref packer, decrypter);
-
-                        channel.Received(serverNode, container);
                     }
                 }
 
@@ -476,39 +490,37 @@ namespace Snowball
             if (channelId == (short)PreservedChannelId.Beacon)
             {
             }
-            else if (!dataChannelMap.ContainsKey(channelId))
-            {
-            }
             else
             {
-                BytePacker packer = new BytePacker(data);
-                IDataChannel channel = dataChannelMap[channelId];
-                if (channel.Encryption == Encryption.Rsa)
+                IDataChannel channel;
+
+                if (dataChannelMap.TryGetValue(channelId, out channel))
                 {
+                    BytePacker packer = new BytePacker(data);
 
-                }
+                    IDecrypter decrypter = null;
+                    if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
+                    else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
 
-                IDecrypter decrypter = null;
-                if (channel.Encryption == Encryption.Rsa) throw new InvalidOperationException("Client cant receive data via RSA channel.");
-                else if (channel.Encryption == Encryption.Aes) decrypter = serverNode.AesDecrypter;
+                    if (channel.CheckMode == CheckMode.Sequre || decrypter != null)
+                    {
+                        if (serverNode == null) ;
+                        if (endPoint.Equals(serverNode.TcpEndPoint))
+                        {
+                            object container = channel.FromStream(ref packer, decrypter);
 
-                if (channel.CheckMode == CheckMode.Sequre || decrypter != null)
-                {
-                    if (serverNode == null) ;
-                    if (endPoint.Equals(serverNode.TcpEndPoint))
+                            channel.Received(serverNode, container);
+                        }
+                    }
+                    else
                     {
                         object container = channel.FromStream(ref packer, decrypter);
 
-                        channel.Received(serverNode, container);
+                        channel.Received(null, container);
                     }
                 }
-                else
-                {
-                    object container = channel.FromStream(ref packer, decrypter);
-
-                    channel.Received(null, container);
-                }
             }
+
         }
 
         public class CallbackParam
@@ -610,9 +622,9 @@ namespace Snowball
 
             if (cancelToken.IsCancellationRequested) return false;
 
-            if (Global.SyncContext != null)
+            if (syncContext != null)
             {
-                Global.SyncContext.Post((state) =>
+                syncContext.Post((state) =>
                 {
                     if (cancelToken.IsCancellationRequested) return;
                     CallbackParam param = (CallbackParam)state;
@@ -677,9 +689,9 @@ namespace Snowball
             return await Task.Run(async () =>
             {
                 if (!IsTcpConnected) return false;
-                if (!dataChannelMap.ContainsKey(channelId)) return false;
 
-                IDataChannel channel = dataChannelMap[channelId];
+                IDataChannel channel;
+                if (!dataChannelMap.TryGetValue(channelId, out channel)) return false;
 
                 bool isRent = false;
                 byte[] buffer = null;

@@ -20,8 +20,6 @@ namespace Snowball.Tests
         {
             Util.Log("TerminalFixture");
 
-            Global.UseSyncContextPost = false;
-
             Random rand = new Random();
             Port = rand.Next(10000, 20000);
 

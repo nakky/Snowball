@@ -43,7 +43,8 @@ namespace Snowball
 
         public ComNode GetNodeByEndPoint(IPEndPoint endPoint)
         {
-            if (EndPointNodeMap.ContainsKey(endPoint)) return EndPointNodeMap[endPoint];
+            ComNode node;
+            if (EndPointNodeMap.TryGetValue(endPoint, out node)) return node;
             else return null;
         }
 

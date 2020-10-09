@@ -25,8 +25,6 @@ namespace Snowball.Tests
         {
             this.logger = logger;
             this.server = terminal;
-
-            Global.UseSyncContextPost = false;
         }
 
         public void Dispose()

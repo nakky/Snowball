@@ -27,9 +27,13 @@ namespace Snowball
 
         Dictionary<string, ComNode> nodeUdpMap = new Dictionary<string, ComNode>();
 
-        public ComTerminal()
+        bool userSyncContext;
+        SynchronizationContext syncContext;
+
+        public ComTerminal(bool userSyncContext = true)
         {
             IsOpened = false;
+            this.userSyncContext = userSyncContext;
         }
 
         public void Dispose()
@@ -41,13 +45,21 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            if (Global.UseSyncContextPost && Global.SyncContext == null)
-                Global.SyncContext = SynchronizationContext.Current;
+            if (userSyncContext)
+            {
+                syncContext = SynchronizationContext.Current;
+                if (syncContext == null)
+                {
+                    syncContext = new SnowballSynchronizationContext(10);
+                    SynchronizationContext.SetSynchronizationContext(syncContext);
+                }
+            }
 
             int port = portNumber;
             if (listenPortNumber != 0) port = listenPortNumber;
 
             udpTerminal = new UDPTerminal(port, bufferSize);
+            udpTerminal.SyncContext = syncContext;
             udpTerminal.OnReceive += OnUnreliableReceived;
 
             udpTerminal.ReceiveStart();
@@ -113,19 +125,15 @@ namespace Snowball
                 int s = 0;
                 short channelId = VarintBitConverter.ToShort(packer, out s);
 #endif
-                if (!dataChannelMap.ContainsKey(channelId))
-                {
-                }
-                else
-                {
-                    IDataChannel channel = dataChannelMap[channelId];
+                IDataChannel channel;
 
+                if (dataChannelMap.TryGetValue(channelId, out channel))
+                {
                     if (channel.CheckMode == CheckMode.Sequre)
                     {
-                        if (nodeUdpMap.ContainsKey(endPoint.Address.ToString()))
+                        ComNode node;
+                        if (nodeUdpMap.TryGetValue(endPoint.Address.ToString(), out node))
                         {
-                            ComNode node = nodeUdpMap[endPoint.Address.ToString()];
-
                             object container = channel.FromStream(ref packer, null);
 
                             channel.Received(node, container);
@@ -186,9 +194,9 @@ namespace Snowball
             if (portNumber == 0) return false;
 
             return await Task.Run(async () => {
-                if (!dataChannelMap.ContainsKey(channelId)) return false;
 
-                IDataChannel channel = dataChannelMap[channelId];
+                IDataChannel channel;
+                if (!dataChannelMap.TryGetValue(channelId, out channel)) return false;
 
                 bool isRent = false;
                 byte[] buffer = null;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Snowball
@@ -20,6 +21,8 @@ namespace Snowball
 
         int connectTimeOutMilliSec = 1000;
         public int ConnectTimeOutMilliSec { get { return connectTimeOutMilliSec; } set { connectTimeOutMilliSec = value; } }
+
+        public SynchronizationContext SyncContext { get; set; }
 
         public class CallbackParam
         {
@@ -56,9 +59,9 @@ namespace Snowball
             }
             catch (SocketException e)
             {
-                if (Global.SyncContext != null)
+                if (SyncContext != null)
                 {
-                    Global.SyncContext.Post((state) => {
+                    SyncContext.Post((state) => {
                         CallbackParam param = (CallbackParam)state;
                         if (OnConnected != null) OnConnected(param.Ip, param.Connection);
                     }, new CallbackParam(ip, null));
@@ -73,9 +76,9 @@ namespace Snowball
             {
                 if (e.InnerException is SocketException)
                 {
-                    if (Global.SyncContext != null)
+                    if (SyncContext != null)
                     {
-                        Global.SyncContext.Post((state) => {
+                        SyncContext.Post((state) => {
                             CallbackParam param = (CallbackParam)state;
                             if (OnConnected != null) OnConnected(param.Ip, param.Connection);
                         }, new CallbackParam(ip, null));
@@ -89,10 +92,11 @@ namespace Snowball
             }
 
             TCPConnection connection = new TCPConnection(client, connectionBufferSize);
+            connection.SyncContext = SyncContext;
 
-            if (Global.SyncContext != null)
+            if (SyncContext != null)
             {
-                Global.SyncContext.Post((state) => {
+                SyncContext.Post((state) => {
                     CallbackParam param = (CallbackParam)state;
                     if (OnConnected != null) OnConnected(param.Ip, param.Connection);
 

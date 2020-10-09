@@ -57,6 +57,8 @@ namespace Snowball
 
         NetworkStream nStream;
 
+        public SynchronizationContext SyncContext { get; set; }
+
         public delegate Task<bool> PollHandler(
             TCPConnection connection,
             NetworkStream nStream,
@@ -99,10 +101,9 @@ namespace Snowball
         {
             lock (this)
             {
-                if (!IsConnected) return;
                 try
                 {
-                    if (!cancelToken.IsCancellationRequested)
+                    if (nStream != null && !cancelToken.IsCancellationRequested)
                     {
                         cancelToken.Cancel();
                         OnPoll = null;
@@ -110,9 +111,12 @@ namespace Snowball
                         nStream.Close();
                         client.Close();
 
-                        if (Global.SyncContext != null)
+                        nStream = null;
+                        client = null;
+
+                        if (SyncContext != null)
                         {
-                            Global.SyncContext.Post((state) =>
+                            SyncContext.Post((state) =>
                             {
                                 if (OnDisconnected != null) OnDisconnected(this);
                             }, null);

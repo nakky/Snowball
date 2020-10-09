@@ -58,7 +58,7 @@ namespace Snowball
         };
         public void SetBeaconDataCreateFunction(BeaconDataGenerateFunc func) { BeaconDataCreate = func; }
 
-        UDPSender udpBeaconSender;
+        UDPTerminal udpBeaconSender;
         UDPTerminal udpTerminal;
 
         TCPListener tcpListener;
@@ -98,9 +98,14 @@ namespace Snowball
         };
         public void SetRsaKeyGenerateFunction(RsaKeyGenerateFunc func) { RsaKeyGenerate = func; }
 
-        public ComServer()
+        bool userSyncContext;
+        SynchronizationContext syncContext;
+
+        public ComServer(bool userSyncContext = true)
         {
             IsOpened = false;
+
+            this.userSyncContext = userSyncContext;
 
             AddChannel(new DataChannel<IssueIdData>((short)PreservedChannelId.IssueId, QosType.Reliable, Compression.None, Encryption.None, (node, data) =>
             {
@@ -157,7 +162,8 @@ namespace Snowball
                 try
                 {
                     userNodeMapLock.AcquireReaderLock(1000);
-                    if (userNodeMap.ContainsKey(data.Id)) previousNode = userNodeMap[data.Id];
+                    ComNode n;
+                    if (userNodeMap.TryGetValue(data.Id, out n)) previousNode = n;
                 }
                 finally
                 {
@@ -167,9 +173,10 @@ namespace Snowball
                 try
                 {
                     disconnectedUserNodeMapLock.AcquireWriterLock(1000);
-                    if (previousNode == null && disconnectedUserNodeMap.ContainsKey(data.Id))
+                    ComNode n;
+                    if (previousNode == null && disconnectedUserNodeMap.TryGetValue(data.Id, out n))
                     {
-                        previousNode = disconnectedUserNodeMap[data.Id];
+                        previousNode = n;
                         disconnectedUserNodeMap.Remove(data.Id);
                     }
                 }
@@ -261,6 +268,7 @@ namespace Snowball
                     disconnectedUserNodeMapLock.AcquireReaderLock(1000);
 
                     id = userIdRandom.Next(1, int.MaxValue);
+
                     if (!userNodeMap.ContainsKey(id) && !disconnectedUserNodeMap.ContainsKey(id))
                     {
                         userNodeMap.Add(id, node);
@@ -282,8 +290,14 @@ namespace Snowball
         {
             if (IsOpened) return;
 
-            if (Global.UseSyncContextPost && Global.SyncContext == null)
-                Global.SyncContext = SynchronizationContext.Current;
+            if (userSyncContext) {
+                syncContext = SynchronizationContext.Current;
+                if(syncContext == null)
+                {
+                    syncContext = new SnowballSynchronizationContext(10);
+                    SynchronizationContext.SetSynchronizationContext(syncContext);
+                }
+            }
 
             RSAParameters publicKey;
             RSAParameters privateKey;
@@ -295,9 +309,11 @@ namespace Snowball
             rsaDecrypter = new RsaDecrypter(RsaPrivateKey);
 
             udpTerminal = new UDPTerminal(portNumber, bufferSize);
+            udpTerminal.SyncContext = syncContext;
             udpTerminal.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
             tcpListener = new TCPListener(portNumber);
+            tcpListener.SyncContext = syncContext;
             tcpListener.ConnectionBufferSize = bufferSize;
             tcpListener.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.OnConnected += OnConnectedInternal;
@@ -341,7 +357,7 @@ namespace Snowball
             BytePacker packer;
             int length = CreateBeaconData(out packer);
 
-            udpBeaconSender.Send(ip, length, packer.Buffer);
+            udpBeaconSender.Send(ip, beaconPortNumber, length, packer.Buffer);
         }
 
         void OnBeaconTimer(object sender, ElapsedEventArgs args)
@@ -353,7 +369,7 @@ namespace Snowball
 
             foreach (var ip in beaaconList)
             {
-                udpBeaconSender.Send(ip, length, packer.Buffer);
+                udpBeaconSender.Send(ip, beaconPortNumber, length, packer.Buffer);
             }
         }
 
@@ -383,7 +399,8 @@ namespace Snowball
         {
             if (udpBeaconSender == null)
             {
-                udpBeaconSender = new UDPSender(beaconPortNumber);
+                udpBeaconSender = new UDPTerminal(UDPTerminal.DefaultBufferSize);
+                udpBeaconSender.SyncContext = syncContext;
                 beaconTimer = new System.Timers.Timer(BeaconIntervalMs);
                 beaconTimer.Elapsed += OnBeaconTimer;
                 beaconTimer.Start();
@@ -403,10 +420,8 @@ namespace Snowball
 
         public ComNode GetNodeByEndPoint(IPEndPoint endPoint)
         {
-            if (nodeTcpMap.ContainsKey(endPoint))
-            {
-                return nodeTcpMap[endPoint];
-            }
+            ComNode node;
+            if (nodeTcpMap.TryGetValue(endPoint, out node)) return node;
             return null;
         }
 
@@ -480,9 +495,10 @@ namespace Snowball
                 try
                 {
                     disconnectedUserNodeMapLock.AcquireWriterLock(1000);
-                    if (disconnectedUserNodeMap.ContainsKey(key))
+
+                    ComNode node;
+                    if (disconnectedUserNodeMap.TryGetValue(key, out node))
                     {
-                        ComNode node = disconnectedUserNodeMap[key];
                         disconnectedUserNodeMap.Remove(key);
                         if (OnNodeRemoved != null) OnNodeRemoved(node);
                     }
@@ -514,12 +530,19 @@ namespace Snowball
             {
                 ComSnowballNode node = new ComSnowballNode(connection);
 
-                nodeTcpMap.Add(node.TcpEndPoint, node);
+                if (nodeTcpMap.ContainsKey(node.TcpEndPoint))
+                {
+                    Disconnect(node);
+                }
+                else
+                {
+                    nodeTcpMap.Add(node.TcpEndPoint, node);
 
-                node.HealthLostCount = 0;
+                    node.HealthLostCount = 0;
 
-                connection.OnDisconnected = OnDisconnectedInternal;
-                connection.OnPoll = OnPoll;
+                    connection.OnDisconnected = OnDisconnectedInternal;
+                    connection.OnPoll = OnPoll;
+                }
 
                 //Util.Log("Server:Connected");
             }
@@ -543,10 +566,13 @@ namespace Snowball
         {
             lock (this)
             {
-                if (nodeTcpMap.ContainsKey((IPEndPoint)connection.EndPoint))
+                ComNode n;
+
+                if (nodeTcpMap.TryGetValue((IPEndPoint)connection.EndPoint, out n))
                 {
-                    ComSnowballNode node = (ComSnowballNode)nodeTcpMap[(IPEndPoint)connection.EndPoint];
-                    nodeTcpMap.Remove((IPEndPoint)connection.EndPoint);
+                    ComSnowballNode node = (ComSnowballNode)n;
+                    if (nodeTcpMap.ContainsKey(connection.EndPoint))
+                        nodeTcpMap.Remove((IPEndPoint)connection.EndPoint);
 
                     try
                     {
@@ -563,6 +589,7 @@ namespace Snowball
                     try
                     {
                         disconnectedUserNodeMapLock.AcquireWriterLock(1000);
+
                         if (!disconnectedUserNodeMap.ContainsKey(node.UserId))
                             disconnectedUserNodeMap.Add(node.UserId, node);
                     }
@@ -571,14 +598,14 @@ namespace Snowball
                         disconnectedUserNodeMapLock.ReleaseWriterLock();
                     }
 
-                    if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint)) nodeUdpMap.Remove(node.UdpEndPoint);
+                    if (node.UdpEndPoint != null && nodeUdpMap.ContainsKey(node.UdpEndPoint))
+                        nodeUdpMap.Remove(node.UdpEndPoint);
+
                     node.UdpEndPoint = null;
                     node.IsDisconnecting = false;
 
                     node.IsConnected = false;
                     if (OnDisconnected != null) OnDisconnected(node);
-
-                    //Util.Log("Server:Disconnected");
                 }
             }
         }
@@ -598,83 +625,82 @@ namespace Snowball
                 short channelId = VarintBitConverter.ToShort(packer, out s);
 #endif
 
-                if (channelId == (short)PreservedChannelId.Beacon)
-                {
-                }
-                else if (channelId == (short)PreservedChannelId.UdpNotify)
-                {
-                    IDataChannel channel = dataChannelMap[channelId];
-                    IssueIdData idData = (IssueIdData)channel.FromStream(ref packer);
+                IDataChannel channel;
 
-                    try
+                if (dataChannelMap.TryGetValue(channelId, out channel))
+                {
+                    if (channelId == (short)PreservedChannelId.Beacon)
                     {
-                        userNodeMapLock.AcquireReaderLock(1000);
-                        if (userNodeMap.ContainsKey(idData.Id))
+                    }
+                    else if (channelId == (short)PreservedChannelId.UdpNotify)
+                    {
+                        IssueIdData idData = (IssueIdData)channel.FromStream(ref packer);
+
+                        try
                         {
-                            //Util.Log("UdpUserName:" + userName);
-                            ComSnowballNode node = (ComSnowballNode)userNodeMap[idData.Id];
+                            userNodeMapLock.AcquireReaderLock(1000);
 
-                            if (node.UdpEndPoint == null && node.AesDecrypter != null)
+                            ComNode n;
+                            if (userNodeMap.TryGetValue(idData.Id, out n))
                             {
-                                byte[] decrypted = node.AesDecrypter.Decrypt(idData.encryptionData);
+                                //Util.Log("UdpUserName:" + userName);
+                                ComSnowballNode node = (ComSnowballNode)n;
 
-                                if (decrypted.SequenceEqual(Global.UdpRawData))
+                                if (node.UdpEndPoint == null && node.AesDecrypter != null)
                                 {
-                                    node.UdpEndPoint = endPoint;
+                                    byte[] decrypted = node.AesDecrypter.Decrypt(idData.encryptionData);
 
-                                    if (nodeUdpMap.ContainsKey(endPoint)) nodeUdpMap.Remove(endPoint);
+                                    if (decrypted.SequenceEqual(Global.UdpRawData))
+                                    {
+                                        node.UdpEndPoint = endPoint;
 
-                                    nodeUdpMap.Add(endPoint, node);
-                                    SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
+                                        if (nodeUdpMap.ContainsKey(endPoint)) nodeUdpMap.Remove(endPoint);
 
-                                    byte[] key = GenerateTmpKey();
-                                    node.TmpKey = key;
-                                    SendInternal(node, (short)PreservedChannelId.Health, key);
+                                        nodeUdpMap.Add(endPoint, node);
+                                        SendInternal(node, (short)PreservedChannelId.UdpNotifyAck, endPoint.Port);
 
-                                    node.IsConnected = true;
-                                    if (OnConnected != null) OnConnected(node);
+                                        byte[] key = GenerateTmpKey();
+                                        node.TmpKey = key;
+                                        SendInternal(node, (short)PreservedChannelId.Health, key);
+
+                                        node.IsConnected = true;
+                                        if (OnConnected != null) OnConnected(node);
+                                    }
+
                                 }
 
                             }
-
                         }
-                    }
-                    finally
-                    {
-                        userNodeMapLock.ReleaseReaderLock();
-                    }
-
-                }
-                else if (!dataChannelMap.ContainsKey(channelId))
-                {
-                }
-                else
-                {
-                    IDataChannel channel = dataChannelMap[channelId];
-
-                    if (channel.CheckMode == CheckMode.Sequre || channel.Encryption == Encryption.Aes)
-                    {
-                        if (nodeUdpMap.ContainsKey(endPoint))
+                        finally
                         {
-                            ComNode node = nodeUdpMap[endPoint];
-
-                            IDecrypter decrypter = null;
-                            if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
-                            else if (channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
-
-                            object container = channel.FromStream(ref packer, decrypter);
-
-                            channel.Received(node, container);
+                            userNodeMapLock.ReleaseReaderLock();
                         }
                     }
                     else
                     {
-                        IDecrypter decrypter = null;
-                        if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
+                        if (channel.CheckMode == CheckMode.Sequre || channel.Encryption == Encryption.Aes)
+                        {
+                            ComNode node;
+                            if (nodeUdpMap.TryGetValue(endPoint, out node))
+                            {
+                                IDecrypter decrypter = null;
+                                if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
+                                else if (channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
 
-                        object container = channel.FromStream(ref packer, decrypter);
+                                object container = channel.FromStream(ref packer, decrypter);
 
-                        channel.Received(null, container);
+                                channel.Received(node, container);
+                            }
+                        }
+                        else
+                        {
+                            IDecrypter decrypter = null;
+                            if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
+
+                            object container = channel.FromStream(ref packer, decrypter);
+
+                            channel.Received(null, container);
+                        }
                     }
 
                 }
@@ -687,36 +713,34 @@ namespace Snowball
         {
             if (channelId == (short)PreservedChannelId.Beacon)
             {
+                return;
             }
             else if (channelId == (short)PreservedChannelId.Health)
             {
-                if (nodeTcpMap.ContainsKey(endPoint))
-                {
-                    ComNode node = nodeTcpMap[endPoint];
-                }
-            }
-            else if (!dataChannelMap.ContainsKey(channelId))
-            {
+                return;
             }
             else
             {
-                BytePacker packer = new BytePacker(data);
+                IDataChannel channel;
 
-                if (nodeTcpMap.ContainsKey(endPoint))
+                if (dataChannelMap.TryGetValue(channelId, out channel))
                 {
-                    ComNode node = nodeTcpMap[endPoint];
+                    BytePacker packer = new BytePacker(data);
 
-                    IDataChannel channel = dataChannelMap[channelId];
+                    ComNode node;
+                    if (nodeTcpMap.TryGetValue(endPoint, out node))
+                    {
+                        IDecrypter decrypter = null;
+                        if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
+                        else if (channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
 
-                    IDecrypter decrypter = null;
-                    if (channel.Encryption == Encryption.Rsa) decrypter = rsaDecrypter;
-                    else if (channel.Encryption == Encryption.Aes) decrypter = node.AesDecrypter;
+                        object container = channel.FromStream(ref packer, decrypter);
 
-                    object container = channel.FromStream(ref packer, decrypter);
-
-                    channel.Received(node, container);
+                        channel.Received(node, container);
+                    }
                 }
             }
+
         }
 
         public class CallbackParam
@@ -816,9 +840,9 @@ namespace Snowball
 
             if (cancelToken.IsCancellationRequested) return false;
 
-            if (Global.SyncContext != null)
+            if (syncContext != null)
             {
-                Global.SyncContext.Post((state) =>
+                syncContext.Post((state) =>
                 {
                     if (cancelToken.IsCancellationRequested) return;
                     CallbackParam param = (CallbackParam)state;
@@ -877,9 +901,8 @@ namespace Snowball
 
         public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data, ComNode exception = null)
         {
-            if (!dataChannelMap.ContainsKey(channelId)) return false;
-
-            IDataChannel channel = dataChannelMap[channelId];
+            IDataChannel channel;
+            if (!dataChannelMap.TryGetValue(channelId, out channel)) return false;
 
             bool isRent = false;
             byte[] buffer = null;
@@ -893,6 +916,7 @@ namespace Snowball
             foreach (var node in group)
             {
                 if (node == exception) continue;
+
                 if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) continue;
 
                 if (channel.Encryption == Encryption.Aes)
@@ -931,9 +955,10 @@ namespace Snowball
             return await Task.Run(async () =>
             {
                 if (!nodeTcpMap.ContainsKey(node.TcpEndPoint)) return false;
-                if (!dataChannelMap.ContainsKey(channelId)) return false;
 
-                IDataChannel channel = dataChannelMap[channelId];
+                IDataChannel channel;
+
+                if (!dataChannelMap.TryGetValue(channelId, out channel)) return false;
 
                 bool isRent = false;
                 byte[] buffer = null;

@@ -20,14 +20,12 @@ namespace Snowball.Tests
         {
             Util.Log("ServerFixture");
 
-            Global.UseSyncContextPost = false;
-
             Random rand = new Random();
             Port = rand.Next(10000, 20000);
 
             Util.Log("server port:" + Port);
 
-            Server = new ComServer();
+            Server = new ComServer(false);
             Server.PortNumber = Port;
             Server.BufferSize = 8192 * 10;
 

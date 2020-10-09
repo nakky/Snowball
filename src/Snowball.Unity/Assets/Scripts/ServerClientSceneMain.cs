@@ -102,10 +102,8 @@ public class ServerClientSceneMain : MonoBehaviour
             if (node != null) Debug.Log("Client:Disconnected");
         };
 
-
-
-        client.AcceptBeacon = true;
         client.Open();
+        client.AcceptBeacon = true;
 
         server.AddBeaconList(IPAddress.Broadcast.ToString());
         server.Open();

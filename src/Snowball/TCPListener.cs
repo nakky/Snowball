@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Snowball
@@ -20,6 +21,17 @@ namespace Snowball
 
         int connectionBufferSize = 8192;
         public int ConnectionBufferSize { get { return connectionBufferSize; } set { connectionBufferSize = value; } }
+
+        public SynchronizationContext SyncContext { get; set; }
+
+        public class CallbackParam
+        {
+            public CallbackParam(TCPConnection connection)
+            {
+                this.Connection = connection;
+            }
+            public TCPConnection Connection;
+        }
 
         public TCPListener(int portNum)
         {
@@ -42,6 +54,8 @@ namespace Snowball
 
             while (IsActive)
             {
+                TCPConnection connection = null;
+
                 try
                 {
                     TcpClient client = await listener.AcceptTcpClientAsync();
@@ -50,17 +64,31 @@ namespace Snowball
                     client.SendTimeout = DefaultSendTimeoutMs;
                     client.ReceiveTimeout = DefaultReceiveTimeoutMs;
 
-                    TCPConnection connection = new TCPConnection(client, connectionBufferSize);
+                    connection = new TCPConnection(client, connectionBufferSize);
+                    connection.SyncContext = SyncContext;
 
-                    if (OnConnected != null) OnConnected(connection);
-
-                    connection.Start();
                 }
                 catch //(Exception e)
                 {
 					if (OnConnected != null) OnConnected(null);
 					//Util.Log(e.Message);
 				}
+
+                if (SyncContext != null)
+                {
+                    SyncContext.Post((state) => {
+                        CallbackParam param = (CallbackParam)state;
+                        if (OnConnected != null) OnConnected(param.Connection);
+
+                        if(param.Connection != null) param.Connection.Start();
+
+                    }, new CallbackParam(connection));
+                }
+                else
+                {
+                    if (OnConnected != null) OnConnected(connection);
+                    if (connection != null) connection.Start();
+                }
             }
 
         }

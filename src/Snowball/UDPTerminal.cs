@@ -16,8 +16,9 @@ namespace Snowball
 
         CancellationTokenSource cancelToken = new CancellationTokenSource();
 
+        public SynchronizationContext SyncContext { get; set; }
 
-        public UDPTerminal(int bufferSize = DefaultBufferSize)
+        public UDPTerminal(int bufferSize)
         {
             client = new UdpClient();
             SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -25,7 +26,7 @@ namespace Snowball
             client.Client.ReceiveBufferSize = bufferSize;
         }
 
-        public UDPTerminal(int port, int bufferSize = DefaultBufferSize)
+        public UDPTerminal(int port, int bufferSize)
         {
             client = new UdpClient(port);
             SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -118,9 +119,9 @@ namespace Snowball
                     if (!IsActive) break;
                     if (cancelToken.IsCancellationRequested) break;
 
-                    if (Global.SyncContext != null)
+                    if (SyncContext != null)
                     {
-                        Global.SyncContext.Post((state) =>
+                        SyncContext.Post((state) =>
                         {
                             if (cancelToken.IsCancellationRequested) return;
                             CallbackParam param = (CallbackParam)state;
