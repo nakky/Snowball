@@ -3,26 +3,26 @@ using System.IO;
 
 namespace Snowball
 {
-    public class BoolConverter : Converter
+    public class BoolConverter : IConverter
     {
-        public static Converter constract() { return new BoolConverter(); }
+        public static IConverter constract() { return new BoolConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((bool)data);
+            packer.WriteBool((bool)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadBool();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return 1;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += 1;
             return 1;
@@ -30,313 +30,313 @@ namespace Snowball
 
     }
 
-    public class CharConverter : Converter
+    public class CharConverter : IConverter
     {
-        public static Converter constract() { return new CharConverter(); }
+        public static IConverter constract() { return new CharConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((char)data);
+            packer.WriteChar((char)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadChar();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(char);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(char);
             return sizeof(char);
         }
     }
 
-    public class SByteConverter : Converter
+    public class SByteConverter : IConverter
     {
-        public static Converter constract() { return new SByteConverter(); }
+        public static IConverter constract() { return new SByteConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((sbyte)data);
+            packer.WriteSByte((sbyte)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadSByte();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(sbyte);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(sbyte);
             return sizeof(sbyte);
         }
     }
 
-    public class ByteConverter : Converter
+    public class ByteConverter : IConverter
     {
-        public static Converter constract() { return new ByteConverter(); }
+        public static IConverter constract() { return new ByteConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((byte)data);
+            packer.WriteByte((byte)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadByte();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(byte);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(byte);
             return sizeof(byte);
         }
     }
 
-    public class ShortConverter : Converter
+    public class ShortConverter : IConverter
     {
-        public static Converter constract() { return new ShortConverter(); }
+        public static IConverter constract() { return new ShortConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((short)data);
+            packer.WriteShort((short)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadShort();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(short);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(short);
             return sizeof(short);
         }
     }
 
-    public class UShortConverter : Converter
+    public class UShortConverter : IConverter
     {
-        public static Converter constract() { return new UShortConverter(); }
+        public static IConverter constract() { return new UShortConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((ushort)data);
+            packer.WriteUShort((ushort)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadUShort();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(ushort);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(ushort);
             return sizeof(ushort);
         }
     }
 
-    public class IntConverter : Converter
+    public class IntConverter : IConverter
     {
-        public static Converter constract() { return new IntConverter(); }
+        public static IConverter constract() { return new IntConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((int)data);
+            packer.WriteInt((int)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadInt();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(int);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(int);
             return sizeof(int);
         }
     }
 
-    public class UIntConverter : Converter
+    public class UIntConverter : IConverter
     {
-        public static Converter constract() { return new UIntConverter(); }
+        public static IConverter constract() { return new UIntConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((uint)data);
+            packer.WriteUInt((uint)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadUInt();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(uint);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(uint);
             return sizeof(uint);
         }
     }
 
-    public class LongConverter : Converter
+    public class LongConverter : IConverter
     {
-        public static Converter constract() { return new LongConverter(); }
+        public static IConverter constract() { return new LongConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((long)data);
+            packer.WriteLong((long)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadLong();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(long);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(long);
             return sizeof(long);
         }
     }
 
-    public class ULongConverter : Converter
+    public class ULongConverter : IConverter
     {
-        public static Converter constract() { return new ULongConverter(); }
+        public static IConverter constract() { return new ULongConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((ulong)data);
+            packer.WriteULong((ulong)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadULong();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(ulong);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(ulong);
             return sizeof(ulong);
         }
     }
 
-    public class FloatConverter : Converter
+    public class FloatConverter : IConverter
     {
-        public static Converter constract() { return new FloatConverter(); }
+        public static IConverter constract() { return new FloatConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((float)data);
+            packer.WriteFloat((float)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadFloat();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(float);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(float);
             return sizeof(float);
         }
     }
 
-    public class DoubleConverter : Converter
+    public class DoubleConverter : IConverter
     {
-        public static Converter constract() { return new DoubleConverter(); }
+        public static IConverter constract() { return new DoubleConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
-            packer.Write((double)data);
+            packer.WriteDouble((double)data);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             return packer.ReadDouble();
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             return sizeof(double);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             packer.Position += sizeof(double);
             return sizeof(double);
         }
     }
 
-    public class StringASCIIConverter : Converter
+    public class StringASCIIConverter : IConverter
     {
-        public static Converter constract() { return new StringASCIIConverter(); }
+        public static IConverter constract() { return new StringASCIIConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if(strData == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.ASCII.GetBytes(strData);
-                packer.Write(strbuf.Length);
-                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
+                packer.WriteInt(strbuf.Length);
+                if (strbuf.Length > 0) packer.WriteByteArray(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             object data;
 
@@ -359,13 +359,13 @@ namespace Snowball
            return data;
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.ASCII.GetByteCount((string)data);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);
@@ -376,27 +376,27 @@ namespace Snowball
 
     }
 
-    public class StringUnicodeConverter : Converter
+    public class StringUnicodeConverter : IConverter
     {
-        public static Converter constract() { return new StringUnicodeConverter(); }
+        public static IConverter constract() { return new StringUnicodeConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if (strData == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.Unicode.GetBytes(strData);
-                packer.Write(strbuf.Length);
-                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
+                packer.WriteInt(strbuf.Length);
+                if (strbuf.Length > 0) packer.WriteByteArray(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             object data;
 
@@ -422,13 +422,13 @@ namespace Snowball
             return data;
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.Unicode.GetByteCount((string)data);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);
@@ -438,27 +438,27 @@ namespace Snowball
         }
     }
 
-    public class StringUtf8Converter : Converter
+    public class StringUtf8Converter : IConverter
     {
-        public static Converter constract() { return new StringUtf8Converter(); }
+        public static IConverter constract() { return new StringUtf8Converter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             string strData = (string)data;
 
             if (strData == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 byte[] strbuf = System.Text.Encoding.UTF8.GetBytes(strData);
-                packer.Write(strbuf.Length);
-                if (strbuf.Length > 0) packer.Write(strbuf, 0, strbuf.Length);
+                packer.WriteInt(strbuf.Length);
+                if (strbuf.Length > 0) packer.WriteByteArray(strbuf, 0, strbuf.Length);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             object data;
 
@@ -484,13 +484,13 @@ namespace Snowball
             return data;
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(int);
             return sizeof(int) + System.Text.Encoding.UTF8.GetByteCount((string)data);
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);

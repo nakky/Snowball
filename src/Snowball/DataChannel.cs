@@ -37,9 +37,9 @@ namespace Snowball
 
         public CheckMode CheckMode { get; private set; }
 
-        Converter converter;
-        Converter byteArrayConverter;
-        Converter encArrayConverter;
+        IConverter converter;
+        IConverter byteArrayConverter;
+        IConverter encArrayConverter;
 
         public DataChannel(
             short channelID,
@@ -179,8 +179,8 @@ namespace Snowball
 
         public CheckMode CheckMode { get; private set; }
 
-        Converter converter;
-        Converter byteArrayConverter;
+        IConverter converter;
+        IConverter byteArrayConverter;
 
         public RawDataChannel(
             short channelID, QosType qos, Compression compression, Encryption encryption, ReceivedHandler onReceived, CheckMode checkMode = CheckMode.Sequre
@@ -232,7 +232,7 @@ namespace Snowball
             else
             {
                 byte[] arr = (byte[])data;
-                packer.Write(arr, 0, arr.Length);
+                packer.WriteByteArray(arr, 0, arr.Length);
             }
         }
 

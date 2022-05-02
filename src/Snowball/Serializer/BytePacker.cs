@@ -17,34 +17,34 @@ namespace Snowball
         #region Write
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(bool value)
+        public void WriteBool(bool value)
         {
             Buffer[Position] = (value ? (byte)1 : (byte)0);
             Position++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(sbyte value)
+        public void WriteSByte(sbyte value)
         {
             Buffer[Position] = unchecked((byte)value);
             Position += sizeof(sbyte);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte value)
+        public void WriteByte(byte value)
         {
             Buffer[Position] = value;
             Position += sizeof(byte);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(char value)
+        public void WriteChar(char value)
         {
-            Write((short)value);
+            WriteShort((short)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(short value)
+        public void WriteShort(short value)
         {
             BitShort bits = new BitShort(value);
             if (BitConverter.IsLittleEndian)
@@ -61,13 +61,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ushort value)
+        public void WriteUShort(ushort value)
         {
-            Write((short)value);
+            WriteShort((short)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(int value)
+        public void WriteInt(int value)
         {
             BitInt bits = new BitInt(value);
             if (BitConverter.IsLittleEndian)
@@ -89,13 +89,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(uint value)
+        public void WriteUInt(uint value)
         {
-            Write((int)value);
+            WriteInt((int)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(long value)
+        public void WriteLong(long value)
         {
             BitLong bits = new BitLong(value);
             if (BitConverter.IsLittleEndian)
@@ -125,13 +125,13 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ulong value)
+        public void WriteULong(ulong value)
         {
-            Write((long)value);
+            WriteLong((long)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(float value)
+        public void WriteFloat(float value)
         {
             BitFloat bits = new BitFloat(value);
             if (BitConverter.IsLittleEndian)
@@ -153,7 +153,7 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(double value)
+        public void WriteDouble(double value)
         {
             BitDouble bits = new BitDouble(value);
             if (BitConverter.IsLittleEndian)
@@ -183,7 +183,7 @@ namespace Snowball
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte[] array, int offset, int size)
+        public void WriteByteArray(byte[] array, int offset, int size)
         {
             Array.Copy(array, offset, Buffer, Position, size);
             Position += size;
@@ -191,7 +191,7 @@ namespace Snowball
 
         #endregion //Write
 
-            #region Read
+        #region Read
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ReadBool()

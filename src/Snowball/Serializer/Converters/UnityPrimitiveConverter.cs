@@ -6,28 +6,28 @@ using UnityEngine;
 
 namespace Snowball
 {
-    public class Vector2Converter : Converter
+    public class Vector2Converter : IConverter
     {
-        public static Converter constract() { return new Vector2Converter(); }
+        public static IConverter constract() { return new Vector2Converter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Vector2 vector = (Vector2)data;
 
-                packer.Write(vector.x);
-                packer.Write(vector.y);
+                packer.WriteFloat(vector.x);
+                packer.WriteFloat(vector.y);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -45,13 +45,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 2;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);
@@ -61,29 +61,29 @@ namespace Snowball
         }
     }
 
-    public class Vector3Converter : Converter
+    public class Vector3Converter : IConverter
     {
-        public static Converter constract() { return new Vector3Converter(); }
+        public static IConverter constract() { return new Vector3Converter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Vector3 vector = (Vector3)data;
 
-                packer.Write(vector.x);
-                packer.Write(vector.y);
-                packer.Write(vector.z);
+                packer.WriteFloat(vector.x);
+                packer.WriteFloat(vector.y);
+                packer.WriteFloat(vector.z);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -102,13 +102,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 3;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);
@@ -118,30 +118,30 @@ namespace Snowball
         }
     }
 
-    public class Vector4Converter : Converter
+    public class Vector4Converter : IConverter
     {
-        public static Converter constract() { return new Vector4Converter(); }
+        public static IConverter constract() { return new Vector4Converter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Vector4 vector = (Vector4)data;
 
-                packer.Write(vector.x);
-                packer.Write(vector.y);
-                packer.Write(vector.z);
-                packer.Write(vector.w);
+                packer.WriteFloat(vector.x);
+                packer.WriteFloat(vector.y);
+                packer.WriteFloat(vector.z);
+                packer.WriteFloat(vector.w);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -161,13 +161,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);
@@ -177,31 +177,31 @@ namespace Snowball
         }
     }
 
-    public class QuaternionConverter : Converter
+    public class QuaternionConverter : IConverter
     {
-        public static Converter constract() { return new QuaternionConverter(); }
+        public static IConverter constract() { return new QuaternionConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Quaternion quaternion = (Quaternion)data;
 
-                packer.Write(quaternion.x);
-                packer.Write(quaternion.y);
-                packer.Write(quaternion.z);
-                packer.Write(quaternion.w);
+                packer.WriteFloat(quaternion.x);
+                packer.WriteFloat(quaternion.y);
+                packer.WriteFloat(quaternion.z);
+                packer.WriteFloat(quaternion.w);
             }
 
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -221,13 +221,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);
@@ -237,30 +237,30 @@ namespace Snowball
         }
     }
 
-    public class ColorConverter : Converter
+    public class ColorConverter : IConverter
     {
-        public static Converter constract() { return new ColorConverter(); }
+        public static IConverter constract() { return new ColorConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Color color = (Color)data;
 
-                packer.Write(color.r);
-                packer.Write(color.g);
-                packer.Write(color.b);
-                packer.Write(color.a);
+                packer.WriteFloat(color.r);
+                packer.WriteFloat(color.g);
+                packer.WriteFloat(color.b);
+                packer.WriteFloat(color.a);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -280,13 +280,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(float) * 4;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);
@@ -296,30 +296,30 @@ namespace Snowball
         }
     }
 
-    public class Color32Converter : Converter
+    public class Color32Converter : IConverter
     {
-        public static Converter constract() { return new Color32Converter(); }
+        public static IConverter constract() { return new Color32Converter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 Color32 color = (Color32)data;
 
-                packer.Write(color.r);
-                packer.Write(color.g);
-                packer.Write(color.b);
-                packer.Write(color.a);
+                packer.WriteByte(color.r);
+                packer.WriteByte(color.g);
+                packer.WriteByte(color.b);
+                packer.WriteByte(color.a);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0)
@@ -339,13 +339,13 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null) return sizeof(byte);
             return sizeof(byte) + sizeof(byte) * 4;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);

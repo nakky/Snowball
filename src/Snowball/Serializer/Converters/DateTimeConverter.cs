@@ -5,25 +5,25 @@ using System.Collections.Generic;
 
 namespace Snowball
 {
-    public class DateTimeConverter : Converter
+    public class DateTimeConverter : IConverter
     {
-        public static Converter constract() { return new DateTimeConverter(); }
+        public static IConverter constract() { return new DateTimeConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
-                packer.Write(((DateTime)data).ToBinary());
+                packer.WriteLong(((DateTime)data).ToBinary());
             }  
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
 
@@ -37,7 +37,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -50,7 +50,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return 0;
@@ -60,25 +60,25 @@ namespace Snowball
         }
     }
 
-    public class TimeSpanConverter : Converter
+    public class TimeSpanConverter : IConverter
     {
-        public static Converter constract() { return new TimeSpanConverter(); }
+        public static IConverter constract() { return new TimeSpanConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
-                packer.Write(((TimeSpan)data).Ticks);
+                packer.WriteLong(((TimeSpan)data).Ticks);
             } 
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
 
@@ -92,7 +92,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -105,7 +105,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return 0;

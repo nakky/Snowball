@@ -170,7 +170,7 @@ namespace Snowball
             }
 
             BytePacker packer = new BytePacker(buffer);
-            packer.Write((short)bufSize);
+            packer.WriteShort((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
             packer.Write(channelId);
@@ -185,7 +185,7 @@ namespace Snowball
             bufferSize = (int)packer.Position;
 
             packer.Position = 0;
-            packer.Write((short)(bufferSize - start));
+            packer.WriteShort((short)(bufferSize - start));
         }
 
 

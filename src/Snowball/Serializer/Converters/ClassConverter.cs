@@ -8,11 +8,11 @@ using System.Linq;
 
 namespace Snowball
 {
-    public class ClassConverter : Converter
+    public class ClassConverter : IConverter
     {
         Type type;
 
-        List<Converter> converters = new List<Converter>();
+        List<IConverter> converters = new List<IConverter>();
         List<PropertyInfo> parameters = new List<PropertyInfo>();
 
         public ClassConverter(Type type)
@@ -38,7 +38,7 @@ namespace Snowball
                     {
                         parameters.Add(p);
                         if (datt.ConverterType == null) converters.Add(DataSerializer.GetConverter(p.PropertyType));
-                        else converters.Add((Converter)Activator.CreateInstance(datt.ConverterType));
+                        else converters.Add((IConverter)Activator.CreateInstance(datt.ConverterType));
                         break;
                     }
                 }
@@ -49,15 +49,15 @@ namespace Snowball
             throw new InvalidDataException("The class " + type.Name + " is not supported.");
         }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if(data == null)
             {
-                packer.Write((byte)0);
+                packer.WriteByte((byte)0);
             }
             else
             {
-                packer.Write((byte)1);
+                packer.WriteByte((byte)1);
 
                 for (int i = 0; i < parameters.Count; i++)
                 {
@@ -66,7 +66,7 @@ namespace Snowball
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
 
@@ -87,7 +87,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -107,7 +107,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             byte isNull = packer.ReadByte();
             if (isNull == 0) return sizeof(byte);

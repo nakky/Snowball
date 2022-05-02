@@ -5,16 +5,16 @@ using System.Collections.Generic;
 
 namespace Snowball
 {
-    public class IDictionaryConverter : Converter
+    public class DictionaryConverter : IConverter
     {
-        Converter keyConverter;
-        Converter valueConverter;
+        IConverter keyConverter;
+        IConverter valueConverter;
 
         Type type;
         Type keyType;
         Type valueType;
 
-        public IDictionaryConverter(Type type)
+        public DictionaryConverter(Type type)
         {
             this.type = type;
             this.keyType = type.GetGenericArguments()[0];
@@ -24,17 +24,17 @@ namespace Snowball
             valueConverter = DataSerializer.GetConverter(valueType);
         }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 System.Collections.IDictionary dictionary = (System.Collections.IDictionary)data;
 
-                packer.Write(dictionary.Count);
+                packer.WriteInt(dictionary.Count);
 
                 foreach (System.Collections.DictionaryEntry kvp in dictionary)
                 {
@@ -44,7 +44,7 @@ namespace Snowball
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int length = packer.ReadInt();
 
@@ -69,7 +69,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -92,7 +92,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);

@@ -100,40 +100,40 @@ namespace Snowball.Tests
 
             //Bool
             bool boolVal = true;
-            packer.Write(boolVal);
+            packer.WriteBool(boolVal);
 
             sbyte sbyteVal = (sbyte)random.Next(sbyte.MinValue, sbyte.MaxValue);
-            packer.Write(sbyteVal);
+            packer.WriteSByte(sbyteVal);
 
             byte byteVal = (byte)random.Next(byte.MinValue, byte.MaxValue);
-            packer.Write(byteVal);
+            packer.WriteByte(byteVal);
 
             char charVal = (char)random.Next(char.MinValue, char.MaxValue);
-            packer.Write(charVal);
+            packer.WriteChar(charVal);
 
             short shortVal = (short)random.Next(short.MinValue, short.MaxValue);
-            packer.Write(shortVal);
+            packer.WriteShort(shortVal);
 
             ushort ushortVal = (ushort)random.Next(ushort.MinValue, ushort.MaxValue);
-            packer.Write(ushortVal);
+            packer.WriteUShort(ushortVal);
 
             int intVal = random.Next();
-            packer.Write(intVal);
+            packer.WriteInt(intVal);
 
             uint uintVal = (uint)random.Next(0, int.MaxValue) * 2;
-            packer.Write(uintVal);
+            packer.WriteUInt(uintVal);
 
             long longVal = (long)random.Next() * 2;
-            packer.Write(longVal);
+            packer.WriteLong(longVal);
 
             ulong ulongVal = (uint)random.Next(0, int.MaxValue) * 2;
-            packer.Write(ulongVal);
+            packer.WriteULong(ulongVal);
 
             float floatVal = (float)random.NextDouble();
-            packer.Write(floatVal);
+            packer.WriteFloat(floatVal);
 
             double doubleVal = random.NextDouble();
-            packer.Write(doubleVal);
+            packer.WriteDouble(doubleVal);
 
             packer.Position = 0;
 
