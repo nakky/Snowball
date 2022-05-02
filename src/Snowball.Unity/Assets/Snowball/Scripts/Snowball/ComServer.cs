@@ -76,7 +76,7 @@ namespace Snowball
         int removeIntervalSec = 30;
         public int RemoveIntervalSec { get { return removeIntervalSec; } set { if (!IsOpened) removeIntervalSec = value; } }
 
-        Converter beaconConverter;
+        IConverter beaconConverter;
 
         int maxHealthLostCount = 5;
         public int MaxHealthLostCount { get { return maxHealthLostCount; } set { maxHealthLostCount = value; } }
@@ -338,10 +338,10 @@ namespace Snowball
             byte[] beaconBuf = new byte[dataSize + 4];
             packer = new BytePacker(beaconBuf);
 
-            packer.Write((short)dataSize);
+            packer.WriteShort((short)dataSize);
 
 #if DISABLE_CHANNEL_VARINT
-            packer.Write((short)PreservedChannelId.Beacon);
+            packer.WriteShort((short)PreservedChannelId.Beacon);
 #else
             int s = 0;
             VarintBitConverter.SerializeShort((short)PreservedChannelId.Beacon, packer, out s);
@@ -881,10 +881,10 @@ namespace Snowball
             }
 
             BytePacker packer = new BytePacker(buffer);
-            packer.Write((short)bufSize);
+            packer.WriteShort((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
-            packer.Write(channel.ChannelID);
+            packer.WriteShort(channel.ChannelID);
 #else
             int s = 0;
             VarintBitConverter.SerializeShort(channel.ChannelID, packer, out s);
@@ -896,7 +896,7 @@ namespace Snowball
             bufferSize = (int)packer.Position;
 
             packer.Position = 0;
-            packer.Write((short)(bufferSize - start));
+            packer.WriteShort((short)(bufferSize - start));
         }
 
         public async Task<bool> Broadcast<T>(ComGroup group, short channelId, T data, ComNode exception = null)

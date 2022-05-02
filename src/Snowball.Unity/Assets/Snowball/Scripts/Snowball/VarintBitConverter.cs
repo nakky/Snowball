@@ -59,7 +59,7 @@ namespace Snowball
                 }
 
                 byteval[0] = (byte)byteVal;
-                packer.Write((byte[])byteval, 0, 1);
+                packer.WriteByteArray((byte[])byteval, 0, 1);
                 size++;
             } while (value != 0);
 

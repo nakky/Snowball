@@ -5,13 +5,13 @@ using System.Collections.Generic;
 
 namespace Snowball
 {
-    public class IListConverter : Converter
+    public class ListConverter : IConverter
     {
-        Converter converter;
+        IConverter converter;
         Type type;
         Type elementType;
 
-        public IListConverter(Type type)
+        public ListConverter(Type type)
         {
             this.type = type;
             this.elementType = type.GetGenericArguments()[0];
@@ -19,17 +19,17 @@ namespace Snowball
             converter = DataSerializer.GetConverter(elementType);
         }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 System.Collections.IList list = (System.Collections.IList)data;
 
-                packer.Write(list.Count);
+                packer.WriteInt(list.Count);
 
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -38,7 +38,7 @@ namespace Snowball
             }   
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int length = packer.ReadInt();
 
@@ -59,7 +59,7 @@ namespace Snowball
             }  
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -80,7 +80,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);

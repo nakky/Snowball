@@ -16,16 +16,16 @@ namespace Snowball
     {
         static bool setup = false;
 
-        static Dictionary<Type, Converter> converterMap = new Dictionary<Type, Converter>();
+        static Dictionary<Type, IConverter> converterMap = new Dictionary<Type, IConverter>();
         static Dictionary<Type, ConverterConstractor> constractorMap = new Dictionary<Type, ConverterConstractor>();
 
-        public delegate Converter ConverterConstractor();
+        public delegate IConverter ConverterConstractor();
 
         public static void Serialize<T>(BytePacker packer, T data)
         {
             if (!setup) Setup();
 
-            Converter converter;
+            IConverter converter;
             if (!converterMap.TryGetValue(typeof(T), out converter))
             {
                 converter = GetConverter(typeof(T));
@@ -38,7 +38,7 @@ namespace Snowball
         {
             if (!setup) Setup();
 
-            Converter converter;
+            IConverter converter;
             if (!converterMap.TryGetValue(typeof(T), out converter)){
                 converter = GetConverter(typeof(T));
                 converterMap.Add(typeof(T), converter);
@@ -46,7 +46,7 @@ namespace Snowball
             return (T)converter.Deserialize(packer);
         }
 
-        public static Converter GetConverter(Type type)
+        public static IConverter GetConverter(Type type)
         {
             if (!setup) Setup();
 
@@ -70,11 +70,11 @@ namespace Snowball
             }
             else if (typeof(System.Collections.IList).IsAssignableFrom(type))
             {
-                return new IListConverter(type);
+                return new ListConverter(type);
             }
             else if (typeof(System.Collections.IDictionary).IsAssignableFrom(type))
             {
-                return new IDictionaryConverter(type);
+                return new DictionaryConverter(type);
             }
 
             return new ClassConverter(type);

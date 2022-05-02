@@ -2,23 +2,23 @@
 
 namespace Snowball
 {
-    public class VarShortConverter : Converter
+    public class VarShortConverter : IConverter
     {
-        public static Converter constract() { return new VarShortConverter(); }
+        public static IConverter constract() { return new VarShortConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeShort((short)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToShort(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[4];
@@ -27,7 +27,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToShort(packer, out s);
@@ -35,23 +35,23 @@ namespace Snowball
         }
     }
 
-    public class VarUShortConverter : Converter
+    public class VarUShortConverter : IConverter
     {
-        public static Converter constract() { return new VarUShortConverter(); }
+        public static IConverter constract() { return new VarUShortConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeUShort((ushort)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToUShort(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[4];
@@ -60,7 +60,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToUShort(packer, out s);
@@ -68,23 +68,23 @@ namespace Snowball
         }
     }
 
-    public class VarIntConverter : Converter
+    public class VarIntConverter : IConverter
     {
-        public static Converter constract() { return new VarIntConverter(); }
+        public static IConverter constract() { return new VarIntConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeInt((int)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToInt(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[8];
@@ -93,7 +93,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToInt(packer, out s);
@@ -101,23 +101,23 @@ namespace Snowball
         }
     }
 
-    public class VarUIntConverter : Converter
+    public class VarUIntConverter : IConverter
     {
-        public static Converter constract() { return new VarUIntConverter(); }
+        public static IConverter constract() { return new VarUIntConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeUInt((uint)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToUInt(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[8];
@@ -126,7 +126,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToUInt(packer, out s);
@@ -134,23 +134,23 @@ namespace Snowball
         }
     }
 
-    public class VarLongConverter : Converter
+    public class VarLongConverter : IConverter
     {
-        public static Converter constract() { return new VarLongConverter(); }
+        public static IConverter constract() { return new VarLongConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeLong((long)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToLong(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[16];
@@ -159,7 +159,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToLong(packer, out s);
@@ -167,23 +167,23 @@ namespace Snowball
         }
     }
 
-    public class VarULongConverter : Converter
+    public class VarULongConverter : IConverter
     {
-        public static Converter constract() { return new VarULongConverter(); }
+        public static IConverter constract() { return new VarULongConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             int s;
             VarintBitConverter.SerializeULong((ulong)data, packer, out s);
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int s;
             return VarintBitConverter.ToULong(packer, out s);
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             int s;
             byte[] array = new byte[16];
@@ -192,7 +192,7 @@ namespace Snowball
             return s;
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int s;
             VarintBitConverter.ToULong(packer, out s);

@@ -660,10 +660,10 @@ namespace Snowball
             }
 
             BytePacker packer = new BytePacker(buffer);
-            packer.Write((short)bufSize);
+            packer.WriteShort((short)bufSize);
 
 #if DISABLE_CHANNEL_VARINT
-        packer.Write(channel.ChannelID);
+        packer.WriteShort(channel.ChannelID);
 #else
             int s = 0;
             VarintBitConverter.SerializeShort(channel.ChannelID, packer, out s);
@@ -675,7 +675,7 @@ namespace Snowball
             bufferSize = (int)packer.Position;
 
             packer.Position = 0;
-            packer.Write((short)(bufferSize - start));
+            packer.WriteShort((short)(bufferSize - start));
         }
 
         public async Task<bool> Send<T>(short channelId, T data)

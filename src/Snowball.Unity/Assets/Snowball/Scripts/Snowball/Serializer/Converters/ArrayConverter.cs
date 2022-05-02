@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace Snowball
 {
-    public class ArrayConverter : Converter
+    public class ArrayConverter : IConverter
     {
-        Converter converter;
+        IConverter converter;
         Type type;
 
         public ArrayConverter(Type type) 
@@ -16,17 +16,17 @@ namespace Snowball
             converter = DataSerializer.GetConverter(type.GetElementType());
         }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 Array array = (Array)data;
 
-                packer.Write(array.Length);
+                packer.WriteInt(array.Length);
 
                 for (int i = 0; i < array.Length; i++)
                 {
@@ -35,7 +35,7 @@ namespace Snowball
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int length = packer.ReadInt();
 
@@ -55,7 +55,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if(data == null)
             {
@@ -76,7 +76,7 @@ namespace Snowball
             
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);
@@ -92,27 +92,27 @@ namespace Snowball
     }
 
 
-    public class ByteArrayConverter : Converter
+    public class ByteArrayConverter : IConverter
     {
-        public static Converter constract() { return new ByteArrayConverter(); }
+        public static IConverter constract() { return new ByteArrayConverter(); }
 
-        public override void Serialize(BytePacker packer, object data)
+        public void Serialize(BytePacker packer, object data)
         {
             if (data == null)
             {
-                packer.Write(-1);
+                packer.WriteInt(-1);
             }
             else
             {
                 byte[] array = (byte[])data;
 
-                packer.Write(array.Length);
+                packer.WriteInt(array.Length);
 
-                packer.Write(array, 0, array.Length);
+                packer.WriteByteArray(array, 0, array.Length);
             }
         }
 
-        public override object Deserialize(BytePacker packer)
+        public object Deserialize(BytePacker packer)
         {
             int length = packer.ReadInt();
 
@@ -130,7 +130,7 @@ namespace Snowball
             }
         }
 
-        public override int GetDataSize(object data)
+        public int GetDataSize(object data)
         {
             if (data == null)
             {
@@ -144,7 +144,7 @@ namespace Snowball
 
         }
 
-        public override int GetDataSize(BytePacker packer)
+        public int GetDataSize(BytePacker packer)
         {
             int length = packer.ReadInt();
             if (length < 0) return sizeof(int);
