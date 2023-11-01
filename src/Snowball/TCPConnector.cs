@@ -8,7 +8,7 @@ namespace Snowball
 {
     public class TCPConnector
     {
-        public const int DefaultSendTimeoutMs = 200;
+        public const int DefaultSendTimeoutMs = 2000;
         public const int DefaultReceiveTimeoutMs = 2000;
 
         int portNum;
